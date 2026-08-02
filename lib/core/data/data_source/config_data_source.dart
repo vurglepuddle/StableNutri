@@ -12,8 +12,9 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 ///   various view toggles), so it stays consistent whichever profile is
 ///   active;
 /// - the **per-profile** [HiveDBProvider.configBox] holds only the personal
-///   nutrition goals (kcal adjustment, macro split, per-meal kcal shares and
-///   the daily water goal), which differ from one profile to the next.
+///   nutrition goals (kcal adjustment, macro split, per-meal kcal shares,
+///   daily water goal, intake range and weight corridor), which differ from
+///   one profile to the next.
 ///
 /// Reads merge the two — shared fields from the app box, personal fields
 /// from the active profile's box. Writes store a detached copy of the merged
@@ -37,8 +38,9 @@ class ConfigDataSource {
   ConfigDBO _readMerged() {
     final app = _appBox.get(_configKey);
     final profile = _profileBox.get(_configKey);
-    final merged =
-        app != null ? ConfigDBO.fromJson(app.toJson()) : ConfigDBO.empty();
+    final merged = app != null
+        ? ConfigDBO.fromJson(app.toJson())
+        : ConfigDBO.empty();
     if (profile != null) {
       merged.userKcalAdjustment = profile.userKcalAdjustment;
       merged.userCarbGoalPct = profile.userCarbGoalPct;
@@ -46,6 +48,10 @@ class ConfigDataSource {
       merged.userFatGoalPct = profile.userFatGoalPct;
       merged.mealKcalSharesPct = profile.mealKcalSharesPct;
       merged.dailyWaterGoalMl = profile.dailyWaterGoalMl;
+      merged.dailyIntakeLowerKcal = profile.dailyIntakeLowerKcal;
+      merged.dailyIntakeUpperKcal = profile.dailyIntakeUpperKcal;
+      merged.weightCorridorLowerKg = profile.weightCorridorLowerKg;
+      merged.weightCorridorUpperKg = profile.weightCorridorUpperKg;
     }
     return merged;
   }
@@ -104,8 +110,7 @@ class ConfigDataSource {
     );
   }
 
-  Future<AppThemeDBO> getAppTheme() async =>
-      _readMerged().selectedAppTheme;
+  Future<AppThemeDBO> getAppTheme() async => _readMerged().selectedAppTheme;
 
   Future<void> setConfigAppTheme(AppThemeDBO appTheme) async {
     await _update((c) => c.selectedAppTheme = appTheme);
@@ -246,6 +251,23 @@ class ConfigDataSource {
     await _update((c) => c.dailyWaterGoalMl = goalMl);
   }
 
+  Future<void> setConfigDailyIntakeRange(
+    double lowerKcal,
+    double upperKcal,
+  ) async {
+    await _update((c) {
+      c.dailyIntakeLowerKcal = lowerKcal;
+      c.dailyIntakeUpperKcal = upperKcal;
+    });
+  }
+
+  Future<void> setConfigWeightCorridor(double lowerKg, double upperKg) async {
+    await _update((c) {
+      c.weightCorridorLowerKg = lowerKg;
+      c.weightCorridorUpperKg = upperKg;
+    });
+  }
+
   Future<void> setFastingWarningAcknowledged(bool acknowledged) async {
     await _update((c) => c.fastingWarningAcknowledged = acknowledged);
   }
@@ -273,9 +295,7 @@ class ConfigDataSource {
 
   Future<void> setConfigFoodSourceToggles(Map<String, bool> toggles) async {
     // Copy into a fresh map so Hive sees a distinct object reference on save.
-    await _update(
-      (c) => c.foodSourceToggles = Map<String, bool>.from(toggles),
-    );
+    await _update((c) => c.foodSourceToggles = Map<String, bool>.from(toggles));
   }
 
   Future<ConfigDBO> getConfig() async => _readMerged();

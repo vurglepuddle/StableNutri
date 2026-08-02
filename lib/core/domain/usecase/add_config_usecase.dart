@@ -114,6 +114,17 @@ class AddConfigUsecase {
     await _configRepository.setConfigDailyWaterGoalMl(goalMl);
   }
 
+  Future<void> setConfigDailyIntakeRange(
+    double lowerKcal,
+    double upperKcal,
+  ) async {
+    await _configRepository.setConfigDailyIntakeRange(lowerKcal, upperKcal);
+  }
+
+  Future<void> setConfigWeightCorridor(double lowerKg, double upperKg) async {
+    await _configRepository.setConfigWeightCorridor(lowerKg, upperKg);
+  }
+
   Future<void> setConfigUseMaterialYou(bool useMaterialYou) async {
     await _configRepository.setConfigUseMaterialYou(useMaterialYou);
   }

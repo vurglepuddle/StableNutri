@@ -152,6 +152,17 @@ class ConfigRepository {
     await _configDataSource.setConfigDailyWaterGoalMl(goalMl);
   }
 
+  Future<void> setConfigDailyIntakeRange(
+    double lowerKcal,
+    double upperKcal,
+  ) async {
+    await _configDataSource.setConfigDailyIntakeRange(lowerKcal, upperKcal);
+  }
+
+  Future<void> setConfigWeightCorridor(double lowerKg, double upperKg) async {
+    await _configDataSource.setConfigWeightCorridor(lowerKg, upperKg);
+  }
+
   Future<void> setFastingWarningAcknowledged(bool acknowledged) async {
     await _configDataSource.setFastingWarningAcknowledged(acknowledged);
   }

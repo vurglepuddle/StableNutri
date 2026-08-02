@@ -36,6 +36,10 @@ class SettingsLoadedState extends SettingsState {
   final int dayStartOffsetMinutes; // #139 follow-up
   final bool useMaterialYou; // #415
   final int? accentColor; // #415 follow-up
+  final double? dailyIntakeLowerKcal;
+  final double? dailyIntakeUpperKcal;
+  final double? weightCorridorLowerKg;
+  final double? weightCorridorUpperKg;
 
   const SettingsLoadedState(
     this.versionNumber,
@@ -59,30 +63,38 @@ class SettingsLoadedState extends SettingsState {
     this.dayStartOffsetMinutes = 0,
     this.useMaterialYou = true,
     this.accentColor,
+    this.dailyIntakeLowerKcal,
+    this.dailyIntakeUpperKcal,
+    this.weightCorridorLowerKg,
+    this.weightCorridorUpperKg,
   });
 
   @override
   List<Object?> get props => [
-        versionNumber,
-        sendAnonymousData,
-        appTheme,
-        usesImperialUnits,
-        usesImperialFoodUnits,
-        usesImperialHeightUnits,
-        bodyWeightUnit,
-        showActivityTracking,
-        showMealMacros,
-        notificationsEnabled,
-        notificationHour,
-        notificationMinute,
-        selectedLocale,
-        offCacheCount,
-        offCacheSizeBytes,
-        showMicronutrients,
-        usesKilojoules,
-        dayStartOffsetHours,
-        dayStartOffsetMinutes,
-        useMaterialYou,
-        accentColor,
-      ];
+    versionNumber,
+    sendAnonymousData,
+    appTheme,
+    usesImperialUnits,
+    usesImperialFoodUnits,
+    usesImperialHeightUnits,
+    bodyWeightUnit,
+    showActivityTracking,
+    showMealMacros,
+    notificationsEnabled,
+    notificationHour,
+    notificationMinute,
+    selectedLocale,
+    offCacheCount,
+    offCacheSizeBytes,
+    showMicronutrients,
+    usesKilojoules,
+    dayStartOffsetHours,
+    dayStartOffsetMinutes,
+    useMaterialYou,
+    accentColor,
+    dailyIntakeLowerKcal,
+    dailyIntakeUpperKcal,
+    weightCorridorLowerKg,
+    weightCorridorUpperKg,
+  ];
 }

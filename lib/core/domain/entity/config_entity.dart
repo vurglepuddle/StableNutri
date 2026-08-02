@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:opennutritracker/core/utils/bounds/ranges_const.dart';
 
 class ConfigEntity extends Equatable {
   // #150: keys for the per-meal kcal share map. Kept as plain strings rather
@@ -86,6 +87,13 @@ class ConfigEntity extends Equatable {
   // the map is enabled — see [isFoodSourceEnabled]. Open Food Facts is
   // always enabled and never appears here.
   final Map<String, bool> foodSourceToggles;
+  // Stable's personal targets. These stay nullable for backwards
+  // compatibility: a profile created before Stable ranges existed keeps its
+  // calculated calorie point/current weight until it explicitly saves bounds.
+  final double? dailyIntakeLowerKcal;
+  final double? dailyIntakeUpperKcal;
+  final double? weightCorridorLowerKg;
+  final double? weightCorridorUpperKg;
 
   /// Default daily water goal in millilitres for the home chip when the
   /// user has not picked one yet.
@@ -158,6 +166,10 @@ class ConfigEntity extends Equatable {
     this.accentColor,
     this.scannerPortraitLock,
     this.foodSourceToggles = const <String, bool>{},
+    this.dailyIntakeLowerKcal,
+    this.dailyIntakeUpperKcal,
+    this.weightCorridorLowerKg,
+    this.weightCorridorUpperKg,
   });
 
   /// Resolves the daily water goal for the home chip. Returns the user's
@@ -231,8 +243,8 @@ class ConfigEntity extends Equatable {
     bodyWeightUnit: dbo.bodyWeightUnitIndex != null
         ? BodyWeightUnit.fromIndex(dbo.bodyWeightUnitIndex!)
         : ((dbo.usesImperialUnits ?? false)
-            ? BodyWeightUnit.lb
-            : BodyWeightUnit.kg),
+              ? BodyWeightUnit.lb
+              : BodyWeightUnit.kg),
     userKcalAdjustment: dbo.userKcalAdjustment,
     userCarbGoalPct: dbo.userCarbGoalPct,
     userProteinGoalPct: dbo.userProteinGoalPct,
@@ -260,6 +272,34 @@ class ConfigEntity extends Equatable {
     foodSourceToggles: dbo.foodSourceToggles != null
         ? Map<String, bool>.from(dbo.foodSourceToggles!)
         : const <String, bool>{},
+    dailyIntakeLowerKcal:
+        _hasValidDailyIntakeRange(
+          dbo.dailyIntakeLowerKcal,
+          dbo.dailyIntakeUpperKcal,
+        )
+        ? dbo.dailyIntakeLowerKcal
+        : null,
+    dailyIntakeUpperKcal:
+        _hasValidDailyIntakeRange(
+          dbo.dailyIntakeLowerKcal,
+          dbo.dailyIntakeUpperKcal,
+        )
+        ? dbo.dailyIntakeUpperKcal
+        : null,
+    weightCorridorLowerKg:
+        _hasValidWeightCorridor(
+          dbo.weightCorridorLowerKg,
+          dbo.weightCorridorUpperKg,
+        )
+        ? dbo.weightCorridorLowerKg
+        : null,
+    weightCorridorUpperKg:
+        _hasValidWeightCorridor(
+          dbo.weightCorridorLowerKg,
+          dbo.weightCorridorUpperKg,
+        )
+        ? dbo.weightCorridorUpperKg
+        : null,
   );
 
   /// Returns the recommended kcal target for [mealKey] given a daily goal.
@@ -311,6 +351,24 @@ class ConfigEntity extends Equatable {
     return raw;
   }
 
+  static bool _hasValidDailyIntakeRange(double? lower, double? upper) =>
+      lower != null &&
+      upper != null &&
+      lower.isFinite &&
+      upper.isFinite &&
+      lower > 0 &&
+      upper <= 20000 &&
+      lower < upper;
+
+  static bool _hasValidWeightCorridor(double? lower, double? upper) =>
+      lower != null &&
+      upper != null &&
+      lower.isFinite &&
+      upper.isFinite &&
+      lower >= Ranges.minWeight &&
+      upper <= Ranges.maxWeight &&
+      lower < upper;
+
   @override
   List<Object?> get props => [
     hasAcceptedDisclaimer,
@@ -343,5 +401,9 @@ class ConfigEntity extends Equatable {
     accentColor,
     scannerPortraitLock,
     foodSourceToggles,
+    dailyIntakeLowerKcal,
+    dailyIntakeUpperKcal,
+    weightCorridorLowerKg,
+    weightCorridorUpperKg,
   ];
 }

@@ -73,6 +73,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           dayStartOffsetMinutes: userConfig.dayStartOffsetMinutes,
           useMaterialYou: userConfig.useMaterialYou,
           accentColor: userConfig.accentColor,
+          dailyIntakeLowerKcal: userConfig.dailyIntakeLowerKcal,
+          dailyIntakeUpperKcal: userConfig.dailyIntakeUpperKcal,
+          weightCorridorLowerKg: userConfig.weightCorridorLowerKg,
+          weightCorridorUpperKg: userConfig.weightCorridorUpperKg,
         ),
       );
     });
@@ -206,6 +210,18 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   Future<void> setDailyWaterGoalMl(int goalMl) async {
     await _addConfigUsecase.setConfigDailyWaterGoalMl(goalMl);
+  }
+
+  Future<double> getBaseKcalGoal() async {
+    return _getKcalGoalUsecase.getKcalGoal(totalKcalActivitiesParam: 0);
+  }
+
+  Future<void> setDailyIntakeRange(double lowerKcal, double upperKcal) async {
+    await _addConfigUsecase.setConfigDailyIntakeRange(lowerKcal, upperKcal);
+  }
+
+  Future<void> setWeightCorridor(double lowerKg, double upperKg) async {
+    await _addConfigUsecase.setConfigWeightCorridor(lowerKg, upperKg);
   }
 
   Future<void> setMacroGoals(

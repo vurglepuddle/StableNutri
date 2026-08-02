@@ -17,9 +17,12 @@ class HomeLoadingState extends HomeState {
 class HomeLoadedState extends HomeState {
   final bool showDisclaimerDialog;
   final double totalKcalDaily;
-  final double totalKcalLeft;
   final double totalKcalSupplied;
   final double totalKcalBurned;
+  final double dailyIntakeLowerKcal;
+  final double dailyIntakeUpperKcal;
+  final double weightCorridorLowerKg;
+  final double weightCorridorUpperKg;
   final double totalCarbsIntake;
   final double totalFatsIntake;
   final double totalProteinsIntake;
@@ -64,9 +67,12 @@ class HomeLoadedState extends HomeState {
   const HomeLoadedState({
     required this.showDisclaimerDialog,
     required this.totalKcalDaily,
-    required this.totalKcalLeft,
     required this.totalKcalSupplied,
     required this.totalKcalBurned,
+    required this.dailyIntakeLowerKcal,
+    required this.dailyIntakeUpperKcal,
+    required this.weightCorridorLowerKg,
+    required this.weightCorridorUpperKg,
     required this.totalCarbsIntake,
     required this.totalFatsIntake,
     required this.totalProteinsIntake,
@@ -108,6 +114,12 @@ class HomeLoadedState extends HomeState {
     bodyWeightUnit,
     userWeightKg,
     totalKcalDaily,
+    totalKcalSupplied,
+    totalKcalBurned,
+    dailyIntakeLowerKcal,
+    dailyIntakeUpperKcal,
+    weightCorridorLowerKg,
+    weightCorridorUpperKg,
     waterMlToday,
     waterGoalMl,
     waterIntakes,

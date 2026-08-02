@@ -7987,6 +7987,91 @@ class S {
       args: [],
     );
   }
+
+  /// `Daily intake range`
+  String get dailyIntakeRangeLabel {
+    return Intl.message(
+      'Daily intake range',
+      name: 'dailyIntakeRangeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight corridor`
+  String get weightCorridorLabel {
+    return Intl.message(
+      'Weight corridor',
+      name: 'weightCorridorLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Lower`
+  String get rangeLowerLabel {
+    return Intl.message('Lower', name: 'rangeLowerLabel', desc: '', args: []);
+  }
+
+  /// `Upper`
+  String get rangeUpperLabel {
+    return Intl.message('Upper', name: 'rangeUpperLabel', desc: '', args: []);
+  }
+
+  /// `Lower value must be less than upper value.`
+  String get rangeBoundsErrorLabel {
+    return Intl.message(
+      'Lower value must be less than upper value.',
+      name: 'rangeBoundsErrorLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `toward daily range`
+  String get towardDailyRangeLabel {
+    return Intl.message(
+      'toward daily range',
+      name: 'towardDailyRangeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Range`
+  String get rangeGoalLabel {
+    return Intl.message('Range', name: 'rangeGoalLabel', desc: '', args: []);
+  }
+
+  /// `to reach range`
+  String get rangeToReachLabel {
+    return Intl.message(
+      'to reach range',
+      name: 'rangeToReachLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `within daily range`
+  String get rangeWithinLabel {
+    return Intl.message(
+      'within daily range',
+      name: 'rangeWithinLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `above daily range`
+  String get rangeAboveLabel {
+    return Intl.message(
+      'above daily range',
+      name: 'rangeAboveLabel',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

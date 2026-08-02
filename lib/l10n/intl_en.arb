@@ -1116,5 +1116,15 @@
   "quickAddActivityAddedSnack": "Activity added",
   "quickAddActivityNameLabel": "Name (optional)",
   "scannerLockOrientationTooltip": "Lock to portrait",
-  "scannerUnlockOrientationTooltip": "Allow rotation"
+  "scannerUnlockOrientationTooltip": "Allow rotation",
+  "dailyIntakeRangeLabel": "Daily intake range",
+  "weightCorridorLabel": "Weight corridor",
+  "rangeLowerLabel": "Lower",
+  "rangeUpperLabel": "Upper",
+  "rangeBoundsErrorLabel": "Lower value must be less than upper value.",
+  "towardDailyRangeLabel": "toward daily range",
+  "rangeGoalLabel": "Range",
+  "rangeToReachLabel": "to reach range",
+  "rangeWithinLabel": "within daily range",
+  "rangeAboveLabel": "above daily range"
 }

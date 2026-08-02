@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/utils/calc/stable_range_calc.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -11,10 +12,10 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
 class DashboardWidget extends StatefulWidget {
-  final double totalKcalDaily;
-  final double totalKcalLeft;
   final double totalKcalSupplied;
   final double totalKcalBurned;
+  final double dailyIntakeLowerKcal;
+  final double dailyIntakeUpperKcal;
   final double totalCarbsIntake;
   final double totalFatsIntake;
   final double totalProteinsIntake;
@@ -26,8 +27,8 @@ class DashboardWidget extends StatefulWidget {
     super.key,
     required this.totalKcalSupplied,
     required this.totalKcalBurned,
-    required this.totalKcalDaily,
-    required this.totalKcalLeft,
+    required this.dailyIntakeLowerKcal,
+    required this.dailyIntakeUpperKcal,
     required this.totalCarbsIntake,
     required this.totalFatsIntake,
     required this.totalProteinsIntake,
@@ -43,67 +44,96 @@ class DashboardWidget extends StatefulWidget {
 class _DashboardWidgetState extends State<DashboardWidget> {
   @override
   Widget build(BuildContext context) {
-    double kcalValue = 0;
-    double gaugeValue = 0;
     final usesKilojoules = context.watch<EnergyUnitProvider>().usesKilojoules;
-    String kcalLabelText = usesKilojoules
-        ? '${S.of(context).kjLabel} ${S.of(context).energyLeftLabel}'
-        : S.of(context).kcalLeftLabel;
-
-    if (widget.totalKcalLeft > widget.totalKcalDaily) {
-      kcalValue = widget.totalKcalDaily;
-      gaugeValue = 0;
-    } else if (widget.totalKcalLeft < 0) {
-      kcalValue = widget.totalKcalLeft.abs();
-      gaugeValue = 1;
-      kcalLabelText = usesKilojoules
-          ? '${S.of(context).kjLabel} ${S.of(context).energyTooMuchLabel}'
-          : S.of(context).kcalTooMuchLabel;
-    } else {
-      kcalValue = widget.totalKcalLeft;
-      gaugeValue =
-          (widget.totalKcalDaily - widget.totalKcalLeft) / widget.totalKcalDaily;
-    }
-    final displayValue = usesKilojoules ? UnitCalc.kcalToKj(kcalValue) : kcalValue;
-    final displaySupplied = usesKilojoules
+    final s = S.of(context);
+    final rangeResult = StableRangeCalc.classify(
+      value: widget.totalKcalSupplied,
+      lower: widget.dailyIntakeLowerKcal,
+      upper: widget.dailyIntakeUpperKcal,
+    );
+    final gaugeValue = StableRangeCalc.progressTowardUpper(
+      value: widget.totalKcalSupplied,
+      upper: widget.dailyIntakeUpperKcal,
+    );
+    final displayValue = usesKilojoules
         ? UnitCalc.kcalToKj(widget.totalKcalSupplied)
         : widget.totalKcalSupplied;
+    final displayLower = usesKilojoules
+        ? UnitCalc.kcalToKj(widget.dailyIntakeLowerKcal)
+        : widget.dailyIntakeLowerKcal;
+    final displayUpper = usesKilojoules
+        ? UnitCalc.kcalToKj(widget.dailyIntakeUpperKcal)
+        : widget.dailyIntakeUpperKcal;
+    final displayDistance = usesKilojoules
+        ? UnitCalc.kcalToKj(rangeResult.distanceToRange)
+        : rangeResult.distanceToRange;
     final displayBurned = usesKilojoules
         ? UnitCalc.kcalToKj(widget.totalKcalBurned)
         : widget.totalKcalBurned;
+    final unitLabel = usesKilojoules ? s.kjLabel : s.kcalLabel;
+    final towardLabel = '$unitLabel · ${s.towardDailyRangeLabel}';
+    final rangeLabel =
+        '${s.rangeGoalLabel} ${displayLower.round()}–${displayUpper.round()} $unitLabel';
+    final statusLabel = switch (rangeResult.status) {
+      StableRangeStatus.below =>
+        '${displayDistance.round()} $unitLabel ${s.rangeToReachLabel}',
+      StableRangeStatus.within => s.rangeWithinLabel,
+      StableRangeStatus.above =>
+        '${displayDistance.round()} $unitLabel ${s.rangeAboveLabel}',
+    };
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final textTheme = Theme.of(context).textTheme;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Dimens.spacing16, Dimens.spacing8, Dimens.spacing16, Dimens.spacing4),
+      padding: const EdgeInsets.fromLTRB(
+        Dimens.spacing16,
+        Dimens.spacing8,
+        Dimens.spacing16,
+        Dimens.spacing4,
+      ),
       child: Column(
         children: [
           AppCard(
-            padding: const EdgeInsets.fromLTRB(Dimens.spacing24, Dimens.spacing20, Dimens.spacing24, Dimens.spacing24),
+            padding: const EdgeInsets.fromLTRB(
+              Dimens.spacing24,
+              Dimens.spacing20,
+              Dimens.spacing24,
+              Dimens.spacing24,
+            ),
             child: Column(
               children: [
                 Row(
                   children: [
                     _MiniStat(
-                      icon: Icons.arrow_downward_rounded,
-                      value: '${displaySupplied.toInt()}',
-                      label: S.of(context).suppliedLabel,
+                      icon: Icons.track_changes_rounded,
+                      value:
+                          '${displayLower.round()}–${displayUpper.round()} $unitLabel',
+                      label: s.rangeGoalLabel,
                       color: palette.proteinColor,
                     ),
                     const Spacer(),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SourcesScreen()),
+                    Semantics(
+                      identifier: 'home-dashboard-sources',
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const SourcesScreen(),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.info_outline_rounded,
+                          color: palette.textMuted,
+                          size: 22,
+                        ),
                       ),
-                      child: Icon(Icons.info_outline_rounded, color: palette.textMuted, size: 22),
                     ),
                     const Spacer(),
                     _MiniStat(
                       icon: Icons.local_fire_department_rounded,
                       value: '${displayBurned.toInt()}',
-                      label: S.of(context).burnedLabel,
+                      label: s.burnedLabel,
                       color: palette.carbsColor,
                       trailing: true,
                     ),
@@ -111,31 +141,47 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                 ),
                 const SizedBox(height: Dimens.spacing16),
                 Semantics(
-                  label: '${displayValue.toInt()} $kcalLabelText',
+                  label:
+                      '${displayValue.toInt()} $towardLabel. $rangeLabel. $statusLabel',
                   excludeSemantics: true,
                   child: CircularPercentIndicator(
-                  radius: 90,
-                  lineWidth: 16,
-                  percent: gaugeValue.clamp(0.0, 1.0),
-                  animation: true,
-                  animationDuration: 800,
-                  curve: AppMotion.emphasized,
-                  circularStrokeCap: CircularStrokeCap.round,
-                  backgroundColor: palette.surfaceMuted,
-                  progressColor: Theme.of(context).colorScheme.primary,
-                  center: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AnimatedFlipCounter(
-                        duration: const Duration(milliseconds: 800),
-                        curve: AppMotion.emphasized,
-                        value: displayValue.toInt(),
-                        textStyle: textTheme.displaySmall?.copyWith(height: 1),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(kcalLabelText, style: textTheme.bodyMedium?.copyWith(color: palette.textMuted)),
-                    ],
+                    radius: 90,
+                    lineWidth: 16,
+                    percent: gaugeValue.clamp(0.0, 1.0),
+                    animation: true,
+                    animationDuration: 800,
+                    curve: AppMotion.emphasized,
+                    circularStrokeCap: CircularStrokeCap.round,
+                    backgroundColor: palette.surfaceMuted,
+                    progressColor: Theme.of(context).colorScheme.primary,
+                    center: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedFlipCounter(
+                          duration: const Duration(milliseconds: 800),
+                          curve: AppMotion.emphasized,
+                          value: displayValue.toInt(),
+                          textStyle: textTheme.displaySmall?.copyWith(
+                            height: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          towardLabel,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: palette.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                ),
+                const SizedBox(height: Dimens.spacing12),
+                Text(
+                  statusLabel,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: palette.textMuted,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -200,11 +246,16 @@ class _MiniStat extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Column(
-      crossAxisAlignment: trailing ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: trailing
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.16), shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.16),
+            shape: BoxShape.circle,
+          ),
           child: Icon(icon, color: color, size: 20),
         ),
         const SizedBox(height: 6),
@@ -236,13 +287,22 @@ class _MacroTile extends StatelessWidget {
     final pct = (goal <= 0) ? 0.0 : (intake / goal).clamp(0.0, 1.0);
     return AppCard(
       borderRadius: Dimens.radiusM,
-      padding: const EdgeInsets.fromLTRB(Dimens.spacing16, Dimens.spacing16, Dimens.spacing16, Dimens.spacing16),
+      padding: const EdgeInsets.fromLTRB(
+        Dimens.spacing16,
+        Dimens.spacing16,
+        Dimens.spacing16,
+        Dimens.spacing16,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(width: 9, height: 9, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+              Container(
+                width: 9,
+                height: 9,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
               const SizedBox(width: 6),
               Flexible(child: Text(label, style: textTheme.labelMedium)),
             ],
@@ -260,7 +320,10 @@ class _MacroTile extends StatelessWidget {
           const SizedBox(height: Dimens.spacing12),
           Text(
             '${intake.toInt()}/${goal.toInt()} g',
-            style: textTheme.bodySmall?.copyWith(color: palette.textStrong, fontWeight: FontWeight.w700),
+            style: textTheme.bodySmall?.copyWith(
+              color: palette.textStrong,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),

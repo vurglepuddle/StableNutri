@@ -23,7 +23,6 @@ import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.d
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
-import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -177,10 +176,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         totalKcalGoal,
       );
 
-      final totalKcalLeft = CalorieGoalCalc.getDailyKcalLeft(
-        totalKcalGoal,
-        totalKcalIntake,
-      );
+      // Stored intake bounds describe the profile's base day. Activity keeps
+      // its existing behaviour by shifting both edges upward. An upgraded
+      // profile with no stored range resolves to the exact legacy goal.
+      final baseLegacyKcalGoal = totalKcalGoal - totalKcalActivities;
+      final dailyIntakeLowerKcal =
+          (configData.dailyIntakeLowerKcal ?? baseLegacyKcalGoal) +
+          totalKcalActivities;
+      final dailyIntakeUpperKcal =
+          (configData.dailyIntakeUpperKcal ?? baseLegacyKcalGoal) +
+          totalKcalActivities;
+      final weightCorridorLowerKg =
+          configData.weightCorridorLowerKg ?? user.weightKG;
+      final weightCorridorUpperKg =
+          configData.weightCorridorUpperKg ?? user.weightKG;
 
       // #150: derive recommended per-meal kcal targets from the saved share.
       final breakfastKcalTarget = configData.targetKcalForMeal(
@@ -204,9 +213,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         HomeLoadedState(
           showDisclaimerDialog: showDisclaimerDialog,
           totalKcalDaily: totalKcalGoal,
-          totalKcalLeft: totalKcalLeft,
           totalKcalSupplied: totalKcalIntake,
           totalKcalBurned: totalKcalActivities,
+          dailyIntakeLowerKcal: dailyIntakeLowerKcal,
+          dailyIntakeUpperKcal: dailyIntakeUpperKcal,
+          weightCorridorLowerKg: weightCorridorLowerKg,
+          weightCorridorUpperKg: weightCorridorUpperKg,
           totalCarbsIntake: totalCarbsIntake,
           totalFatsIntake: totalFatsIntake,
           totalCarbsGoal: totalCarbsGoal,

@@ -46,6 +46,10 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         usesImperialHeightUnits: fields[29] as bool?,
         bodyWeightUnitIndex: (fields[30] as num?)?.toInt(),
         foodSourceToggles: (fields[31] as Map?)?.cast<String, bool>(),
+        dailyIntakeLowerKcal: (fields[32] as num?)?.toDouble(),
+        dailyIntakeUpperKcal: (fields[33] as num?)?.toDouble(),
+        weightCorridorLowerKg: (fields[34] as num?)?.toDouble(),
+        weightCorridorUpperKg: (fields[35] as num?)?.toDouble(),
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -55,7 +59,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(32)
+      ..writeByte(36)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -119,7 +123,15 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(30)
       ..write(obj.bodyWeightUnitIndex)
       ..writeByte(31)
-      ..write(obj.foodSourceToggles);
+      ..write(obj.foodSourceToggles)
+      ..writeByte(32)
+      ..write(obj.dailyIntakeLowerKcal)
+      ..writeByte(33)
+      ..write(obj.dailyIntakeUpperKcal)
+      ..writeByte(34)
+      ..write(obj.weightCorridorLowerKg)
+      ..writeByte(35)
+      ..write(obj.weightCorridorUpperKg);
   }
 
   @override
@@ -176,6 +188,14 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
         bodyWeightUnitIndex: (json['bodyWeightUnitIndex'] as num?)?.toInt(),
         foodSourceToggles: (json['foodSourceToggles'] as Map<String, dynamic>?)
             ?.map((k, e) => MapEntry(k, e as bool)),
+        dailyIntakeLowerKcal:
+            (json['dailyIntakeLowerKcal'] as num?)?.toDouble(),
+        dailyIntakeUpperKcal:
+            (json['dailyIntakeUpperKcal'] as num?)?.toDouble(),
+        weightCorridorLowerKg:
+            (json['weightCorridorLowerKg'] as num?)?.toDouble(),
+        weightCorridorUpperKg:
+            (json['weightCorridorUpperKg'] as num?)?.toDouble(),
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -214,6 +234,10 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'usesImperialHeightUnits': instance.usesImperialHeightUnits,
   'bodyWeightUnitIndex': instance.bodyWeightUnitIndex,
   'foodSourceToggles': instance.foodSourceToggles,
+  'dailyIntakeLowerKcal': instance.dailyIntakeLowerKcal,
+  'dailyIntakeUpperKcal': instance.dailyIntakeUpperKcal,
+  'weightCorridorLowerKg': instance.weightCorridorLowerKg,
+  'weightCorridorUpperKg': instance.weightCorridorUpperKg,
 };
 
 const _$AppThemeDBOEnumMap = {

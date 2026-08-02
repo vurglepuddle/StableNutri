@@ -1919,6 +1919,30 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "weightHistoryWeightLabel": MessageLookupByLibrary.simpleMessage("Weight"),
     "weightLabel": MessageLookupByLibrary.simpleMessage("Weight"),
+    "dailyIntakeRangeLabel": MessageLookupByLibrary.simpleMessage(
+      "Daily intake range",
+    ),
+    "weightCorridorLabel": MessageLookupByLibrary.simpleMessage(
+      "Weight corridor",
+    ),
+    "rangeLowerLabel": MessageLookupByLibrary.simpleMessage("Lower"),
+    "rangeUpperLabel": MessageLookupByLibrary.simpleMessage("Upper"),
+    "rangeBoundsErrorLabel": MessageLookupByLibrary.simpleMessage(
+      "Lower value must be less than upper value.",
+    ),
+    "towardDailyRangeLabel": MessageLookupByLibrary.simpleMessage(
+      "toward daily range",
+    ),
+    "rangeGoalLabel": MessageLookupByLibrary.simpleMessage("Range"),
+    "rangeToReachLabel": MessageLookupByLibrary.simpleMessage(
+      "to reach range",
+    ),
+    "rangeWithinLabel": MessageLookupByLibrary.simpleMessage(
+      "within daily range",
+    ),
+    "rangeAboveLabel": MessageLookupByLibrary.simpleMessage(
+      "above daily range",
+    ),
     "yearsLabel": m49,
     "youLabel": MessageLookupByLibrary.simpleMessage("You"),
     "zincLabel": MessageLookupByLibrary.simpleMessage("zinc"),

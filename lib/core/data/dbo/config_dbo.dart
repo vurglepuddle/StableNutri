@@ -120,6 +120,17 @@ class ConfigDBO extends HiveObject {
   // Food Facts is always enabled and deliberately has no entry here.
   @HiveField(31)
   Map<String, bool>? foodSourceToggles;
+  // Stable targets are personal rather than device-wide. Null means an
+  // upgraded profile has not chosen a range yet; callers preserve the legacy
+  // point target until the user saves explicit lower and upper bounds.
+  @HiveField(32)
+  double? dailyIntakeLowerKcal;
+  @HiveField(33)
+  double? dailyIntakeUpperKcal;
+  @HiveField(34)
+  double? weightCorridorLowerKg;
+  @HiveField(35)
+  double? weightCorridorUpperKg;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -151,6 +162,10 @@ class ConfigDBO extends HiveObject {
     this.usesImperialHeightUnits,
     this.bodyWeightUnitIndex,
     this.foodSourceToggles,
+    this.dailyIntakeLowerKcal,
+    this.dailyIntakeUpperKcal,
+    this.weightCorridorLowerKg,
+    this.weightCorridorUpperKg,
   });
 
   factory ConfigDBO.empty() =>
@@ -165,6 +180,10 @@ class ConfigDBO extends HiveObject {
     usesImperialFoodUnits: entity.usesImperialFoodUnits,
     usesImperialHeightUnits: entity.usesImperialHeightUnits,
     bodyWeightUnitIndex: entity.bodyWeightUnit.index,
+    dailyIntakeLowerKcal: entity.dailyIntakeLowerKcal,
+    dailyIntakeUpperKcal: entity.dailyIntakeUpperKcal,
+    weightCorridorLowerKg: entity.weightCorridorLowerKg,
+    weightCorridorUpperKg: entity.weightCorridorUpperKg,
   );
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>

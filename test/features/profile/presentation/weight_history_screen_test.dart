@@ -50,6 +50,8 @@ class _FakeConfigRepository extends Fake implements ConfigRepository {
       false,
       false,
       AppThemeEntity.system,
+      weightCorridorLowerKg: 70,
+      weightCorridorUpperKg: 74,
     );
   }
 }
@@ -78,8 +80,9 @@ Widget _buildScreen(List<WeightLogEntity> entries) {
 
 void main() {
   group('WeightHistoryScreen chart', () {
-    testWidgets('shows the empty-state copy when there are no entries',
-        (tester) async {
+    testWidgets('shows the empty-state copy when there are no entries', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(_buildScreen(const [])));
       await tester.pumpAndSettle();
 
@@ -88,8 +91,9 @@ void main() {
       expect(find.byType(LineChart), findsNothing);
     });
 
-    testWidgets('shows the chart empty-state when there is only one entry',
-        (tester) async {
+    testWidgets('shows the chart empty-state when there is only one entry', (
+      tester,
+    ) async {
       final today = DateTime.now();
       final entries = [
         WeightLogEntity(
@@ -102,14 +106,17 @@ void main() {
       await tester.pumpAndSettle();
 
       // 1 entry: the list shows the row, the chart slot shows the nudge.
-      expect(find.byKey(const Key('weightHistoryChartEmptyState')),
-          findsOneWidget);
+      expect(
+        find.byKey(const Key('weightHistoryChartEmptyState')),
+        findsOneWidget,
+      );
       expect(find.text(S.current.weightHistoryChartEmptyState), findsOneWidget);
       expect(find.byType(LineChart), findsNothing);
     });
 
-    testWidgets('renders the chart when there are three entries',
-        (tester) async {
+    testWidgets('renders the chart when there are three entries', (
+      tester,
+    ) async {
       final today = DateTime.now();
       DateTime day(int daysAgo) {
         final d = today.subtract(Duration(days: daysAgo));
@@ -127,8 +134,17 @@ void main() {
 
       expect(find.byKey(const Key('weightHistoryChart')), findsOneWidget);
       expect(find.byType(LineChart), findsOneWidget);
-      expect(find.byKey(const Key('weightHistoryChartEmptyState')),
-          findsNothing);
+      expect(
+        find.byKey(const Key('weightHistoryChartEmptyState')),
+        findsNothing,
+      );
+
+      final chart = tester.widget<LineChart>(find.byType(LineChart));
+      final corridor =
+          chart.data.rangeAnnotations.horizontalRangeAnnotations.single;
+      expect(corridor.y1, 70);
+      expect(corridor.y2, 74);
+      expect(chart.data.extraLinesData.horizontalLines, hasLength(2));
     });
   });
 }

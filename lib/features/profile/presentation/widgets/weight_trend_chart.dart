@@ -7,16 +7,17 @@ import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Smoothed weight trend line shared by the weight-history screen and the
-/// Trends view, so both render the same chart — dated axis, a dashed
-/// target-weight reference, dots on each reading, and a curved line.
+/// Trends view, so both render the same chart with a dated axis, a shaded
+/// corridor, dots on each reading, and a curved line.
 ///
 /// [windowDays] sets how far back the chart looks; entries older than that
-/// are dropped. The y-range is computed from the recorded weights so a
-/// far-away target weight never squashes the trend.
+/// are dropped. The y-range includes both readings and a configured corridor
+/// so the relationship between them remains visible.
 class WeightTrendChart extends StatelessWidget {
   final List<WeightLogEntity> entries;
   final BodyWeightUnit bodyWeightUnit;
-  final double? targetWeightKg;
+  final double? weightCorridorLowerKg;
+  final double? weightCorridorUpperKg;
   final int windowDays;
   final double chartHeight;
 
@@ -24,7 +25,8 @@ class WeightTrendChart extends StatelessWidget {
     super.key,
     required this.entries,
     required this.bodyWeightUnit,
-    required this.targetWeightKg,
+    this.weightCorridorLowerKg,
+    this.weightCorridorUpperKg,
     this.windowDays = 30,
     this.chartHeight = 220,
   });
@@ -53,10 +55,13 @@ class WeightTrendChart extends StatelessWidget {
     // how the calorie/water charts window their range.
     final windowStart = today.subtract(Duration(days: windowDays - 1));
 
-    final inWindow = entries
-        .where((e) => !e.date.isBefore(windowStart) && !e.date.isAfter(today))
-        .toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
+    final inWindow =
+        entries
+            .where(
+              (e) => !e.date.isBefore(windowStart) && !e.date.isAfter(today),
+            )
+            .toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
 
     if (inWindow.length < 2) {
       return Padding(
@@ -86,24 +91,34 @@ class WeightTrendChart extends StatelessWidget {
         ),
     ];
 
-    final minY = spots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
-    final maxY = spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+    final hasCorridor =
+        weightCorridorLowerKg != null &&
+        weightCorridorUpperKg != null &&
+        weightCorridorLowerKg! < weightCorridorUpperKg!;
+    final corridorLowerY = hasCorridor
+        ? _toChartY(weightCorridorLowerKg!)
+        : null;
+    final corridorUpperY = hasCorridor
+        ? _toChartY(weightCorridorUpperKg!)
+        : null;
+    final plottedY = [
+      ...spots.map((s) => s.y),
+      ?corridorLowerY,
+      ?corridorUpperY,
+    ];
+    final minY = plottedY.reduce((a, b) => a < b ? a : b);
+    final maxY = plottedY.reduce((a, b) => a > b ? a : b);
     // Pad so points don't sit on the edges. When all weights are identical we
     // still need a non-zero range or fl_chart throws.
     final yPadding = ((maxY - minY) * 0.15).clamp(0.5, 5.0);
 
-    final targetY = targetWeightKg == null ? null : _toChartY(targetWeightKg!);
-    // Only draw the dashed reference when the target sits within (or just
-    // adjacent to) the auto y-range, so a far-off target doesn't autoscale
-    // the chart away from the recorded weights.
-    final showTargetLine = targetY != null &&
-        targetY >= (minY - yPadding) &&
-        targetY <= (maxY + yPadding);
-
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final dateFormat = DateFormat.MMMd(localeTag);
     // ~5 evenly spaced date labels regardless of window length.
-    final labelInterval = (windowDays / 5).ceilToDouble().clamp(1, 30).toDouble();
+    final labelInterval = (windowDays / 5)
+        .ceilToDouble()
+        .clamp(1, 30)
+        .toDouble();
 
     return Padding(
       key: const Key('weightHistoryChart'),
@@ -116,6 +131,16 @@ class WeightTrendChart extends StatelessWidget {
             maxX: (windowDays - 1).toDouble(),
             minY: minY - yPadding,
             maxY: maxY + yPadding,
+            rangeAnnotations: RangeAnnotations(
+              horizontalRangeAnnotations: [
+                if (corridorLowerY != null && corridorUpperY != null)
+                  HorizontalRangeAnnotation(
+                    y1: corridorLowerY,
+                    y2: corridorUpperY,
+                    color: lineColor.withValues(alpha: 0.10),
+                  ),
+              ],
+            ),
             gridData: const FlGridData(show: false),
             borderData: FlBorderData(show: false),
             titlesData: FlTitlesData(
@@ -130,7 +155,9 @@ class WeightTrendChart extends StatelessWidget {
                   showTitles: true,
                   reservedSize: 40,
                   getTitlesWidget: (value, meta) => Text(
-                    value.toStringAsFixed(bodyWeightUnit == BodyWeightUnit.st ? 1 : 0),
+                    value.toStringAsFixed(
+                      bodyWeightUnit == BodyWeightUnit.st ? 1 : 0,
+                    ),
                     style: theme.textTheme.labelSmall,
                   ),
                 ),
@@ -155,11 +182,18 @@ class WeightTrendChart extends StatelessWidget {
             ),
             extraLinesData: ExtraLinesData(
               horizontalLines: [
-                if (showTargetLine)
+                if (corridorLowerY != null)
                   HorizontalLine(
-                    y: targetY,
-                    color: theme.colorScheme.outline,
-                    strokeWidth: 1.2,
+                    y: corridorLowerY,
+                    color: lineColor.withValues(alpha: 0.55),
+                    strokeWidth: 1,
+                    dashArray: const [6, 4],
+                  ),
+                if (corridorUpperY != null)
+                  HorizontalLine(
+                    y: corridorUpperY,
+                    color: lineColor.withValues(alpha: 0.55),
+                    strokeWidth: 1,
                     dashArray: const [6, 4],
                   ),
               ],
@@ -175,10 +209,10 @@ class WeightTrendChart extends StatelessWidget {
                   show: true,
                   getDotPainter: (spot, percent, bar, index) =>
                       FlDotCirclePainter(
-                    radius: 3,
-                    color: lineColor,
-                    strokeWidth: 0,
-                  ),
+                        radius: 3,
+                        color: lineColor,
+                        strokeWidth: 0,
+                      ),
                 ),
               ),
             ],

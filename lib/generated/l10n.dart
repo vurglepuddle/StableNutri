@@ -8008,6 +8008,36 @@ class S {
     );
   }
 
+  /// `below weight corridor`
+  String get weightCorridorBelowLabel {
+    return Intl.message(
+      'below weight corridor',
+      name: 'weightCorridorBelowLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `within weight corridor`
+  String get weightCorridorWithinLabel {
+    return Intl.message(
+      'within weight corridor',
+      name: 'weightCorridorWithinLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `above weight corridor`
+  String get weightCorridorAboveLabel {
+    return Intl.message(
+      'above weight corridor',
+      name: 'weightCorridorAboveLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Lower`
   String get rangeLowerLabel {
     return Intl.message('Lower', name: 'rangeLowerLabel', desc: '', args: []);

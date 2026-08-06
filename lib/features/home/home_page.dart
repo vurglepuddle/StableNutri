@@ -92,6 +92,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             state.showActivityTracking,
             state.showMealMacros,
             state.userWeightKg,
+            state.weightCorridorLowerKg,
+            state.weightCorridorUpperKg,
             state.breakfastKcalTarget,
             state.lunchKcalTarget,
             state.dinnerKcalTarget,
@@ -149,6 +151,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     bool showActivityTracking,
     bool showMealMacros,
     double userWeightKg,
+    double weightCorridorLowerKg,
+    double weightCorridorUpperKg,
     double breakfastKcalTarget,
     double lunchKcalTarget,
     double dinnerKcalTarget,
@@ -183,6 +187,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   QuickWeightWidget(
                     weightKg: userWeightKg,
                     bodyWeightUnit: bodyWeightUnit,
+                    weightCorridorLowerKg: weightCorridorLowerKg,
+                    weightCorridorUpperKg: weightCorridorUpperKg,
                   ),
                   QuickWaterWidget(
                     waterMlToday: waterMlToday,

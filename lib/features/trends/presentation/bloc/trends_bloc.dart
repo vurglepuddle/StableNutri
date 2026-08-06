@@ -76,6 +76,7 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
           void consider(DateTime d) {
             if (earliest == null || d.isBefore(earliest!)) earliest = d;
           }
+
           for (final d in days) {
             consider(DateTime(d.day.year, d.day.month, d.day.day));
           }
@@ -90,20 +91,25 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
               : (today.difference(earliest!).inDays + 1).clamp(2, 3650);
         }
 
-        emit(TrendsLoaded(
-          rangeDays: event.rangeDays,
-          windowDays: windowDays,
-          days: days,
-          priorWeek: priorWeek,
-          weight: weight,
-          bodyWeightUnit: config.bodyWeightUnit,
-          targetWeightKg: user.targetWeightKg,
-          waterByDay: waterByDay,
-          waterGoalMl: config.effectiveDailyWaterGoalMl(
-            user.gender,
-            caloriesProfile: user.caloriesProfile,
+        emit(
+          TrendsLoaded(
+            rangeDays: event.rangeDays,
+            windowDays: windowDays,
+            days: days,
+            priorWeek: priorWeek,
+            weight: weight,
+            bodyWeightUnit: config.bodyWeightUnit,
+            weightCorridorLowerKg:
+                config.weightCorridorLowerKg ?? user.weightKG,
+            weightCorridorUpperKg:
+                config.weightCorridorUpperKg ?? user.weightKG,
+            waterByDay: waterByDay,
+            waterGoalMl: config.effectiveDailyWaterGoalMl(
+              user.gender,
+              caloriesProfile: user.caloriesProfile,
+            ),
           ),
-        ));
+        );
       } catch (e) {
         emit(TrendsFailed(e.toString()));
       }

@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/utils/calc/stable_range_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_display_format.dart';
@@ -19,11 +20,15 @@ import 'package:opennutritracker/generated/l10n.dart';
 class QuickWeightWidget extends StatelessWidget {
   final double weightKg;
   final BodyWeightUnit bodyWeightUnit;
+  final double weightCorridorLowerKg;
+  final double weightCorridorUpperKg;
 
   const QuickWeightWidget({
     super.key,
     required this.weightKg,
     required this.bodyWeightUnit,
+    required this.weightCorridorLowerKg,
+    required this.weightCorridorUpperKg,
   });
 
   @override
@@ -38,6 +43,24 @@ class QuickWeightWidget extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final textTheme = Theme.of(context).textTheme;
+    final hasCorridor = weightCorridorLowerKg < weightCorridorUpperKg;
+    final corridorRange = hasCorridor
+        ? formatBodyWeightRange(
+            weightCorridorLowerKg,
+            weightCorridorUpperKg,
+            bodyWeightUnit,
+            kgLabel: S.of(context).kgLabel,
+            lbLabel: S.of(context).lbsLabel,
+            stLabel: S.of(context).stLabel,
+          )
+        : null;
+    final corridorStatus = hasCorridor
+        ? StableRangeCalc.classify(
+            value: weightKg,
+            lower: weightCorridorLowerKg,
+            upper: weightCorridorUpperKg,
+          ).status
+        : null;
 
     return Semantics(
       identifier: 'home-weight-chip',
@@ -66,11 +89,27 @@ class QuickWeightWidget extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: Dimens.spacing8),
-                Text(
-                  displayStr,
-                  style: textTheme.labelLarge?.copyWith(
-                    color: palette.textStrong,
-                    fontWeight: FontWeight.w700,
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        displayStr,
+                        style: textTheme.labelLarge?.copyWith(
+                          color: palette.textStrong,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (corridorRange != null && corridorStatus != null)
+                        Text(
+                          '$corridorRange · ${_corridorStatusLabel(context, corridorStatus)}',
+                          key: const Key('homeWeightCorridorSummary'),
+                          style: textTheme.bodySmall?.copyWith(
+                            color: palette.textMuted,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: Dimens.spacing4),
@@ -83,13 +122,22 @@ class QuickWeightWidget extends StatelessWidget {
     );
   }
 
+  String _corridorStatusLabel(BuildContext context, StableRangeStatus status) {
+    switch (status) {
+      case StableRangeStatus.below:
+        return S.of(context).weightCorridorBelowLabel;
+      case StableRangeStatus.within:
+        return S.of(context).weightCorridorWithinLabel;
+      case StableRangeStatus.above:
+        return S.of(context).weightCorridorAboveLabel;
+    }
+  }
+
   Future<void> _showWeightDialog(BuildContext context) async {
     final newKg = await showDialog<double>(
       context: context,
-      builder: (context) => SetWeightDialog(
-        initialKg: weightKg,
-        unit: bodyWeightUnit,
-      ),
+      builder: (context) =>
+          SetWeightDialog(initialKg: weightKg, unit: bodyWeightUnit),
     );
 
     if (newKg == null || !context.mounted) return;

@@ -55,7 +55,8 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
       widget.configRepository ?? locator<ConfigRepository>();
   // Optional in tests so the harness doesn't need to register the
   // user usecase in the locator just to render the chart.
-  late final GetUserUsecase? _getUserUsecase = widget.getUserUsecase ??
+  late final GetUserUsecase? _getUserUsecase =
+      widget.getUserUsecase ??
       (locator.isRegistered<GetUserUsecase>()
           ? locator<GetUserUsecase>()
           : null);
@@ -63,9 +64,10 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   bool _loading = true;
   BodyWeightUnit _bodyWeightUnit = BodyWeightUnit.kg;
   List<WeightLogEntity> _entries = const [];
-  // Loaded once at mount time so the chart can draw a dashed reference
-  // line for the user's #119 target weight. Null when unset.
-  double? _targetWeightKg;
+  // Null or equal bounds represent an upgraded profile that has not chosen a
+  // true corridor yet; the chart stays visually quiet in that case.
+  double? _weightCorridorLowerKg;
+  double? _weightCorridorUpperKg;
 
   @override
   void initState() {
@@ -84,7 +86,8 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
     setState(() {
       _bodyWeightUnit = unit;
       _entries = entries;
-      _targetWeightKg = user?.targetWeightKg;
+      _weightCorridorLowerKg = config.weightCorridorLowerKg ?? user?.weightKG;
+      _weightCorridorUpperKg = config.weightCorridorUpperKg ?? user?.weightKG;
       _loading = false;
     });
   }
@@ -92,9 +95,7 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(S.of(context).profileWeightHistoryTitle),
-      ),
+      appBar: AppBar(title: Text(S.of(context).profileWeightHistoryTitle)),
       floatingActionButton: Semantics(
         identifier: 'weight-history-add',
         child: FloatingActionButton.extended(
@@ -106,35 +107,36 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _entries.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Text(
-                      S.of(context).weightHistoryNoEntries,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ),
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.only(top: 8, bottom: 96),
-                  itemCount: _entries.length + 1,
-                  separatorBuilder: (context, index) {
-                    // No divider between the chart card and the first list tile.
-                    if (index == 0) return const SizedBox.shrink();
-                    return const Divider(height: 1);
-                  },
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return WeightTrendChart(
-                        entries: _entries,
-                        bodyWeightUnit: _bodyWeightUnit,
-                        targetWeightKg: _targetWeightKg,
-                      );
-                    }
-                    return _buildEntryTile(_entries[index - 1]);
-                  },
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  S.of(context).weightHistoryNoEntries,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
+              ),
+            )
+          : ListView.separated(
+              padding: const EdgeInsets.only(top: 8, bottom: 96),
+              itemCount: _entries.length + 1,
+              separatorBuilder: (context, index) {
+                // No divider between the chart card and the first list tile.
+                if (index == 0) return const SizedBox.shrink();
+                return const Divider(height: 1);
+              },
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return WeightTrendChart(
+                    entries: _entries,
+                    bodyWeightUnit: _bodyWeightUnit,
+                    weightCorridorLowerKg: _weightCorridorLowerKg,
+                    weightCorridorUpperKg: _weightCorridorUpperKg,
+                  );
+                }
+                return _buildEntryTile(_entries[index - 1]);
+              },
+            ),
     );
   }
 
@@ -153,7 +155,9 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
     return ListTile(
       title: Text(displayStr),
       subtitle: Text(
-        entry.note?.isNotEmpty == true ? '$dateLabel  •  ${entry.note}' : dateLabel,
+        entry.note?.isNotEmpty == true
+            ? '$dateLabel  •  ${entry.note}'
+            : dateLabel,
       ),
       trailing: IconButton(
         icon: const Icon(Icons.delete_outline),
@@ -163,7 +167,9 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   }
 
   Future<void> _onAddEntry() async {
-    final initialWeightKg = _entries.isNotEmpty ? _entries.first.weightKg : 70.0;
+    final initialWeightKg = _entries.isNotEmpty
+        ? _entries.first.weightKg
+        : 70.0;
     final result = await showDialog<_NewWeightEntry>(
       context: context,
       builder: (context) => _AddWeightEntryDialog(

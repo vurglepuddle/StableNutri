@@ -49,3 +49,26 @@ String formatBodyWeight(
       return '$stones $stLabel ${formatProfileWeight(pounds)} $lbLabel';
   }
 }
+
+/// Formats a lower/upper weight pair without making callers duplicate unit
+/// conversion rules. Metric and pounds share one suffix ("70–75 kg"), while
+/// stones retain the natural compound form for each bound.
+String formatBodyWeightRange(
+  double lowerKg,
+  double upperKg,
+  BodyWeightUnit unit, {
+  required String kgLabel,
+  required String lbLabel,
+  required String stLabel,
+}) {
+  switch (unit) {
+    case BodyWeightUnit.kg:
+      return '${formatProfileWeight(lowerKg)}–${formatProfileWeight(upperKg)} $kgLabel';
+    case BodyWeightUnit.lb:
+      return '${formatProfileWeight(UnitCalc.kgToLbs(lowerKg))}–'
+          '${formatProfileWeight(UnitCalc.kgToLbs(upperKg))} $lbLabel';
+    case BodyWeightUnit.st:
+      return '${formatBodyWeight(lowerKg, unit, kgLabel: kgLabel, lbLabel: lbLabel, stLabel: stLabel)}–'
+          '${formatBodyWeight(upperKg, unit, kgLabel: kgLabel, lbLabel: lbLabel, stLabel: stLabel)}';
+  }
+}

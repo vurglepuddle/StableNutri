@@ -17,7 +17,11 @@
   var longest = 0;
   var run = 0;
   for (var i = 0; i <= total; i++) {
-    final day = DateTime(windowStart.year, windowStart.month, windowStart.day + i);
+    final day = DateTime(
+      windowStart.year,
+      windowStart.month,
+      windowStart.day + i,
+    );
     if (onTrackDays.contains(day)) {
       run++;
       if (run > longest) longest = run;
@@ -39,18 +43,10 @@
   return (current: current, longest: longest);
 }
 
-/// Linear trend through weight [points] (sorted ascending by date), returning
-/// the weekly rate of change and, when a [targetKg] is set and the trend moves
-/// toward it, a whole-week estimate of when it'll be reached.
-///
-/// Returns null when there's too little data (fewer than two points) to draw a
-/// line. [weeksToTarget] is null when there's no target, the weight is flat, or
-/// the trend is moving away from the target (so we don't promise a date the
-/// user isn't heading for).
-({double ratePerWeek, int? weeksToTarget})? weightProjection(
-  List<({DateTime date, double kg})> points,
-  double? targetKg,
-) {
+/// Linear trend through weight [points] (sorted ascending by date), returned
+/// as a neutral weekly rate of change. Stable presents the configured
+/// corridor rather than predicting a date for reaching a single target.
+double? weightTrendRate(List<({DateTime date, double kg})> points) {
   if (points.length < 2) return null;
 
   final first = points.first.date;
@@ -71,15 +67,5 @@
   final slopePerDay = denominator == 0 ? 0.0 : numerator / denominator;
   final ratePerWeek = slopePerDay * 7;
 
-  int? weeksToTarget;
-  if (targetKg != null && slopePerDay.abs() > 1e-6) {
-    final current = ys.last;
-    final daysToTarget = (targetKg - current) / slopePerDay;
-    // Only project when heading toward the target and within a sane horizon.
-    if (daysToTarget > 0 && daysToTarget < 3650) {
-      weeksToTarget = (daysToTarget / 7).ceil();
-    }
-  }
-
-  return (ratePerWeek: ratePerWeek, weeksToTarget: weeksToTarget);
+  return ratePerWeek;
 }

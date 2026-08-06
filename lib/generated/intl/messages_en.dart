@@ -1925,6 +1925,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "weightCorridorLabel": MessageLookupByLibrary.simpleMessage(
       "Weight corridor",
     ),
+    "weightCorridorBelowLabel": MessageLookupByLibrary.simpleMessage(
+      "below weight corridor",
+    ),
+    "weightCorridorWithinLabel": MessageLookupByLibrary.simpleMessage(
+      "within weight corridor",
+    ),
+    "weightCorridorAboveLabel": MessageLookupByLibrary.simpleMessage(
+      "above weight corridor",
+    ),
     "rangeLowerLabel": MessageLookupByLibrary.simpleMessage("Lower"),
     "rangeUpperLabel": MessageLookupByLibrary.simpleMessage("Upper"),
     "rangeBoundsErrorLabel": MessageLookupByLibrary.simpleMessage(

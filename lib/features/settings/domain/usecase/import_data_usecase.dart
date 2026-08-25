@@ -5,11 +5,13 @@ import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/body_measurement_log_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
+import 'package:opennutritracker/core/data/repository/body_measurement_log_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -25,6 +27,7 @@ class ImportDataUsecase {
   final RecipeRepository _recipeRepository;
   final WeightLogRepository _weightLogRepository;
   final CustomActivityTemplateRepository _customActivityTemplateRepository;
+  final BodyMeasurementLogRepository _bodyMeasurementLogRepository;
 
   ImportDataUsecase(
     this._userActivityRepository,
@@ -33,6 +36,7 @@ class ImportDataUsecase {
     this._recipeRepository,
     this._weightLogRepository,
     this._customActivityTemplateRepository,
+    this._bodyMeasurementLogRepository,
   );
 
   /// Imports user activity, intake, tracked day, and (optionally) recipe,
@@ -47,8 +51,9 @@ class ImportDataUsecase {
     String trackedDayJsonFileName,
     String recipeJsonFileName,
     String weightLogJsonFileName,
-    String customActivityTemplateJsonFileName,
-  ) async {
+    String customActivityTemplateJsonFileName, {
+    String bodyMeasurementLogJsonFileName = 'body_measurements.json',
+  }) async {
     // Allow user to pick a zip file
     final result = await FilePicker.pickFiles(
       type: FileType.any,
@@ -86,11 +91,12 @@ class ImportDataUsecase {
     final intakeFile = archive.findFile(userIntakeJsonFileName);
     if (intakeFile != null) {
       final intakeJsonString = utf8.decode(intakeFile.content as List<int>);
-      final intakeList =
-          (jsonDecode(intakeJsonString) as List).cast<Map<String, dynamic>>();
+      final intakeList = (jsonDecode(intakeJsonString) as List)
+          .cast<Map<String, dynamic>>();
 
-      final intakeDBOs =
-          intakeList.map((json) => IntakeDBO.fromJson(json)).toList();
+      final intakeDBOs = intakeList
+          .map((json) => IntakeDBO.fromJson(json))
+          .toList();
 
       await _intakeRepository.addAllIntakeDBOs(intakeDBOs);
     } else {
@@ -106,8 +112,9 @@ class ImportDataUsecase {
       final trackedDayList = (jsonDecode(trackedDayJsonString) as List)
           .cast<Map<String, dynamic>>();
 
-      final trackedDayDBOs =
-          trackedDayList.map((json) => TrackedDayDBO.fromJson(json)).toList();
+      final trackedDayDBOs = trackedDayList
+          .map((json) => TrackedDayDBO.fromJson(json))
+          .toList();
 
       await _trackedDayRepository.addAllTrackedDays(trackedDayDBOs);
     } else {
@@ -118,31 +125,48 @@ class ImportDataUsecase {
     final recipeFile = archive.findFile(recipeJsonFileName);
     if (recipeFile != null) {
       final recipeJsonString = utf8.decode(recipeFile.content as List<int>);
-      final recipeList =
-          (jsonDecode(recipeJsonString) as List).cast<Map<String, dynamic>>();
-      final recipeDBOs =
-          recipeList.map((json) => RecipeDBO.fromJson(json)).toList();
+      final recipeList = (jsonDecode(recipeJsonString) as List)
+          .cast<Map<String, dynamic>>();
+      final recipeDBOs = recipeList
+          .map((json) => RecipeDBO.fromJson(json))
+          .toList();
       await _recipeRepository.addAllRecipeDBOs(recipeDBOs);
     }
 
     // Extract and process weight log data — optional so older zips still import.
     final weightLogFile = archive.findFile(weightLogJsonFileName);
     if (weightLogFile != null) {
-      final weightLogJsonString =
-          utf8.decode(weightLogFile.content as List<int>);
+      final weightLogJsonString = utf8.decode(
+        weightLogFile.content as List<int>,
+      );
       final weightLogList = (jsonDecode(weightLogJsonString) as List)
           .cast<Map<String, dynamic>>();
-      final weightLogDBOs =
-          weightLogList.map((json) => WeightLogDBO.fromJson(json)).toList();
+      final weightLogDBOs = weightLogList
+          .map((json) => WeightLogDBO.fromJson(json))
+          .toList();
       await _weightLogRepository.addAllEntries(weightLogDBOs);
+    }
+
+    // Optional for backwards compatibility with backups created before body
+    // measurements were introduced.
+    final measurementFile = archive.findFile(bodyMeasurementLogJsonFileName);
+    if (measurementFile != null) {
+      final measurementJsonString = utf8.decode(
+        measurementFile.content as List<int>,
+      );
+      final measurementList = (jsonDecode(measurementJsonString) as List)
+          .cast<Map<String, dynamic>>();
+      final measurementDBOs = measurementList
+          .map((json) => BodyMeasurementLogDBO.fromJson(json))
+          .toList();
+      await _bodyMeasurementLogRepository.addAllEntries(measurementDBOs);
     }
 
     // Extract and process Custom activity template data (#70 follow-up)
     // — also optional so zips produced before templates landed still import.
     final templateFile = archive.findFile(customActivityTemplateJsonFileName);
     if (templateFile != null) {
-      final templateJsonString =
-          utf8.decode(templateFile.content as List<int>);
+      final templateJsonString = utf8.decode(templateFile.content as List<int>);
       final templateList = (jsonDecode(templateJsonString) as List)
           .cast<Map<String, dynamic>>();
       final templateDBOs = templateList
@@ -157,17 +181,18 @@ class ImportDataUsecase {
     // so we just write the bytes back into the right private documents
     // subdirectory. Anything outside those known prefixes is skipped by
     // the sanitiser, so a hostile zip can't escape into other folders.
-    final recipeDir =
-        await UserImageStorage.ensureDirectory(UserImageKind.recipe);
-    final mealDir =
-        await UserImageStorage.ensureDirectory(UserImageKind.meal);
+    final recipeDir = await UserImageStorage.ensureDirectory(
+      UserImageKind.recipe,
+    );
+    final mealDir = await UserImageStorage.ensureDirectory(UserImageKind.meal);
     for (final entry in archive.files) {
       if (!entry.isFile) continue;
       final sanitized = UserImageStorage.sanitizeRelative(entry.name);
       if (sanitized == null) continue;
       final parts = sanitized.split('/');
-      final targetDir =
-          parts[0] == UserImageKind.recipe.subdir ? recipeDir : mealDir;
+      final targetDir = parts[0] == UserImageKind.recipe.subdir
+          ? recipeDir
+          : mealDir;
       final destPath = '${targetDir.path}/${parts[1]}';
       final destFile = File(destPath);
       await destFile.writeAsBytes(entry.content as List<int>, flush: true);

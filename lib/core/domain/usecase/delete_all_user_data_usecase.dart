@@ -36,6 +36,7 @@ class DeleteAllUserDataUsecase {
       _hiveDBProvider.userBox.clear(),
       _hiveDBProvider.trackedDayBox.clear(),
       _hiveDBProvider.weightLogBox.clear(),
+      _hiveDBProvider.bodyMeasurementLogBox.clear(),
       _hiveDBProvider.waterIntakeBox.clear(),
       _hiveDBProvider.fastingBox.clear(),
     ]);

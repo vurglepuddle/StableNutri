@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/domain/entity/body_measurement_log_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
@@ -10,6 +11,7 @@ import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart
 import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_body_measurement_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
@@ -56,6 +58,26 @@ class _FakeGetWeightLogUsecase implements GetWeightLogUsecase {
     DateTime start,
     DateTime end,
   ) async => List.of(result);
+
+  @override
+  Future<WeightLogEntity?> getEntry(DateTime date) async {
+    return result.cast<WeightLogEntity?>().firstWhere(
+      (entry) => entry!.date == date,
+      orElse: () => null,
+    );
+  }
+}
+
+class _FakeGetBodyMeasurementLogUsecase
+    implements GetBodyMeasurementLogUsecase {
+  List<BodyMeasurementLogEntity> result = [];
+
+  @override
+  Future<List<BodyMeasurementLogEntity>> getAllEntries() async =>
+      List.of(result);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FakeGetUserUsecase implements GetUserUsecase {
@@ -89,6 +111,7 @@ class _FakeGetConfigUsecase implements GetConfigUsecase {
     AppThemeEntity.system,
     usesImperialUnits: usesImperialUnits,
     bodyWeightUnit: usesImperialUnits ? BodyWeightUnit.lb : BodyWeightUnit.kg,
+    usesImperialHeightUnits: usesImperialUnits,
     weightCorridorLowerKg: weightCorridorLowerKg,
     weightCorridorUpperKg: weightCorridorUpperKg,
   );
@@ -126,6 +149,7 @@ void main() {
     late _FakeGetUserUsecase user;
     late _FakeGetConfigUsecase config;
     late _FakeGetWaterIntakeUsecase water;
+    late _FakeGetBodyMeasurementLogUsecase measurements;
     late TrendsBloc bloc;
 
     setUp(() {
@@ -134,7 +158,15 @@ void main() {
       user = _FakeGetUserUsecase();
       config = _FakeGetConfigUsecase();
       water = _FakeGetWaterIntakeUsecase();
-      bloc = TrendsBloc(trackedDay, weightLog, user, config, water);
+      measurements = _FakeGetBodyMeasurementLogUsecase();
+      bloc = TrendsBloc(
+        trackedDay,
+        weightLog,
+        user,
+        config,
+        water,
+        measurements,
+      );
     });
 
     tearDown(() async {
@@ -216,6 +248,7 @@ void main() {
         final emitted = await load(const LoadTrendsEvent());
         final loaded = emitted.last as TrendsLoaded;
         expect(loaded.bodyWeightUnit, BodyWeightUnit.lb);
+        expect(loaded.usesImperialLengthUnits, isTrue);
         expect(loaded.weightCorridorLowerKg, 68);
         expect(loaded.weightCorridorUpperKg, 72);
       },
@@ -256,6 +289,24 @@ void main() {
     test('"All" with no data falls back to a 30-day window', () async {
       final emitted = await load(const LoadTrendsEvent(rangeDays: 0));
       expect((emitted.last as TrendsLoaded).windowDays, 30);
+    });
+
+    test('measurement entries are sorted and extend the All window', () async {
+      measurements.result = [
+        BodyMeasurementLogEntity(
+          date: today.subtract(const Duration(days: 2)),
+          waistCm: 80,
+        ),
+        BodyMeasurementLogEntity(
+          date: today.subtract(const Duration(days: 40)),
+          waistCm: 82,
+        ),
+      ];
+
+      final emitted = await load(const LoadTrendsEvent(rangeDays: 0));
+      final loaded = emitted.last as TrendsLoaded;
+      expect(loaded.windowDays, 41);
+      expect(loaded.measurements.map((entry) => entry.waistCm), [82, 80]);
     });
 
     test('a failing data source surfaces TrendsFailed', () async {

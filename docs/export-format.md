@@ -22,6 +22,8 @@ The export is a single `.zip` file (default filename
 | `user_tracked_day.json` | JSON | Canonical format the app re-imports from.                          |
 | `user_tracked_day.csv`  | CSV  | Flat companion to `user_tracked_day.json`.                         |
 | `user_recipes.json`   | JSON   | Recipes only. Nested-ingredient shape, no CSV counterpart.         |
+| `weight_log.json`     | JSON   | Daily weight readings. No CSV counterpart.                         |
+| `body_measurements.json` | JSON | Daily optional waist/hips/chest/arm/thigh/body-fat snapshots.      |
 
 User profile (height, weight, birthday, PAL, goal) is intentionally **not**
 included — see `core/data/data_source/user_data_source.dart` for the box that
@@ -145,6 +147,27 @@ Array of recipe records, each holding an `ingredients` list referencing
 external food items by code. The nested-ingredient shape makes CSV a poor fit
 here, so recipes ship as JSON only. See `lib/core/data/dbo/recipe_dbo.dart`
 for the precise field list.
+
+### `body_measurements.json`
+
+An array of one optional body-measurement snapshot per calendar day. Lengths
+are stored canonically in centimetres regardless of the display-unit setting;
+body fat is stored as a percentage. Any measurement field can be `null`.
+
+```jsonc
+[
+  {
+    "date": "2026-08-20T00:00:00.000",
+    "waistCm": 78.2,
+    "hipsCm": 97.1,
+    "chestCm": null,
+    "armCm": 31.0,
+    "thighCm": null,
+    "bodyFatPercent": 21.3,
+    "note": "Feeling stronger"
+  }
+]
+```
 
 ## CSV schema
 

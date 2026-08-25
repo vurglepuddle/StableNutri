@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
-import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -9,7 +7,7 @@ import 'package:opennutritracker/core/utils/calc/stable_range_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_display_format.dart';
-import 'package:opennutritracker/features/profile/presentation/widgets/set_weight_dialog.dart';
+import 'package:opennutritracker/features/measurements/presentation/widgets/measurement_log_sheet.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// #281: Quick weight update chip on the home screen.
@@ -22,6 +20,7 @@ class QuickWeightWidget extends StatelessWidget {
   final BodyWeightUnit bodyWeightUnit;
   final double weightCorridorLowerKg;
   final double weightCorridorUpperKg;
+  final bool usesImperialLengthUnits;
 
   const QuickWeightWidget({
     super.key,
@@ -29,6 +28,7 @@ class QuickWeightWidget extends StatelessWidget {
     required this.bodyWeightUnit,
     required this.weightCorridorLowerKg,
     required this.weightCorridorUpperKg,
+    this.usesImperialLengthUnits = false,
   });
 
   @override
@@ -69,7 +69,7 @@ class QuickWeightWidget extends StatelessWidget {
         borderRadius: Dimens.borderRadiusM,
         child: InkWell(
           borderRadius: Dimens.borderRadiusM,
-          onTap: () => _showWeightDialog(context),
+          onTap: () => _showMeasurements(context),
           child: Container(
             padding: const EdgeInsets.symmetric(
               horizontal: Dimens.spacing12,
@@ -133,22 +133,14 @@ class QuickWeightWidget extends StatelessWidget {
     }
   }
 
-  Future<void> _showWeightDialog(BuildContext context) async {
-    final newKg = await showDialog<double>(
-      context: context,
-      builder: (context) =>
-          SetWeightDialog(initialKg: weightKg, unit: bodyWeightUnit),
+  Future<void> _showMeasurements(BuildContext context) async {
+    final saved = await showMeasurementLogSheet(
+      context,
+      currentWeightKg: weightKg,
+      bodyWeightUnit: bodyWeightUnit,
+      usesImperialLengthUnits: usesImperialLengthUnits,
     );
-
-    if (newKg == null || !context.mounted) return;
-
-    final now = DateTime.now();
-    await locator<AddWeightLogUsecase>().addEntry(
-      WeightLogEntity(
-        date: DateTime(now.year, now.month, now.day),
-        weightKg: newKg,
-      ),
-    );
+    if (!saved || !context.mounted) return;
 
     // addEntry already persisted today's weight onto the user record, so
     // re-load it and route through ProfileBloc.updateUser purely so the

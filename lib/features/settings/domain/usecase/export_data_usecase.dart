@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/repository/body_measurement_log_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
@@ -27,6 +28,7 @@ class ExportDataUsecase {
   final CustomMealDataSource _customMealDataSource;
   final WeightLogRepository _weightLogRepository;
   final CustomActivityTemplateRepository _customActivityTemplateRepository;
+  final BodyMeasurementLogRepository _bodyMeasurementLogRepository;
 
   ExportDataUsecase(
     this._userActivityRepository,
@@ -36,6 +38,7 @@ class ExportDataUsecase {
     this._customMealDataSource,
     this._weightLogRepository,
     this._customActivityTemplateRepository,
+    this._bodyMeasurementLogRepository,
   );
 
   /// Exports user activity, intake, tracked day, recipe, weight-log and
@@ -56,6 +59,7 @@ class ExportDataUsecase {
     String recipeJsonFileName,
     String weightLogJsonFileName,
     String customActivityTemplateJsonFileName, {
+    String bodyMeasurementLogJsonFileName = 'body_measurements.json',
     ExportFormat format = ExportFormat.json,
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
@@ -64,12 +68,12 @@ class ExportDataUsecase {
     final archive = Archive();
 
     // Activity dataset
-    final fullUserActivity =
-        await _userActivityRepository.getAllUserActivityDBO();
+    final fullUserActivity = await _userActivityRepository
+        .getAllUserActivityDBO();
     if (format == ExportFormat.json) {
-      final bytes = utf8.encode(jsonEncode(
-        fullUserActivity.map((a) => a.toJson()).toList(),
-      ));
+      final bytes = utf8.encode(
+        jsonEncode(fullUserActivity.map((a) => a.toJson()).toList()),
+      );
       archive.addFile(
         ArchiveFile(userActivityJsonFileName, bytes.length, bytes),
       );
@@ -85,35 +89,27 @@ class ExportDataUsecase {
     // Intake dataset
     final fullIntake = await _intakeRepository.getAllIntakesDBO();
     if (format == ExportFormat.json) {
-      final bytes = utf8.encode(jsonEncode(
-        fullIntake.map((i) => i.toJson()).toList(),
-      ));
-      archive.addFile(
-        ArchiveFile(userIntakeJsonFileName, bytes.length, bytes),
+      final bytes = utf8.encode(
+        jsonEncode(fullIntake.map((i) => i.toJson()).toList()),
       );
+      archive.addFile(ArchiveFile(userIntakeJsonFileName, bytes.length, bytes));
     } else {
       final bytes = utf8.encode(CsvDataExporter.intakesToCsv(fullIntake));
-      archive.addFile(
-        ArchiveFile(userIntakeCsvFileName, bytes.length, bytes),
-      );
+      archive.addFile(ArchiveFile(userIntakeCsvFileName, bytes.length, bytes));
     }
 
     // Tracked day dataset
     final fullTrackedDay = await _trackedDayRepository.getAllTrackedDaysDBO();
     if (format == ExportFormat.json) {
-      final bytes = utf8.encode(jsonEncode(
-        fullTrackedDay.map((d) => d.toJson()).toList(),
-      ));
-      archive.addFile(
-        ArchiveFile(trackedDayJsonFileName, bytes.length, bytes),
+      final bytes = utf8.encode(
+        jsonEncode(fullTrackedDay.map((d) => d.toJson()).toList()),
       );
+      archive.addFile(ArchiveFile(trackedDayJsonFileName, bytes.length, bytes));
     } else {
       final bytes = utf8.encode(
         CsvDataExporter.trackedDaysToCsv(fullTrackedDay),
       );
-      archive.addFile(
-        ArchiveFile(trackedDayCsvFileName, bytes.length, bytes),
-      );
+      archive.addFile(ArchiveFile(trackedDayCsvFileName, bytes.length, bytes));
     }
 
     // Recipes, photos, weight log and Custom activity templates — JSON
@@ -125,9 +121,9 @@ class ExportDataUsecase {
     // CSV path under Import Custom Food Data.
     if (format == ExportFormat.json) {
       final fullRecipes = _recipeRepository.getAllRecipesDBO();
-      final recipeBytes = utf8.encode(jsonEncode(
-        fullRecipes.map((r) => r.toJson()).toList(),
-      ));
+      final recipeBytes = utf8.encode(
+        jsonEncode(fullRecipes.map((r) => r.toJson()).toList()),
+      );
       archive.addFile(
         ArchiveFile(recipeJsonFileName, recipeBytes.length, recipeBytes),
       );
@@ -149,9 +145,9 @@ class ExportDataUsecase {
 
       // Weight-log dataset
       final fullWeightLog = await _weightLogRepository.getAllEntriesDBO();
-      final weightLogBytes = utf8.encode(jsonEncode(
-        fullWeightLog.map((entry) => entry.toJson()).toList(),
-      ));
+      final weightLogBytes = utf8.encode(
+        jsonEncode(fullWeightLog.map((entry) => entry.toJson()).toList()),
+      );
       archive.addFile(
         ArchiveFile(
           weightLogJsonFileName,
@@ -160,12 +156,27 @@ class ExportDataUsecase {
         ),
       );
 
+      // Body measurements are stored separately from weight so the canonical
+      // backup keeps the two histories independent as well.
+      final fullMeasurements = await _bodyMeasurementLogRepository
+          .getAllEntriesDBO();
+      final measurementBytes = utf8.encode(
+        jsonEncode(fullMeasurements.map((entry) => entry.toJson()).toList()),
+      );
+      archive.addFile(
+        ArchiveFile(
+          bodyMeasurementLogJsonFileName,
+          measurementBytes.length,
+          measurementBytes,
+        ),
+      );
+
       // Custom activity templates (#70 follow-up)
-      final fullTemplates =
-          await _customActivityTemplateRepository.allTemplateDBOs();
-      final templatesBytes = utf8.encode(jsonEncode(
-        fullTemplates.map((template) => template.toJson()).toList(),
-      ));
+      final fullTemplates = await _customActivityTemplateRepository
+          .allTemplateDBOs();
+      final templatesBytes = utf8.encode(
+        jsonEncode(fullTemplates.map((template) => template.toJson()).toList()),
+      );
       archive.addFile(
         ArchiveFile(
           customActivityTemplateJsonFileName,

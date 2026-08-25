@@ -89,6 +89,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             state.userActivityList,
             state.usesImperialUnits,
             state.bodyWeightUnit,
+            state.usesImperialLengthUnits,
             state.showActivityTracking,
             state.showMealMacros,
             state.userWeightKg,
@@ -148,6 +149,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     List<UserActivityEntity> userActivities,
     bool usesImperialUnits,
     BodyWeightUnit bodyWeightUnit,
+    bool usesImperialLengthUnits,
     bool showActivityTracking,
     bool showMealMacros,
     double userWeightKg,
@@ -189,6 +191,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     bodyWeightUnit: bodyWeightUnit,
                     weightCorridorLowerKg: weightCorridorLowerKg,
                     weightCorridorUpperKg: weightCorridorUpperKg,
+                    usesImperialLengthUnits: usesImperialLengthUnits,
                   ),
                   QuickWaterWidget(
                     waterMlToday: waterMlToday,

@@ -84,6 +84,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
       final usesImperialUnits = configData.usesImperialFoodUnits;
       final bodyWeightUnit = configData.bodyWeightUnit;
+      final usesImperialLengthUnits = configData.usesImperialHeightUnits;
       final showDisclaimerDialog = !configData.hasAcceptedDisclaimer;
       final showMealMacros = configData.showMealMacros;
       final showActivityTracking = configData.showActivityTracking;
@@ -232,6 +233,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           userActivityList: userActivities,
           usesImperialUnits: usesImperialUnits,
           bodyWeightUnit: bodyWeightUnit,
+          usesImperialLengthUnits: usesImperialLengthUnits,
           showActivityTracking: showActivityTracking,
           showMealMacros: showMealMacros,
           userWeightKg: user.weightKG,

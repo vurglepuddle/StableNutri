@@ -16,4 +16,8 @@ class GetWeightLogUsecase {
   ) async {
     return _weightLogRepository.getEntriesInRange(from, to);
   }
+
+  Future<WeightLogEntity?> getEntry(DateTime date) async {
+    return _weightLogRepository.getEntry(date);
+  }
 }

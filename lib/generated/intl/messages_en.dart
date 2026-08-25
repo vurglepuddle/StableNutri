@@ -139,6 +139,9 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m49(age) => "${age} years";
 
+  static String m50(count) =>
+      "Body measurement trend with ${count} readings";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1951,6 +1954,50 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "rangeAboveLabel": MessageLookupByLibrary.simpleMessage(
       "above daily range",
+    ),
+    "measurementsTitle": MessageLookupByLibrary.simpleMessage("Measurements"),
+    "measurementsLogTitle": MessageLookupByLibrary.simpleMessage(
+      "Log measurements",
+    ),
+    "measurementsWaist": MessageLookupByLibrary.simpleMessage("Waist"),
+    "measurementsHips": MessageLookupByLibrary.simpleMessage("Hips"),
+    "measurementsChest": MessageLookupByLibrary.simpleMessage("Chest"),
+    "measurementsArm": MessageLookupByLibrary.simpleMessage("Arm"),
+    "measurementsThigh": MessageLookupByLibrary.simpleMessage("Thigh"),
+    "measurementsBodyFat": MessageLookupByLibrary.simpleMessage("Body fat"),
+    "measurementsNoteLabel": MessageLookupByLibrary.simpleMessage(
+      "Note (optional)",
+    ),
+    "measurementsNoteHint": MessageLookupByLibrary.simpleMessage(
+      "How are you feeling?",
+    ),
+    "measurementsNothingToSave": MessageLookupByLibrary.simpleMessage(
+      "Enter a weight or at least one measurement.",
+    ),
+    "measurementsInvalidValue": MessageLookupByLibrary.simpleMessage(
+      "Check the highlighted values and try again.",
+    ),
+    "measurementsSave": MessageLookupByLibrary.simpleMessage(
+      "Save measurements",
+    ),
+    "measurementsEmpty": MessageLookupByLibrary.simpleMessage(
+      "No body measurements yet. Log one whenever it feels useful.",
+    ),
+    "measurementsChartEmpty": MessageLookupByLibrary.simpleMessage(
+      "Log this measurement on at least two days to see a trend.",
+    ),
+    "measurementsChartSemantics": m50,
+    "measurementsViewHistory": MessageLookupByLibrary.simpleMessage(
+      "View all",
+    ),
+    "measurementsHistoryTitle": MessageLookupByLibrary.simpleMessage(
+      "Measurement history",
+    ),
+    "measurementsHistoryEmpty": MessageLookupByLibrary.simpleMessage(
+      "No body measurements yet. Use Log measurements to add your first entry.",
+    ),
+    "measurementsDelete": MessageLookupByLibrary.simpleMessage(
+      "Delete measurement",
     ),
     "yearsLabel": m49,
     "youLabel": MessageLookupByLibrary.simpleMessage("You"),

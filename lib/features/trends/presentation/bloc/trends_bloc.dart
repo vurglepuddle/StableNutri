@@ -1,9 +1,11 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/domain/entity/body_measurement_log_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_body_measurement_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
@@ -18,6 +20,7 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
   final GetUserUsecase _getUserUsecase;
   final GetConfigUsecase _getConfigUsecase;
   final GetWaterIntakeUsecase _getWaterIntakeUsecase;
+  final GetBodyMeasurementLogUsecase _getBodyMeasurementLogUsecase;
 
   TrendsBloc(
     this._getTrackedDayUsecase,
@@ -25,6 +28,7 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
     this._getUserUsecase,
     this._getConfigUsecase,
     this._getWaterIntakeUsecase,
+    this._getBodyMeasurementLogUsecase,
   ) : super(const TrendsInitial()) {
     on<LoadTrendsEvent>((event, emit) async {
       emit(const TrendsLoading());
@@ -48,6 +52,9 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
         // still shows once the range is wide enough to include it.
         final weight = await _getWeightLogUsecase.getAllEntries();
         weight.sort((a, b) => a.date.compareTo(b.date));
+        final measurements = await _getBodyMeasurementLogUsecase
+            .getAllEntries();
+        measurements.sort((a, b) => a.date.compareTo(b.date));
         // The 7 days before this week, for a week-over-week consistency delta.
         final priorWeek = await _getTrackedDayUsecase.getTrackedDaysByRange(
           today.subtract(const Duration(days: 13)),
@@ -83,6 +90,15 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
           for (final w in weight) {
             consider(DateTime(w.date.year, w.date.month, w.date.day));
           }
+          for (final measurement in measurements) {
+            consider(
+              DateTime(
+                measurement.date.year,
+                measurement.date.month,
+                measurement.date.day,
+              ),
+            );
+          }
           for (final k in waterByDay.keys) {
             consider(k);
           }
@@ -98,7 +114,9 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
             days: days,
             priorWeek: priorWeek,
             weight: weight,
+            measurements: measurements,
             bodyWeightUnit: config.bodyWeightUnit,
+            usesImperialLengthUnits: config.usesImperialHeightUnits,
             weightCorridorLowerKg:
                 config.weightCorridorLowerKg ?? user.weightKG,
             weightCorridorUpperKg:

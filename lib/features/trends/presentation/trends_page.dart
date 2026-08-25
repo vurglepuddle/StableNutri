@@ -1,10 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/domain/entity/body_measurement_log_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
@@ -12,8 +12,11 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/stable_range_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:opennutritracker/features/measurements/presentation/measurements_history_screen.dart';
+import 'package:opennutritracker/features/measurements/presentation/utils/body_measurement_format.dart';
+import 'package:opennutritracker/features/measurements/presentation/widgets/body_measurement_trend_chart.dart';
+import 'package:opennutritracker/features/measurements/presentation/widgets/measurement_log_sheet.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_display_format.dart';
-import 'package:opennutritracker/features/profile/presentation/widgets/set_weight_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/weight_trend_chart.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/features/trends/presentation/trends_calc.dart';
@@ -96,6 +99,15 @@ class _TrendsView extends StatelessWidget {
               bodyWeightUnit: state.bodyWeightUnit,
               weightCorridorLowerKg: state.weightCorridorLowerKg,
               weightCorridorUpperKg: state.weightCorridorUpperKg,
+              rangeDays: state.windowDays,
+              palette: palette,
+              usesImperialLengthUnits: state.usesImperialLengthUnits,
+            ),
+            const SizedBox(height: Dimens.spacing16),
+            _MeasurementsCard(
+              entries: state.measurements,
+              bodyWeightUnit: state.bodyWeightUnit,
+              usesImperialLengthUnits: state.usesImperialLengthUnits,
               rangeDays: state.windowDays,
               palette: palette,
             ),
@@ -570,6 +582,7 @@ class _WeightCard extends StatelessWidget {
   final double weightCorridorUpperKg;
   final int rangeDays;
   final AppPalette palette;
+  final bool usesImperialLengthUnits;
   const _WeightCard({
     required this.entries,
     required this.bodyWeightUnit,
@@ -577,6 +590,7 @@ class _WeightCard extends StatelessWidget {
     required this.weightCorridorUpperKg,
     required this.rangeDays,
     required this.palette,
+    required this.usesImperialLengthUnits,
   });
 
   @override
@@ -624,7 +638,7 @@ class _WeightCard extends StatelessWidget {
                 child: IconButton(
                   tooltip: S.of(context).weightHistoryAddEntry,
                   icon: const Icon(Icons.add_rounded),
-                  onPressed: () => _logWeight(context),
+                  onPressed: () => _logMeasurements(context),
                 ),
               ),
             ],
@@ -690,32 +704,200 @@ class _WeightCard extends StatelessWidget {
   /// persistence path as the home weight chip, then reloads the trend so the
   /// chart reflects the new point. Keeping weight editable here means it no
   /// longer lives only behind the home widget.
-  Future<void> _logWeight(BuildContext context) async {
+  Future<void> _logMeasurements(BuildContext context) async {
     final trendsBloc = context.read<TrendsBloc>();
     final rangeDays = trendsBloc.state is TrendsLoaded
         ? (trendsBloc.state as TrendsLoaded).rangeDays
         : 7;
     final user = await locator<GetUserUsecase>().getUserData();
     if (!context.mounted) return;
-    final entered = await showDialog<({double weight, DateTime date})>(
-      context: context,
-      builder: (_) => SetWeightDialog(
-        initialKg: user.weightKG,
-        unit: bodyWeightUnit,
-        allowDateSelection: true,
-      ),
+    final saved = await showMeasurementLogSheet(
+      context,
+      currentWeightKg: user.weightKG,
+      bodyWeightUnit: bodyWeightUnit,
+      usesImperialLengthUnits: usesImperialLengthUnits,
     );
-    if (entered == null) return;
-    // The dialog now always returns kg in the weight slot.
-    final kg = entered.weight;
-    final d = entered.date;
-    await locator<AddWeightLogUsecase>().addEntry(
-      WeightLogEntity(date: DateTime(d.year, d.month, d.day), weightKg: kg),
-    );
+    if (!saved) return;
     final updated = await locator<GetUserUsecase>().getUserData();
     await locator<ProfileBloc>().updateUser(updated);
     if (context.mounted) {
       trendsBloc.add(LoadTrendsEvent(rangeDays: rangeDays));
     }
+  }
+}
+
+class _MeasurementsCard extends StatefulWidget {
+  final List<BodyMeasurementLogEntity> entries;
+  final BodyWeightUnit bodyWeightUnit;
+  final bool usesImperialLengthUnits;
+  final int rangeDays;
+  final AppPalette palette;
+
+  const _MeasurementsCard({
+    required this.entries,
+    required this.bodyWeightUnit,
+    required this.usesImperialLengthUnits,
+    required this.rangeDays,
+    required this.palette,
+  });
+
+  @override
+  State<_MeasurementsCard> createState() => _MeasurementsCardState();
+}
+
+class _MeasurementsCardState extends State<_MeasurementsCard> {
+  BodyMeasurementType _selected = BodyMeasurementType.waist;
+
+  String _label(BuildContext context, BodyMeasurementType type) {
+    return switch (type) {
+      BodyMeasurementType.waist => S.of(context).measurementsWaist,
+      BodyMeasurementType.hips => S.of(context).measurementsHips,
+      BodyMeasurementType.chest => S.of(context).measurementsChest,
+      BodyMeasurementType.arm => S.of(context).measurementsArm,
+      BodyMeasurementType.thigh => S.of(context).measurementsThigh,
+      BodyMeasurementType.bodyFat => S.of(context).measurementsBodyFat,
+    };
+  }
+
+  List<({DateTime date, double value})> _points(BodyMeasurementType type) {
+    final points = [
+      for (final entry in widget.entries)
+        if (entry.valueFor(type) != null)
+          (date: entry.date, value: entry.valueFor(type)!),
+    ];
+    points.sort((a, b) => a.date.compareTo(b.date));
+    return points;
+  }
+
+  String? _latest(BodyMeasurementType type) {
+    final points = _points(type);
+    if (points.isEmpty) return null;
+    return formatBodyMeasurementValue(
+      points.last.value,
+      type,
+      imperial: widget.usesImperialLengthUnits,
+      cmLabel: S.of(context).cmLabel,
+      inLabel: S.of(context).inLabel,
+    );
+  }
+
+  Future<void> _log() async {
+    final trendsBloc = context.read<TrendsBloc>();
+    final selectedRange = trendsBloc.state is TrendsLoaded
+        ? (trendsBloc.state as TrendsLoaded).rangeDays
+        : 7;
+    final user = await locator<GetUserUsecase>().getUserData();
+    if (!mounted) return;
+    final saved = await showMeasurementLogSheet(
+      context,
+      currentWeightKg: user.weightKG,
+      bodyWeightUnit: widget.bodyWeightUnit,
+      usesImperialLengthUnits: widget.usesImperialLengthUnits,
+    );
+    if (!saved || !mounted) return;
+    final updated = await locator<GetUserUsecase>().getUserData();
+    await locator<ProfileBloc>().updateUser(updated);
+    trendsBloc.add(LoadTrendsEvent(rangeDays: selectedRange));
+  }
+
+  Future<void> _viewHistory() async {
+    final trendsBloc = context.read<TrendsBloc>();
+    final selectedRange = trendsBloc.state is TrendsLoaded
+        ? (trendsBloc.state as TrendsLoaded).rangeDays
+        : 7;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => const MeasurementsHistoryScreen()),
+    );
+    if (mounted) {
+      trendsBloc.add(LoadTrendsEvent(rangeDays: selectedRange));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(Dimens.spacing20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  S.of(context).measurementsTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              TextButton(
+                onPressed: _viewHistory,
+                child: Text(S.of(context).measurementsViewHistory),
+              ),
+              IconButton(
+                tooltip: S.of(context).measurementsLogTitle,
+                onPressed: _log,
+                icon: const Icon(Icons.add_rounded),
+              ),
+            ],
+          ),
+          if (widget.entries.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: Dimens.spacing24),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.straighten_rounded,
+                      size: 36,
+                      color: widget.palette.textMuted,
+                    ),
+                    const SizedBox(height: Dimens.spacing8),
+                    Text(
+                      S.of(context).measurementsEmpty,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: Dimens.spacing12),
+                    FilledButton.icon(
+                      onPressed: _log,
+                      icon: const Icon(Icons.add_rounded),
+                      label: Text(S.of(context).measurementsLogTitle),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else ...[
+            Wrap(
+              spacing: Dimens.spacing8,
+              runSpacing: Dimens.spacing8,
+              children: [
+                for (final type in BodyMeasurementType.values)
+                  ChoiceChip(
+                    label: Text(
+                      _latest(type) == null
+                          ? _label(context, type)
+                          : '${_label(context, type)} ${_latest(type)}',
+                    ),
+                    selected: _selected == type,
+                    onSelected: (_) => setState(() => _selected = type),
+                  ),
+              ],
+            ),
+            const SizedBox(height: Dimens.spacing12),
+            Text(
+              _label(context, _selected),
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(color: widget.palette.textMuted),
+            ),
+            BodyMeasurementTrendChart(
+              entries: widget.entries,
+              type: _selected,
+              usesImperialLengthUnits: widget.usesImperialLengthUnits,
+              windowDays: widget.rangeDays,
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }

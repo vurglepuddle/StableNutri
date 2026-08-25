@@ -8102,6 +8102,148 @@ class S {
       args: [],
     );
   }
+
+  /// `Measurements`
+  String get measurementsTitle => Intl.message(
+        'Measurements',
+        name: 'measurementsTitle',
+        desc: '',
+        args: [],
+      );
+
+  /// `Log measurements`
+  String get measurementsLogTitle => Intl.message(
+        'Log measurements',
+        name: 'measurementsLogTitle',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsWaist => Intl.message(
+        'Waist',
+        name: 'measurementsWaist',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsHips => Intl.message(
+        'Hips',
+        name: 'measurementsHips',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsChest => Intl.message(
+        'Chest',
+        name: 'measurementsChest',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsArm => Intl.message(
+        'Arm',
+        name: 'measurementsArm',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsThigh => Intl.message(
+        'Thigh',
+        name: 'measurementsThigh',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsBodyFat => Intl.message(
+        'Body fat',
+        name: 'measurementsBodyFat',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsNoteLabel => Intl.message(
+        'Note (optional)',
+        name: 'measurementsNoteLabel',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsNoteHint => Intl.message(
+        'How are you feeling?',
+        name: 'measurementsNoteHint',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsNothingToSave => Intl.message(
+        'Enter a weight or at least one measurement.',
+        name: 'measurementsNothingToSave',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsInvalidValue => Intl.message(
+        'Check the highlighted values and try again.',
+        name: 'measurementsInvalidValue',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsSave => Intl.message(
+        'Save measurements',
+        name: 'measurementsSave',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsEmpty => Intl.message(
+        'No body measurements yet. Log one whenever it feels useful.',
+        name: 'measurementsEmpty',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsChartEmpty => Intl.message(
+        'Log this measurement on at least two days to see a trend.',
+        name: 'measurementsChartEmpty',
+        desc: '',
+        args: [],
+      );
+
+  String measurementsChartSemantics(int count) => Intl.message(
+        'Body measurement trend with $count readings',
+        name: 'measurementsChartSemantics',
+        desc: '',
+        args: [count],
+      );
+
+  String get measurementsViewHistory => Intl.message(
+        'View all',
+        name: 'measurementsViewHistory',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsHistoryTitle => Intl.message(
+        'Measurement history',
+        name: 'measurementsHistoryTitle',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsHistoryEmpty => Intl.message(
+        'No body measurements yet. Use Log measurements to add your first entry.',
+        name: 'measurementsHistoryEmpty',
+        desc: '',
+        args: [],
+      );
+
+  String get measurementsDelete => Intl.message(
+        'Delete measurement',
+        name: 'measurementsDelete',
+        desc: '',
+        args: [],
+      );
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

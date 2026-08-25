@@ -20,6 +20,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
   static const trackedDayJsonFileName = 'user_tracked_day.json';
   static const recipeJsonFileName = 'user_recipes.json';
   static const weightLogJsonFileName = 'weight_log.json';
+  static const bodyMeasurementLogJsonFileName = 'body_measurements.json';
   // #70 follow-up: saved Custom activity templates (name + typical kcal).
   static const customActivityTemplateJsonFileName =
       'custom_activity_templates.json';
@@ -55,6 +56,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
           recipeJsonFileName,
           weightLogJsonFileName,
           customActivityTemplateJsonFileName,
+          bodyMeasurementLogJsonFileName: bodyMeasurementLogJsonFileName,
           format: event.format,
         );
 
@@ -81,6 +83,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
                 recipeJsonFileName,
                 weightLogJsonFileName,
                 customActivityTemplateJsonFileName,
+                bodyMeasurementLogJsonFileName: bodyMeasurementLogJsonFileName,
               );
         if (result) {
           emit(ExportImportSuccess());
@@ -100,11 +103,13 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
           // User cancelled the file picker — go back to initial.
           emit(ExportImportInitial());
         } else {
-          emit(CsvImportResultState(
-            imported: result.imported,
-            skipped: result.skipped,
-            anyHadBarcode: result.anyImportedHadBarcode,
-          ));
+          emit(
+            CsvImportResultState(
+              imported: result.imported,
+              skipped: result.skipped,
+              anyHadBarcode: result.anyImportedHadBarcode,
+            ),
+          );
         }
       } catch (e) {
         emit(CsvImportErrorState(e.toString()));
@@ -118,10 +123,12 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         if (result == null) {
           emit(ExportImportInitial());
         } else {
-          emit(RecipeCsvImportResultState(
-            imported: result.imported,
-            skipped: result.skippedRows,
-          ));
+          emit(
+            RecipeCsvImportResultState(
+              imported: result.imported,
+              skipped: result.skippedRows,
+            ),
+          );
         }
       } catch (e) {
         emit(CsvImportErrorState(e.toString()));
@@ -141,8 +148,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
     on<DownloadSampleRecipesCsvEvent>((event, emit) async {
       try {
         emit(ExportImportLoadingState());
-        final saved =
-            await _downloadSampleCsvUsecase.downloadRecipeSample();
+        final saved = await _downloadSampleCsvUsecase.downloadRecipeSample();
         emit(saved ? ExportImportSuccess() : ExportImportInitial());
       } catch (e) {
         emit(ExportImportError());
@@ -169,11 +175,13 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         } else if (result.imported == 0) {
           emit(JsonImportErrorState(result.errorMessages));
         } else {
-          emit(JsonImportResultState(
-            imported: result.imported,
-            savedAsCustomMeals: result.savedAsCustomMeals,
-            errorMessages: result.errorMessages,
-          ));
+          emit(
+            JsonImportResultState(
+              imported: result.imported,
+              savedAsCustomMeals: result.savedAsCustomMeals,
+              errorMessages: result.errorMessages,
+            ),
+          );
         }
       } catch (e) {
         emit(JsonImportErrorState([e.toString()]));
@@ -189,11 +197,13 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         } else if (result.imported == 0) {
           emit(RecipeJsonImportErrorState(result.errorMessages));
         } else {
-          emit(RecipeJsonImportResultState(
-            imported: result.imported,
-            skipped: result.skippedRecipes,
-            errorMessages: result.errorMessages,
-          ));
+          emit(
+            RecipeJsonImportResultState(
+              imported: result.imported,
+              skipped: result.skippedRecipes,
+              errorMessages: result.errorMessages,
+            ),
+          );
         }
       } catch (e) {
         emit(RecipeJsonImportErrorState([e.toString()]));
@@ -205,8 +215,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         emit(ExportImportLoadingState());
         // Reuses the meals download usecase shape — recipes share the
         // same single-file save flow.
-        final saved =
-            await _downloadSampleJsonUsecase.downloadRecipeSample();
+        final saved = await _downloadSampleJsonUsecase.downloadRecipeSample();
         emit(saved ? ExportImportSuccess() : ExportImportInitial());
       } catch (e) {
         emit(ExportImportError());

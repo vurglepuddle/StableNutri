@@ -5,6 +5,7 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/body_measurement_log_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
@@ -49,6 +50,7 @@ class HiveDBProvider extends ChangeNotifier {
   // #70 follow-up: saved Custom activity templates (name + typical kcal).
   static const customActivityTemplateBoxName = 'CustomActivityTemplateBox';
   static const weightLogBoxName = 'WeightLogBox';
+  static const bodyMeasurementLogBoxName = 'BodyMeasurementLogBox';
   // #32: per-entry water intake log keyed by uuid; one row per sip so the
   // dialog's "undo last" can roll a single entry back without losing the
   // rest of the day.
@@ -78,6 +80,7 @@ class HiveDBProvider extends ChangeNotifier {
     userBoxName,
     trackedDayBoxName,
     weightLogBoxName,
+    bodyMeasurementLogBoxName,
     waterIntakeBoxName,
     fastingBoxName,
   ];
@@ -105,6 +108,7 @@ class HiveDBProvider extends ChangeNotifier {
   Box<UserDBO>? _userBox;
   Box<TrackedDayDBO>? _trackedDayBox;
   Box<WeightLogDBO>? _weightLogBox;
+  Box<BodyMeasurementLogDBO>? _bodyMeasurementLogBox;
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
 
@@ -124,6 +128,8 @@ class HiveDBProvider extends ChangeNotifier {
       _requireBox(_trackedDayBox, trackedDayBoxName);
   Box<WeightLogDBO> get weightLogBox =>
       _requireBox(_weightLogBox, weightLogBoxName);
+  Box<BodyMeasurementLogDBO> get bodyMeasurementLogBox =>
+      _requireBox(_bodyMeasurementLogBox, bodyMeasurementLogBoxName);
   Box<WaterIntakeDBO> get waterIntakeBox =>
       _requireBox(_waterIntakeBox, waterIntakeBoxName);
   Box<FastingSessionDBO> get fastingBox =>
@@ -238,6 +244,10 @@ class HiveDBProvider extends ChangeNotifier {
       boxNameFor(weightLogBoxName, suffix),
       encryptionCipher: _cipher,
     );
+    _bodyMeasurementLogBox = await Hive.openBox(
+      boxNameFor(bodyMeasurementLogBoxName, suffix),
+      encryptionCipher: _cipher,
+    );
     _waterIntakeBox = await Hive.openBox(
       boxNameFor(waterIntakeBoxName, suffix),
       encryptionCipher: _cipher,
@@ -256,6 +266,7 @@ class HiveDBProvider extends ChangeNotifier {
       if (_userBox != null) _userBox!.close(),
       if (_trackedDayBox != null) _trackedDayBox!.close(),
       if (_weightLogBox != null) _weightLogBox!.close(),
+      if (_bodyMeasurementLogBox != null) _bodyMeasurementLogBox!.close(),
       if (_waterIntakeBox != null) _waterIntakeBox!.close(),
       if (_fastingBox != null) _fastingBox!.close(),
     ]);
@@ -265,6 +276,7 @@ class HiveDBProvider extends ChangeNotifier {
     _userBox = null;
     _trackedDayBox = null;
     _weightLogBox = null;
+    _bodyMeasurementLogBox = null;
     _waterIntakeBox = null;
     _fastingBox = null;
   }

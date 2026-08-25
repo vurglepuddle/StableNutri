@@ -38,6 +38,7 @@ class HomeLoadedState extends HomeState {
   final bool usesImperialUnits;
   // Body weight unit (kg/lb/st) for the home weight chip, independent of food.
   final BodyWeightUnit bodyWeightUnit;
+  final bool usesImperialLengthUnits;
   final bool showActivityTracking; // #277
   final bool showMealMacros;
   final double userWeightKg;
@@ -86,6 +87,7 @@ class HomeLoadedState extends HomeState {
     required this.snackIntakeList,
     required this.usesImperialUnits,
     required this.bodyWeightUnit,
+    this.usesImperialLengthUnits = false,
     required this.userWeightKg,
     required this.breakfastKcalTarget,
     required this.lunchKcalTarget,
@@ -112,6 +114,7 @@ class HomeLoadedState extends HomeState {
     snackIntakeList,
     usesImperialUnits,
     bodyWeightUnit,
+    usesImperialLengthUnits,
     userWeightKg,
     totalKcalDaily,
     totalKcalSupplied,

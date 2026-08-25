@@ -2,6 +2,7 @@ import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/body_measurement_log_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
@@ -27,6 +28,7 @@ class FakeHiveDBProvider extends HiveDBProvider {
   final Box<RecipeDBO>? _recipeBox;
   final Box<CustomActivityTemplateDBO>? _customActivityTemplateBox;
   final Box<WeightLogDBO>? _weightLogBox;
+  final Box<BodyMeasurementLogDBO>? _bodyMeasurementLogBox;
   final Box<WaterIntakeDBO>? _waterIntakeBox;
   final Box<FastingSessionDBO>? _fastingBox;
 
@@ -41,20 +43,22 @@ class FakeHiveDBProvider extends HiveDBProvider {
     Box<RecipeDBO>? recipeBox,
     Box<CustomActivityTemplateDBO>? customActivityTemplateBox,
     Box<WeightLogDBO>? weightLogBox,
+    Box<BodyMeasurementLogDBO>? bodyMeasurementLogBox,
     Box<WaterIntakeDBO>? waterIntakeBox,
     Box<FastingSessionDBO>? fastingBox,
-  })  : _configBox = configBox,
-        _appConfigBox = appConfigBox ?? configBox,
-        _intakeBox = intakeBox,
-        _userActivityBox = userActivityBox,
-        _userBox = userBox,
-        _trackedDayBox = trackedDayBox,
-        _customMealBox = customMealBox,
-        _recipeBox = recipeBox,
-        _customActivityTemplateBox = customActivityTemplateBox,
-        _weightLogBox = weightLogBox,
-        _waterIntakeBox = waterIntakeBox,
-        _fastingBox = fastingBox;
+  }) : _configBox = configBox,
+       _appConfigBox = appConfigBox ?? configBox,
+       _intakeBox = intakeBox,
+       _userActivityBox = userActivityBox,
+       _userBox = userBox,
+       _trackedDayBox = trackedDayBox,
+       _customMealBox = customMealBox,
+       _recipeBox = recipeBox,
+       _customActivityTemplateBox = customActivityTemplateBox,
+       _weightLogBox = weightLogBox,
+       _bodyMeasurementLogBox = bodyMeasurementLogBox,
+       _waterIntakeBox = waterIntakeBox,
+       _fastingBox = fastingBox;
 
   T _require<T>(T? box) {
     if (box == null) {
@@ -84,6 +88,9 @@ class FakeHiveDBProvider extends HiveDBProvider {
       _require(_customActivityTemplateBox);
   @override
   Box<WeightLogDBO> get weightLogBox => _require(_weightLogBox);
+  @override
+  Box<BodyMeasurementLogDBO> get bodyMeasurementLogBox =>
+      _require(_bodyMeasurementLogBox);
   @override
   Box<WaterIntakeDBO> get waterIntakeBox => _require(_waterIntakeBox);
   @override

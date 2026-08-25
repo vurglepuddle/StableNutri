@@ -1129,5 +1129,30 @@
   "rangeGoalLabel": "Range",
   "rangeToReachLabel": "to reach range",
   "rangeWithinLabel": "within daily range",
-  "rangeAboveLabel": "above daily range"
+  "rangeAboveLabel": "above daily range",
+  "measurementsTitle": "Measurements",
+  "measurementsLogTitle": "Log measurements",
+  "measurementsWaist": "Waist",
+  "measurementsHips": "Hips",
+  "measurementsChest": "Chest",
+  "measurementsArm": "Arm",
+  "measurementsThigh": "Thigh",
+  "measurementsBodyFat": "Body fat",
+  "measurementsNoteLabel": "Note (optional)",
+  "measurementsNoteHint": "How are you feeling?",
+  "measurementsNothingToSave": "Enter a weight or at least one measurement.",
+  "measurementsInvalidValue": "Check the highlighted values and try again.",
+  "measurementsSave": "Save measurements",
+  "measurementsEmpty": "No body measurements yet. Log one whenever it feels useful.",
+  "measurementsChartEmpty": "Log this measurement on at least two days to see a trend.",
+  "measurementsChartSemantics": "Body measurement trend with {count} readings",
+  "@measurementsChartSemantics": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "measurementsViewHistory": "View all",
+  "measurementsHistoryTitle": "Measurement history",
+  "measurementsHistoryEmpty": "No body measurements yet. Use Log measurements to add your first entry.",
+  "measurementsDelete": "Delete measurement"
 }

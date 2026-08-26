@@ -312,7 +312,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
         const SizedBox(height: Dimens.spacing24),
-        _SectionHeader(label: S.of(context).recipesLabel, palette: palette),
+        _SectionHeader(label: S.of(context).libraryLabel, palette: palette),
         const SizedBox(height: Dimens.spacing12),
         _ProfileGroup(
           palette: palette,
@@ -321,7 +321,7 @@ class _ProfilePageState extends State<ProfilePage> {
               identifier: 'profile-recipes',
               palette: palette,
               icon: Icons.menu_book_rounded,
-              title: S.of(context).recipesLabel,
+              title: S.of(context).libraryLabel,
               showChevron: true,
               onTap: () =>
                   Navigator.of(context).pushNamed(NavigationOptions.recipesRoute),

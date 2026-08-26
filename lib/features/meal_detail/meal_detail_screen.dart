@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +11,7 @@ import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dar
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/update_library_item_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -55,6 +58,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   String _initialQuantity = "";
 
   bool _hydrationRequested = false;
+  bool _libraryFlagsRequested = false;
   bool _userChangedSelection = false;
 
   @override
@@ -94,6 +98,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     if (!_hydrationRequested) {
       _hydrationRequested = true;
       _mealDetailBloc.add(HydrateMealEvent(meal));
+    }
+    if (!_libraryFlagsRequested && meal.source != MealSourceEntity.recipe) {
+      _libraryFlagsRequested = true;
+      _loadLibraryFlags();
     }
 
     _applyInitialSelection();
@@ -147,7 +155,20 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   /// default now that serving data exists); otherwise just recompute totals
   /// against the fuller nutriments while keeping the user's selection.
   void _onMealHydrated(MealEntity full) {
-    setState(() => meal = full);
+    final updated = full.copyWith(
+      isFavorite: meal.isFavorite,
+      isRescue: meal.isRescue,
+    );
+    setState(() => meal = updated);
+    if (updated.isFavorite || updated.isRescue) {
+      unawaited(
+        locator<UpdateLibraryItemUsecase>().updateMeal(
+          updated,
+          favorite: updated.isFavorite,
+          rescue: updated.isRescue,
+        ),
+      );
+    }
     if (_userChangedSelection) {
       _mealDetailBloc.add(
         UpdateKcalEvent(
@@ -163,6 +184,35 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     }
   }
 
+  Future<void> _loadLibraryFlags() async {
+    final saved = locator<UpdateLibraryItemUsecase>().getSavedMeal(meal);
+    if (saved != null && mounted) {
+      final updated = meal.copyWith(
+        isFavorite: saved.isFavorite,
+        isRescue: saved.isRescue,
+      );
+      setState(() => meal = updated);
+      // If hydration already supplied a fuller remote record, refresh the
+      // saved Library snapshot without changing either user label.
+      unawaited(
+        locator<UpdateLibraryItemUsecase>().updateMeal(
+          updated,
+          favorite: updated.isFavorite,
+          rescue: updated.isRescue,
+        ),
+      );
+    }
+  }
+
+  Future<void> _updateLibraryFlags({bool? favorite, bool? rescue}) async {
+    final updated = await locator<UpdateLibraryItemUsecase>().updateMeal(
+      meal,
+      favorite: favorite ?? meal.isFavorite,
+      rescue: rescue ?? meal.isRescue,
+    );
+    if (mounted) setState(() => meal = updated);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<MealDetailBloc, MealDetailState>(
@@ -173,7 +223,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       child: SafeArea(
         child: Scaffold(
           backgroundColor:
-              (Theme.of(context).brightness == Brightness.dark ? AppPalette.dark : AppPalette.light).canvas,
+              (Theme.of(context).brightness == Brightness.dark
+                      ? AppPalette.dark
+                      : AppPalette.light)
+                  .canvas,
           body: BlocBuilder<MealDetailBloc, MealDetailState>(
             bloc: _mealDetailBloc,
             builder: (context, state) {
@@ -194,20 +247,20 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               return const Center(child: CircularProgressIndicator());
             },
           ),
-        bottomSheet: BlocSelector<MealDetailBloc, MealDetailState, String>(
-          bloc: _mealDetailBloc,
-          selector: (state) => state.selectedUnit,
-          builder: (context, selectedUnit) {
-            return MealDetailBottomSheet(
-              product: meal,
-              day: _day,
-              intakeTypeEntity: intakeTypeEntity,
-              selectedUnit: selectedUnit,
-              mealDetailBloc: _mealDetailBloc,
-              quantityTextController: quantityTextController,
-              onQuantityOrUnitChanged: onQuantityOrUnitChanged,
-            );
-          },
+          bottomSheet: BlocSelector<MealDetailBloc, MealDetailState, String>(
+            bloc: _mealDetailBloc,
+            selector: (state) => state.selectedUnit,
+            builder: (context, selectedUnit) {
+              return MealDetailBottomSheet(
+                product: meal,
+                day: _day,
+                intakeTypeEntity: intakeTypeEntity,
+                selectedUnit: selectedUnit,
+                mealDetailBloc: _mealDetailBloc,
+                quantityTextController: quantityTextController,
+                onQuantityOrUnitChanged: onQuantityOrUnitChanged,
+              );
+            },
           ),
         ),
       ),
@@ -253,9 +306,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               return FlexibleSpaceBar(
                 expandedTitleScale: 1, // don't scale title
                 background: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: dayKcalGoal > 0 ? 68 : 0,
-                  ),
+                  padding: EdgeInsets.only(bottom: dayKcalGoal > 0 ? 68 : 0),
                   child: MealTitleExpanded(
                     meal: meal,
                     usesImperialUnits: _usesImperialUnits,
@@ -267,9 +318,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   child: top > barsHeight - offset && top < barsHeight + offset
                       ? Text(
                           meal.name ?? '',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
+                          style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.w800),
                           overflow: TextOverflow.ellipsis,
                         )
@@ -279,6 +328,34 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             },
           ),
           actions: [
+            if (meal.source != MealSourceEntity.recipe) ...[
+              IconButton(
+                tooltip: meal.isRescue
+                    ? S.of(context).libraryRemoveRescue
+                    : S.of(context).libraryAddRescue,
+                onPressed: () => _updateLibraryFlags(rescue: !meal.isRescue),
+                icon: Icon(
+                  meal.isRescue
+                      ? Icons.volunteer_activism_rounded
+                      : Icons.volunteer_activism_outlined,
+                ),
+              ),
+              IconButton(
+                tooltip: meal.isFavorite
+                    ? S.of(context).libraryRemoveFavorite
+                    : S.of(context).libraryAddFavorite,
+                onPressed: () =>
+                    _updateLibraryFlags(favorite: !meal.isFavorite),
+                icon: Icon(
+                  meal.isFavorite
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                  color: meal.isFavorite
+                      ? Theme.of(context).colorScheme.error
+                      : null,
+                ),
+              ),
+            ],
             Semantics(
               identifier: 'meal-detail-edit',
               child: IconButton(
@@ -337,9 +414,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     children: [
                       Text(
                         EnergyDisplay.formatWithUnit(context, totalKcal),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
+                        style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       MealValueUnitText(
@@ -347,8 +422,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                         meal: meal,
                         displayUnit:
                             selectedUnit == UnitDropdownItem.serving.toString()
-                                ? meal.servingUnit
-                                : selectedUnit,
+                            ? meal.servingUnit
+                            : selectedUnit,
                         usesImperialUnits: _usesImperialUnits,
                         textStyle: Theme.of(context).textTheme.bodyMedium,
                         prefix: ' / ',
@@ -451,4 +526,3 @@ class MealDetailScreenArguments {
     this.usesImperialUnits,
   );
 }
-

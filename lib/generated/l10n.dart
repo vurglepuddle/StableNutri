@@ -8105,145 +8105,190 @@ class S {
 
   /// `Measurements`
   String get measurementsTitle => Intl.message(
-        'Measurements',
-        name: 'measurementsTitle',
-        desc: '',
-        args: [],
-      );
+    'Measurements',
+    name: 'measurementsTitle',
+    desc: '',
+    args: [],
+  );
 
   /// `Log measurements`
   String get measurementsLogTitle => Intl.message(
-        'Log measurements',
-        name: 'measurementsLogTitle',
-        desc: '',
-        args: [],
-      );
+    'Log measurements',
+    name: 'measurementsLogTitle',
+    desc: '',
+    args: [],
+  );
 
-  String get measurementsWaist => Intl.message(
-        'Waist',
-        name: 'measurementsWaist',
-        desc: '',
-        args: [],
-      );
+  String get measurementsWaist =>
+      Intl.message('Waist', name: 'measurementsWaist', desc: '', args: []);
 
-  String get measurementsHips => Intl.message(
-        'Hips',
-        name: 'measurementsHips',
-        desc: '',
-        args: [],
-      );
+  String get measurementsHips =>
+      Intl.message('Hips', name: 'measurementsHips', desc: '', args: []);
 
-  String get measurementsChest => Intl.message(
-        'Chest',
-        name: 'measurementsChest',
-        desc: '',
-        args: [],
-      );
+  String get measurementsChest =>
+      Intl.message('Chest', name: 'measurementsChest', desc: '', args: []);
 
-  String get measurementsArm => Intl.message(
-        'Arm',
-        name: 'measurementsArm',
-        desc: '',
-        args: [],
-      );
+  String get measurementsArm =>
+      Intl.message('Arm', name: 'measurementsArm', desc: '', args: []);
 
-  String get measurementsThigh => Intl.message(
-        'Thigh',
-        name: 'measurementsThigh',
-        desc: '',
-        args: [],
-      );
+  String get measurementsThigh =>
+      Intl.message('Thigh', name: 'measurementsThigh', desc: '', args: []);
 
-  String get measurementsBodyFat => Intl.message(
-        'Body fat',
-        name: 'measurementsBodyFat',
-        desc: '',
-        args: [],
-      );
+  String get measurementsBodyFat =>
+      Intl.message('Body fat', name: 'measurementsBodyFat', desc: '', args: []);
 
   String get measurementsNoteLabel => Intl.message(
-        'Note (optional)',
-        name: 'measurementsNoteLabel',
-        desc: '',
-        args: [],
-      );
+    'Note (optional)',
+    name: 'measurementsNoteLabel',
+    desc: '',
+    args: [],
+  );
 
   String get measurementsNoteHint => Intl.message(
-        'How are you feeling?',
-        name: 'measurementsNoteHint',
-        desc: '',
-        args: [],
-      );
+    'How are you feeling?',
+    name: 'measurementsNoteHint',
+    desc: '',
+    args: [],
+  );
 
   String get measurementsNothingToSave => Intl.message(
-        'Enter a weight or at least one measurement.',
-        name: 'measurementsNothingToSave',
-        desc: '',
-        args: [],
-      );
+    'Enter a weight or at least one measurement.',
+    name: 'measurementsNothingToSave',
+    desc: '',
+    args: [],
+  );
 
   String get measurementsInvalidValue => Intl.message(
-        'Check the highlighted values and try again.',
-        name: 'measurementsInvalidValue',
-        desc: '',
-        args: [],
-      );
+    'Check the highlighted values and try again.',
+    name: 'measurementsInvalidValue',
+    desc: '',
+    args: [],
+  );
 
   String get measurementsSave => Intl.message(
-        'Save measurements',
-        name: 'measurementsSave',
-        desc: '',
-        args: [],
-      );
+    'Save measurements',
+    name: 'measurementsSave',
+    desc: '',
+    args: [],
+  );
 
   String get measurementsEmpty => Intl.message(
-        'No body measurements yet. Log one whenever it feels useful.',
-        name: 'measurementsEmpty',
-        desc: '',
-        args: [],
-      );
+    'No body measurements yet. Log one whenever it feels useful.',
+    name: 'measurementsEmpty',
+    desc: '',
+    args: [],
+  );
 
   String get measurementsChartEmpty => Intl.message(
-        'Log this measurement on at least two days to see a trend.',
-        name: 'measurementsChartEmpty',
-        desc: '',
-        args: [],
-      );
+    'Log this measurement on at least two days to see a trend.',
+    name: 'measurementsChartEmpty',
+    desc: '',
+    args: [],
+  );
 
   String measurementsChartSemantics(int count) => Intl.message(
-        'Body measurement trend with $count readings',
-        name: 'measurementsChartSemantics',
-        desc: '',
-        args: [count],
-      );
+    'Body measurement trend with $count readings',
+    name: 'measurementsChartSemantics',
+    desc: '',
+    args: [count],
+  );
 
   String get measurementsViewHistory => Intl.message(
-        'View all',
-        name: 'measurementsViewHistory',
-        desc: '',
-        args: [],
-      );
+    'View all',
+    name: 'measurementsViewHistory',
+    desc: '',
+    args: [],
+  );
 
   String get measurementsHistoryTitle => Intl.message(
-        'Measurement history',
-        name: 'measurementsHistoryTitle',
-        desc: '',
-        args: [],
-      );
+    'Measurement history',
+    name: 'measurementsHistoryTitle',
+    desc: '',
+    args: [],
+  );
 
   String get measurementsHistoryEmpty => Intl.message(
-        'No body measurements yet. Use Log measurements to add your first entry.',
-        name: 'measurementsHistoryEmpty',
-        desc: '',
-        args: [],
-      );
+    'No body measurements yet. Use Log measurements to add your first entry.',
+    name: 'measurementsHistoryEmpty',
+    desc: '',
+    args: [],
+  );
 
   String get measurementsDelete => Intl.message(
-        'Delete measurement',
-        name: 'measurementsDelete',
-        desc: '',
-        args: [],
-      );
+    'Delete measurement',
+    name: 'measurementsDelete',
+    desc: '',
+    args: [],
+  );
+
+  String get libraryLabel =>
+      Intl.message('Library', name: 'libraryLabel', desc: '', args: []);
+
+  String get librarySavedMealsLabel => Intl.message(
+    'Saved meals',
+    name: 'librarySavedMealsLabel',
+    desc: '',
+    args: [],
+  );
+
+  String get librarySearchHint => Intl.message(
+    'Search saved meals and recipesâ€¦',
+    name: 'librarySearchHint',
+    desc: '',
+    args: [],
+  );
+
+  String get libraryFavoritesLabel => Intl.message(
+    'Favorites',
+    name: 'libraryFavoritesLabel',
+    desc: '',
+    args: [],
+  );
+
+  String get libraryRescueLabel =>
+      Intl.message('Rescue', name: 'libraryRescueLabel', desc: '', args: []);
+
+  String get libraryRescueDescription => Intl.message(
+    'Some days are just harder. Keep easy, low-pressure options here for when appetite or energy is low.',
+    name: 'libraryRescueDescription',
+    desc: '',
+    args: [],
+  );
+
+  String get libraryAddFavorite => Intl.message(
+    'Add to favorites',
+    name: 'libraryAddFavorite',
+    desc: '',
+    args: [],
+  );
+
+  String get libraryRemoveFavorite => Intl.message(
+    'Remove from favorites',
+    name: 'libraryRemoveFavorite',
+    desc: '',
+    args: [],
+  );
+
+  String get libraryAddRescue => Intl.message(
+    'Mark as a rescue option',
+    name: 'libraryAddRescue',
+    desc: '',
+    args: [],
+  );
+
+  String get libraryRemoveRescue => Intl.message(
+    'Remove rescue label',
+    name: 'libraryRemoveRescue',
+    desc: '',
+    args: [],
+  );
+
+  String get libraryNoMatches => Intl.message(
+    'No Library items match this search or filter yet.',
+    name: 'libraryNoMatches',
+    desc: '',
+    args: [],
+  );
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

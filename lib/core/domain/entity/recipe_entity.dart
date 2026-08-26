@@ -24,6 +24,8 @@ class RecipeEntity extends Equatable {
   // resolve the absolute path via `path_provider` at read/write time so
   // we never persist a stale sandbox-specific prefix.
   final String? imagePath;
+  final bool isFavorite;
+  final bool isRescue;
 
   const RecipeEntity({
     required this.id,
@@ -37,6 +39,8 @@ class RecipeEntity extends Equatable {
     required this.servingsCount,
     this.tags = const [],
     this.imagePath,
+    this.isFavorite = false,
+    this.isRescue = false,
   });
 
   factory RecipeEntity.fromDBO(RecipeDBO dbo) {
@@ -44,8 +48,7 @@ class RecipeEntity extends Equatable {
       id: dbo.id,
       name: dbo.name,
       description: dbo.description,
-      ingredients:
-          dbo.ingredients.map(RecipeIngredientEntity.fromDBO).toList(),
+      ingredients: dbo.ingredients.map(RecipeIngredientEntity.fromDBO).toList(),
       totalWeightG: dbo.totalWeightG,
       aggregatedNutrimentsPer100: MealNutrimentsEntity.fromMealNutrimentsDBO(
         dbo.aggregatedNutrimentsPer100,
@@ -55,6 +58,8 @@ class RecipeEntity extends Equatable {
       servingsCount: dbo.servingsCount,
       tags: dbo.tags ?? const [],
       imagePath: dbo.imagePath,
+      isFavorite: dbo.isFavorite ?? false,
+      isRescue: dbo.isRescue ?? false,
     );
   }
 
@@ -65,8 +70,7 @@ class RecipeEntity extends Equatable {
       description: description,
       ingredients: ingredients.map((i) => i.toDBO()).toList(),
       totalWeightG: totalWeightG,
-      aggregatedNutrimentsPer100:
-          MealNutrimentsDBO.fromProductNutrimentsEntity(
+      aggregatedNutrimentsPer100: MealNutrimentsDBO.fromProductNutrimentsEntity(
         aggregatedNutrimentsPer100,
       ),
       createdAt: createdAt,
@@ -74,6 +78,8 @@ class RecipeEntity extends Equatable {
       servingsCount: servingsCount,
       tags: tags.isEmpty ? null : tags,
       imagePath: imagePath,
+      isFavorite: isFavorite,
+      isRescue: isRescue,
     );
   }
 
@@ -98,6 +104,8 @@ class RecipeEntity extends Equatable {
       servingSize: hasServings ? '$servingsCount servings' : null,
       nutriments: aggregatedNutrimentsPer100,
       source: MealSourceEntity.recipe,
+      isFavorite: isFavorite,
+      isRescue: isRescue,
     );
   }
 
@@ -116,6 +124,8 @@ class RecipeEntity extends Equatable {
     bool clearServingsCount = false,
     bool clearDescription = false,
     bool clearImagePath = false,
+    bool? isFavorite,
+    bool? isRescue,
   }) {
     return RecipeEntity(
       id: id ?? this.id,
@@ -127,25 +137,30 @@ class RecipeEntity extends Equatable {
           aggregatedNutrimentsPer100 ?? this.aggregatedNutrimentsPer100,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      servingsCount:
-          clearServingsCount ? null : (servingsCount ?? this.servingsCount),
+      servingsCount: clearServingsCount
+          ? null
+          : (servingsCount ?? this.servingsCount),
       tags: tags ?? this.tags,
       imagePath: clearImagePath ? null : (imagePath ?? this.imagePath),
+      isFavorite: isFavorite ?? this.isFavorite,
+      isRescue: isRescue ?? this.isRescue,
     );
   }
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        description,
-        ingredients,
-        totalWeightG,
-        aggregatedNutrimentsPer100,
-        createdAt,
-        updatedAt,
-        servingsCount,
-        tags,
-        imagePath,
-      ];
+    id,
+    name,
+    description,
+    ingredients,
+    totalWeightG,
+    aggregatedNutrimentsPer100,
+    createdAt,
+    updatedAt,
+    servingsCount,
+    tags,
+    imagePath,
+    isFavorite,
+    isRescue,
+  ];
 }

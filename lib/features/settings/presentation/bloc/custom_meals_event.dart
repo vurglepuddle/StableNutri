@@ -10,6 +10,18 @@ class DeleteCustomMealEvent extends CustomMealsEvent {
   DeleteCustomMealEvent(this.mealKey);
 }
 
+class UpdateCustomMealLibraryFlagsEvent extends CustomMealsEvent {
+  final MealEntity meal;
+  final bool favorite;
+  final bool rescue;
+
+  UpdateCustomMealLibraryFlagsEvent({
+    required this.meal,
+    required this.favorite,
+    required this.rescue,
+  });
+}
+
 /// Folds [loserKey]'s diary entries into [winnerKey] and drops the loser
 /// from the saved-meals list. Both keys are `meal.code ?? meal.name`.
 class MergeCustomMealsEvent extends CustomMealsEvent {

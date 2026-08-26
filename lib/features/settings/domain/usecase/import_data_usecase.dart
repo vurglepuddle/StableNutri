@@ -5,8 +5,10 @@ import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/body_measurement_log_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
@@ -28,6 +30,7 @@ class ImportDataUsecase {
   final WeightLogRepository _weightLogRepository;
   final CustomActivityTemplateRepository _customActivityTemplateRepository;
   final BodyMeasurementLogRepository _bodyMeasurementLogRepository;
+  final CustomMealDataSource _customMealDataSource;
 
   ImportDataUsecase(
     this._userActivityRepository,
@@ -37,6 +40,7 @@ class ImportDataUsecase {
     this._weightLogRepository,
     this._customActivityTemplateRepository,
     this._bodyMeasurementLogRepository,
+    this._customMealDataSource,
   );
 
   /// Imports user activity, intake, tracked day, and (optionally) recipe,
@@ -53,6 +57,7 @@ class ImportDataUsecase {
     String weightLogJsonFileName,
     String customActivityTemplateJsonFileName, {
     String bodyMeasurementLogJsonFileName = 'body_measurements.json',
+    String savedMealsJsonFileName = 'saved_meals.json',
   }) async {
     // Allow user to pick a zip file
     final result = await FilePicker.pickFiles(
@@ -131,6 +136,22 @@ class ImportDataUsecase {
           .map((json) => RecipeDBO.fromJson(json))
           .toList();
       await _recipeRepository.addAllRecipeDBOs(recipeDBOs);
+    }
+
+    // Optional for backups made before the unified Library. This restores
+    // saved remote foods as well as custom meals and their Favorite/Rescue
+    // labels; upsert semantics keep imports repeatable.
+    final savedMealsFile = archive.findFile(savedMealsJsonFileName);
+    if (savedMealsFile != null) {
+      final savedMealsJsonString = utf8.decode(
+        savedMealsFile.content as List<int>,
+      );
+      final savedMealsList = (jsonDecode(savedMealsJsonString) as List)
+          .cast<Map<String, dynamic>>();
+      final savedMealDBOs = savedMealsList
+          .map((json) => MealDBO.fromJson(json))
+          .toList();
+      await _customMealDataSource.addAllCustomMeals(savedMealDBOs);
     }
 
     // Extract and process weight log data — optional so older zips still import.

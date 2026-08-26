@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/update_library_item_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -21,7 +22,7 @@ class RecipeDetailArguments {
   const RecipeDetailArguments({required this.recipeId});
 }
 
-enum _RecipeMenuAction { duplicate, delete }
+enum _RecipeMenuAction { toggleRescue, duplicate, delete }
 
 class RecipeDetailScreen extends StatefulWidget {
   const RecipeDetailScreen({super.key});
@@ -45,8 +46,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     super.didChangeDependencies();
     if (!_initialized) {
       _initialized = true;
-      final args = ModalRoute.of(context)?.settings.arguments
-          as RecipeDetailArguments;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as RecipeDetailArguments;
       _bloc.add(LoadRecipeEvent(args.recipeId));
     }
   }
@@ -64,9 +65,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         if (state is RecipeDetailLoaded) {
           return _buildLoaded(context, state.recipe);
         }
-        return const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        );
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
     );
   }
@@ -80,10 +79,27 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         title: Text(recipe.name),
         actions: [
           IconButton(
+            tooltip: recipe.isFavorite
+                ? S.of(context).libraryRemoveFavorite
+                : S.of(context).libraryAddFavorite,
+            onPressed: () =>
+                _updateLibraryFlags(recipe, favorite: !recipe.isFavorite),
+            icon: Icon(
+              recipe.isFavorite
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+              color: recipe.isFavorite
+                  ? Theme.of(context).colorScheme.error
+                  : null,
+            ),
+          ),
+          IconButton(
             tooltip: S.of(context).shareRecipeLabel,
             icon: const Icon(Icons.share_outlined),
             onPressed: () {
-              final code = SharedRecipePayload.fromRecipe(recipe).toJsonString();
+              final code = SharedRecipePayload.fromRecipe(
+                recipe,
+              ).toJsonString();
               showDialog(
                 context: context,
                 builder: (_) => ShareQrDialog(
@@ -109,6 +125,14 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             icon: const Icon(Icons.more_vert_rounded),
             onSelected: (action) => _onMenuSelected(context, action, recipe),
             itemBuilder: (context) => [
+              PopupMenuItem(
+                value: _RecipeMenuAction.toggleRescue,
+                child: Text(
+                  recipe.isRescue
+                      ? S.of(context).libraryRemoveRescue
+                      : S.of(context).libraryAddRescue,
+                ),
+              ),
               PopupMenuItem(
                 value: _RecipeMenuAction.duplicate,
                 child: Row(
@@ -153,9 +177,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: Dimens.spacing8),
-          ...recipe.ingredients.map(
-            (i) => IngredientListItem(ingredient: i),
-          ),
+          ...recipe.ingredients.map((i) => IngredientListItem(ingredient: i)),
           const SizedBox(height: Dimens.spacing24),
           SizedBox(
             width: double.infinity,
@@ -175,22 +197,34 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     );
   }
 
+  Future<void> _updateLibraryFlags(
+    RecipeEntity recipe, {
+    bool? favorite,
+    bool? rescue,
+  }) async {
+    await locator<UpdateLibraryItemUsecase>().updateRecipe(
+      recipe.id,
+      favorite: favorite ?? recipe.isFavorite,
+      rescue: rescue ?? recipe.isRescue,
+    );
+    if (mounted) _bloc.add(LoadRecipeEvent(recipe.id));
+  }
+
   Future<void> _onMenuSelected(
     BuildContext context,
     _RecipeMenuAction action,
     RecipeEntity recipe,
   ) async {
     switch (action) {
+      case _RecipeMenuAction.toggleRescue:
+        await _updateLibraryFlags(recipe, rescue: !recipe.isRescue);
       case _RecipeMenuAction.duplicate:
         // Open the builder with a copy: drop the id (so save() assigns a new
         // one) and append the localized "(copy)" suffix to the name. The
         // user can rename before saving — common workflow is "tweak one
         // ingredient and save as new".
         final suffix = S.of(context).duplicateRecipeNameSuffix;
-        final draft = recipe.copyWith(
-          id: '',
-          name: '${recipe.name} $suffix',
-        );
+        final draft = recipe.copyWith(id: '', name: '${recipe.name} $suffix');
         // copyWith on RecipeEntity always carries the id forward; we want a
         // fresh one. The builder treats an empty id as a "create new"
         // sentinel: it generates a UUID at save time.
@@ -276,7 +310,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             ),
             title: Text(
               label,
-              style: Theme.of(ctx).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                ctx,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             onTap: () => Navigator.of(ctx).pop(type),
           );

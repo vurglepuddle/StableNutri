@@ -49,7 +49,10 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
         // Cascade: remove all diary entries that used this custom meal.
         final allCustom = await _getIntakeUsecase.getCustomMealIntakes();
         final toDelete = allCustom
-            .where((intake) => (intake.meal.code ?? intake.meal.name) == event.mealKey)
+            .where(
+              (intake) =>
+                  (intake.meal.code ?? intake.meal.name) == event.mealKey,
+            )
             .toList();
         for (final intake in toDelete) {
           await _deleteIntakeUsecase.deleteIntake(intake);
@@ -65,6 +68,24 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
           );
         }
         add(LoadCustomMealsEvent());
+      } catch (error) {
+        log.severe(error);
+        emit(CustomMealsFailedState());
+      }
+    });
+
+    on<UpdateCustomMealLibraryFlagsEvent>((event, emit) async {
+      try {
+        await _customMealDataSource.setLibraryFlags(
+          event.meal,
+          favorite: event.favorite,
+          rescue: event.rescue,
+        );
+        final meals = _customMealDataSource
+            .getAllCustomMeals()
+            .map(MealEntity.fromMealDBO)
+            .toList();
+        emit(CustomMealsLoadedState(meals: meals));
       } catch (error) {
         log.severe(error);
         emit(CustomMealsFailedState());

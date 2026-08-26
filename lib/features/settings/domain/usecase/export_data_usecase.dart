@@ -60,6 +60,7 @@ class ExportDataUsecase {
     String weightLogJsonFileName,
     String customActivityTemplateJsonFileName, {
     String bodyMeasurementLogJsonFileName = 'body_measurements.json',
+    String savedMealsJsonFileName = 'saved_meals.json',
     ExportFormat format = ExportFormat.json,
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
@@ -139,6 +140,16 @@ class ExportDataUsecase {
       // Custom-meal photos travel through the same `meal_images/`
       // subdirectory their relative slug names.
       final customMeals = _customMealDataSource.getAllCustomMeals();
+      final savedMealBytes = utf8.encode(
+        jsonEncode(customMeals.map((meal) => meal.toJson()).toList()),
+      );
+      archive.addFile(
+        ArchiveFile(
+          savedMealsJsonFileName,
+          savedMealBytes.length,
+          savedMealBytes,
+        ),
+      );
       for (final meal in customMeals) {
         await _addUserImageIfPresent(archive, meal.localImagePath);
       }

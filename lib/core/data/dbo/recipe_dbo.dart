@@ -55,6 +55,13 @@ class RecipeDBO extends HiveObject {
   @HiveField(11)
   final String? imagePath;
 
+  /// Stable Library labels. Nullable for recipes saved by older versions.
+  @HiveField(12)
+  final bool? isFavorite;
+
+  @HiveField(13)
+  final bool? isRescue;
+
   RecipeDBO({
     required this.id,
     required this.name,
@@ -67,7 +74,26 @@ class RecipeDBO extends HiveObject {
     required this.servingsCount,
     required this.tags,
     required this.imagePath,
+    this.isFavorite,
+    this.isRescue,
   });
+
+  RecipeDBO withLibraryFlags({required bool favorite, required bool rescue}) =>
+      RecipeDBO(
+        id: id,
+        name: name,
+        description: description,
+        ingredients: ingredients,
+        totalWeightG: totalWeightG,
+        aggregatedNutrimentsPer100: aggregatedNutrimentsPer100,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+        servingsCount: servingsCount,
+        tags: tags,
+        imagePath: imagePath,
+        isFavorite: favorite,
+        isRescue: rescue,
+      );
 
   factory RecipeDBO.fromJson(Map<String, dynamic> json) =>
       _$RecipeDBOFromJson(json);

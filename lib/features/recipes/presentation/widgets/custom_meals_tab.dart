@@ -10,6 +10,8 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:opennutritracker/features/recipes/presentation/library_filter.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/custom_meals_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -17,8 +19,15 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// CustomMealsScreen in Settings). Hosted inside RecipesPage's TabBarView.
 class CustomMealsTab extends StatelessWidget {
   final bool usesImperialUnits;
+  final LibraryFilter filter;
+  final String searchQuery;
 
-  const CustomMealsTab({super.key, required this.usesImperialUnits});
+  const CustomMealsTab({
+    super.key,
+    required this.usesImperialUnits,
+    this.filter = LibraryFilter.all,
+    this.searchQuery = '',
+  });
 
   static String _keyFor(MealEntity meal) => meal.code ?? meal.name ?? '';
 
@@ -46,8 +55,7 @@ class CustomMealsTab extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        if (state is CustomMealsLoadingState ||
-            state is CustomMealsInitial) {
+        if (state is CustomMealsLoadingState || state is CustomMealsInitial) {
           return const Center(child: CircularProgressIndicator());
         }
         if (state is CustomMealsLoadedState) {
@@ -60,7 +68,9 @@ class CustomMealsTab extends StatelessWidget {
                 child: Text(
                   S.of(context).customMealsEmptyLabel,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
                 ),
               ),
             );
@@ -68,19 +78,49 @@ class CustomMealsTab extends StatelessWidget {
           final isDark = Theme.of(context).brightness == Brightness.dark;
           final palette = isDark ? AppPalette.dark : AppPalette.light;
           final textTheme = Theme.of(context).textTheme;
+          final query = searchQuery.trim().toLowerCase();
+          final filtered = state.meals.where((meal) {
+            final matchesQuery =
+                query.isEmpty ||
+                (meal.name?.toLowerCase().contains(query) ?? false) ||
+                (meal.brands?.toLowerCase().contains(query) ?? false);
+            final matchesFilter = switch (filter) {
+              LibraryFilter.all => true,
+              LibraryFilter.favorites => meal.isFavorite,
+              LibraryFilter.rescue => meal.isRescue,
+            };
+            return matchesQuery && matchesFilter;
+          }).toList();
+          if (filtered.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(Dimens.spacing32),
+                child: Text(
+                  S.of(context).libraryNoMatches,
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: palette.textMuted,
+                  ),
+                ),
+              ),
+            );
+          }
           return ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: Dimens.spacing8),
-            itemCount: state.meals.length,
+            itemCount: filtered.length,
             itemBuilder: (context, index) {
-              final meal = state.meals[index];
+              final meal = filtered[index];
               final canMerge = state.meals.length >= 2;
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16, vertical: Dimens.spacing4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Dimens.spacing16,
+                  vertical: Dimens.spacing4,
+                ),
                 child: AppCard(
                   padding: EdgeInsets.zero,
                   child: InkWell(
                     borderRadius: Dimens.borderRadiusL,
-                    onTap: () => _openEditMeal(context, meal),
+                    onTap: () => _openMeal(context, meal),
                     child: Padding(
                       padding: const EdgeInsets.all(Dimens.spacing12),
                       child: Row(
@@ -95,7 +135,9 @@ class CustomMealsTab extends StatelessWidget {
                                   meal.name ?? '',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                                 if (meal.brands != null) ...[
                                   const SizedBox(height: Dimens.spacing4),
@@ -103,35 +145,81 @@ class CustomMealsTab extends StatelessWidget {
                                     meal.brands!,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: textTheme.bodyMedium?.copyWith(color: palette.textMuted),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: palette.textMuted,
+                                    ),
                                   ),
                                 ],
                               ],
                             ),
                           ),
-                          if (canMerge)
-                            Semantics(
-                              identifier: 'custom-foods-merge-open',
-                              child: PopupMenuButton<String>(
-                                icon: Icon(Icons.more_vert_rounded, color: palette.textMuted),
-                                tooltip: S.of(context).customMealsRowMoreTooltip,
-                                onSelected: (value) {
-                                  if (value == 'merge') {
-                                    _startMerge(context, meal, state.meals);
-                                  }
-                                },
-                                itemBuilder: (ctx) => [
+                          IconButton(
+                            tooltip: meal.isFavorite
+                                ? S.of(context).libraryRemoveFavorite
+                                : S.of(context).libraryAddFavorite,
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () =>
+                                context.read<CustomMealsBloc>().add(
+                                  UpdateCustomMealLibraryFlagsEvent(
+                                    meal: meal,
+                                    favorite: !meal.isFavorite,
+                                    rescue: meal.isRescue,
+                                  ),
+                                ),
+                            icon: Icon(
+                              meal.isFavorite
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              color: meal.isFavorite
+                                  ? Theme.of(context).colorScheme.error
+                                  : palette.textMuted,
+                            ),
+                          ),
+                          Semantics(
+                            identifier: 'custom-foods-merge-open',
+                            child: PopupMenuButton<String>(
+                              icon: Icon(
+                                Icons.more_vert_rounded,
+                                color: palette.textMuted,
+                              ),
+                              tooltip: S.of(context).customMealsRowMoreTooltip,
+                              onSelected: (value) {
+                                if (value == 'rescue') {
+                                  context.read<CustomMealsBloc>().add(
+                                    UpdateCustomMealLibraryFlagsEvent(
+                                      meal: meal,
+                                      favorite: meal.isFavorite,
+                                      rescue: !meal.isRescue,
+                                    ),
+                                  );
+                                } else if (value == 'merge') {
+                                  _startMerge(context, meal, state.meals);
+                                }
+                              },
+                              itemBuilder: (ctx) => [
+                                PopupMenuItem<String>(
+                                  value: 'rescue',
+                                  child: Text(
+                                    meal.isRescue
+                                        ? S.of(context).libraryRemoveRescue
+                                        : S.of(context).libraryAddRescue,
+                                  ),
+                                ),
+                                if (canMerge)
                                   PopupMenuItem<String>(
                                     value: 'merge',
                                     child: Text(
                                       S.of(context).customMealsMergeAction,
                                     ),
                                   ),
-                                ],
-                              ),
+                              ],
                             ),
+                          ),
                           IconButton(
-                            icon: Icon(Icons.delete_outline_rounded, color: palette.textMuted),
+                            icon: Icon(
+                              Icons.delete_outline_rounded,
+                              color: palette.textMuted,
+                            ),
                             onPressed: () => _confirmDelete(context, meal),
                           ),
                         ],
@@ -148,8 +236,23 @@ class CustomMealsTab extends StatelessWidget {
     );
   }
 
-  Future<void> _openEditMeal(BuildContext context, MealEntity meal) async {
+  Future<void> _openMeal(BuildContext context, MealEntity meal) async {
     final bloc = context.read<CustomMealsBloc>();
+    if (meal.source != MealSourceEntity.custom) {
+      final intakeType = await _pickIntakeType(context);
+      if (intakeType == null || !context.mounted) return;
+      await Navigator.of(context).pushNamed(
+        NavigationOptions.mealDetailRoute,
+        arguments: MealDetailScreenArguments(
+          meal,
+          intakeType,
+          DateTime.now(),
+          usesImperialUnits,
+        ),
+      );
+      bloc.add(LoadCustomMealsEvent());
+      return;
+    }
     await Navigator.of(context).pushNamed(
       NavigationOptions.editMealRoute,
       arguments: EditMealScreenArguments(
@@ -161,6 +264,32 @@ class CustomMealsTab extends StatelessWidget {
       ),
     );
     bloc.add(LoadCustomMealsEvent());
+  }
+
+  Future<IntakeTypeEntity?> _pickIntakeType(BuildContext context) {
+    final s = S.of(context);
+    return showModalBottomSheet<IntakeTypeEntity>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: Dimens.spacing8),
+            for (final entry in [
+              (IntakeTypeEntity.breakfast, s.breakfastLabel),
+              (IntakeTypeEntity.lunch, s.lunchLabel),
+              (IntakeTypeEntity.dinner, s.dinnerLabel),
+              (IntakeTypeEntity.snack, s.snackLabel),
+            ])
+              ListTile(
+                leading: Icon(entry.$1.getIconData()),
+                title: Text(entry.$2),
+                onTap: () => Navigator.of(sheetContext).pop(entry.$1),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _confirmDelete(BuildContext context, MealEntity meal) async {
@@ -213,10 +342,16 @@ class CustomMealsTab extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
-                      Dimens.spacing16, Dimens.spacing24, Dimens.spacing16, Dimens.spacing8),
+                    Dimens.spacing16,
+                    Dimens.spacing24,
+                    Dimens.spacing16,
+                    Dimens.spacing8,
+                  ),
                   child: Text(
                     S.of(context).customMealsMergePickerTitle,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 Flexible(
@@ -229,7 +364,9 @@ class CustomMealsTab extends StatelessWidget {
                         leading: _MealLeadingThumbnail(meal: m),
                         title: Text(
                           m.name ?? '',
-                          style: Theme.of(ctx2).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                          style: Theme.of(ctx2).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         subtitle: m.brands != null ? Text(m.brands!) : null,
                         onTap: () => Navigator.of(ctx).pop(m),
@@ -249,7 +386,11 @@ class CustomMealsTab extends StatelessWidget {
     if (winner == null || !context.mounted) return;
     final loser = _keyFor(winner) == _keyFor(tappedFrom) ? partner : tappedFrom;
 
-    final confirmed = await _confirmMerge(context, loser: loser, winner: winner);
+    final confirmed = await _confirmMerge(
+      context,
+      loser: loser,
+      winner: winner,
+    );
     if (confirmed != true) return;
 
     bloc.add(
@@ -332,10 +473,7 @@ class CustomMealsTab extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         title: Text(s.customMealsMergeConfirmTitle),
         content: Text(
-          s.customMealsMergeConfirmContent(
-            loser.name ?? '',
-            winner.name ?? '',
-          ),
+          s.customMealsMergeConfirmContent(loser.name ?? '', winner.name ?? ''),
         ),
         actions: [
           TextButton(
@@ -386,7 +524,12 @@ class _MealLeadingThumbnail extends StatelessWidget {
         if (!file.existsSync()) return fallback;
         return ClipRRect(
           borderRadius: Dimens.borderRadiusS,
-          child: Image.file(file, width: _size, height: _size, fit: BoxFit.cover),
+          child: Image.file(
+            file,
+            width: _size,
+            height: _size,
+            fit: BoxFit.cover,
+          ),
         );
       },
     );

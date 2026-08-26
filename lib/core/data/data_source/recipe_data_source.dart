@@ -13,11 +13,16 @@ class RecipeDataSource {
   // never change, so we can safely overwrite the matching record.
   Future<void> saveRecipe(RecipeDBO recipe) async {
     final existing = _recipeBox.values.cast<RecipeDBO?>().firstWhere(
-          (r) => r?.id == recipe.id,
-          orElse: () => null,
-        );
+      (r) => r?.id == recipe.id,
+      orElse: () => null,
+    );
     if (existing != null) {
-      await _recipeBox.put(existing.key, recipe);
+      final merged = recipe.withLibraryFlags(
+        favorite:
+            (recipe.isFavorite ?? false) || (existing.isFavorite ?? false),
+        rescue: (recipe.isRescue ?? false) || (existing.isRescue ?? false),
+      );
+      await _recipeBox.put(existing.key, merged);
     } else {
       await _recipeBox.add(recipe);
     }
@@ -30,6 +35,18 @@ class RecipeDataSource {
       if (recipe.id == id) return recipe;
     }
     return null;
+  }
+
+  Future<RecipeDBO?> setLibraryFlags(
+    String id, {
+    required bool favorite,
+    required bool rescue,
+  }) async {
+    final recipe = getRecipeById(id);
+    if (recipe == null) return null;
+    final updated = recipe.withLibraryFlags(favorite: favorite, rescue: rescue);
+    await _recipeBox.put(recipe.key, updated);
+    return updated;
   }
 
   Future<void> deleteRecipe(String id) async {

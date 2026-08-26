@@ -72,6 +72,16 @@ class MealDBO extends HiveObject {
   @HiveField(16)
   final bool? machineTranslatedName;
 
+  /// User-controlled Library labels. Nullable so records written before the
+  /// Stable Library slice decode as unlabelled rather than requiring a data
+  /// migration. A remote food can also live in CustomMealBox once the user
+  /// labels it, which keeps the full food snapshot available offline.
+  @HiveField(17)
+  final bool? isFavorite;
+
+  @HiveField(18)
+  final bool? isRescue;
+
   MealDBO({
     required this.code,
     required this.name,
@@ -90,28 +100,55 @@ class MealDBO extends HiveObject {
     this.detailed,
     this.backendSource,
     this.machineTranslatedName,
+    this.isFavorite,
+    this.isRescue,
   });
 
   factory MealDBO.fromMealEntity(MealEntity mealEntity) => MealDBO(
-        code: mealEntity.code,
-        name: mealEntity.name,
-        brands: mealEntity.brands,
-        thumbnailImageUrl: mealEntity.thumbnailImageUrl,
-        mainImageUrl: mealEntity.mainImageUrl,
-        url: mealEntity.url,
-        mealQuantity: mealEntity.mealQuantity,
-        mealUnit: mealEntity.mealUnit,
-        servingQuantity: mealEntity.servingQuantity,
-        servingUnit: mealEntity.servingUnit,
-        servingSize: mealEntity.servingSize,
-        nutriments: MealNutrimentsDBO.fromProductNutrimentsEntity(
-          mealEntity.nutriments,
-        ),
-        source: MealSourceDBO.fromMealSourceEntity(mealEntity.source),
-        localImagePath: mealEntity.localImagePath,
-        detailed: mealEntity.detailed,
-        backendSource: mealEntity.backendSource,
-        machineTranslatedName: mealEntity.machineTranslatedName,
+    code: mealEntity.code,
+    name: mealEntity.name,
+    brands: mealEntity.brands,
+    thumbnailImageUrl: mealEntity.thumbnailImageUrl,
+    mainImageUrl: mealEntity.mainImageUrl,
+    url: mealEntity.url,
+    mealQuantity: mealEntity.mealQuantity,
+    mealUnit: mealEntity.mealUnit,
+    servingQuantity: mealEntity.servingQuantity,
+    servingUnit: mealEntity.servingUnit,
+    servingSize: mealEntity.servingSize,
+    nutriments: MealNutrimentsDBO.fromProductNutrimentsEntity(
+      mealEntity.nutriments,
+    ),
+    source: MealSourceDBO.fromMealSourceEntity(mealEntity.source),
+    localImagePath: mealEntity.localImagePath,
+    detailed: mealEntity.detailed,
+    backendSource: mealEntity.backendSource,
+    machineTranslatedName: mealEntity.machineTranslatedName,
+    isFavorite: mealEntity.isFavorite,
+    isRescue: mealEntity.isRescue,
+  );
+
+  MealDBO withLibraryFlags({required bool favorite, required bool rescue}) =>
+      MealDBO(
+        code: code,
+        name: name,
+        brands: brands,
+        thumbnailImageUrl: thumbnailImageUrl,
+        mainImageUrl: mainImageUrl,
+        url: url,
+        mealQuantity: mealQuantity,
+        mealUnit: mealUnit,
+        servingQuantity: servingQuantity,
+        servingUnit: servingUnit,
+        servingSize: servingSize,
+        nutriments: nutriments,
+        source: source,
+        localImagePath: localImagePath,
+        detailed: detailed,
+        backendSource: backendSource,
+        machineTranslatedName: machineTranslatedName,
+        isFavorite: favorite,
+        isRescue: rescue,
       );
 
   factory MealDBO.fromJson(Map<String, dynamic> json) =>

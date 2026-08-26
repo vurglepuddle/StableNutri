@@ -1154,5 +1154,16 @@
   "measurementsViewHistory": "View all",
   "measurementsHistoryTitle": "Measurement history",
   "measurementsHistoryEmpty": "No body measurements yet. Use Log measurements to add your first entry.",
-  "measurementsDelete": "Delete measurement"
+  "measurementsDelete": "Delete measurement",
+  "libraryLabel": "Library",
+  "librarySavedMealsLabel": "Saved meals",
+  "librarySearchHint": "Search saved meals and recipesâ€¦",
+  "libraryFavoritesLabel": "Favorites",
+  "libraryRescueLabel": "Rescue",
+  "libraryRescueDescription": "Some days are just harder. Keep easy, low-pressure options here for when appetite or energy is low.",
+  "libraryAddFavorite": "Add to favorites",
+  "libraryRemoveFavorite": "Remove from favorites",
+  "libraryAddRescue": "Mark as a rescue option",
+  "libraryRemoveRescue": "Remove rescue label",
+  "libraryNoMatches": "No Library items match this search or filter yet."
 }

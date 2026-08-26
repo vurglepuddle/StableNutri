@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
+import 'package:opennutritracker/features/recipes/presentation/library_filter.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/recipe_detail_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/custom_meals_tab.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/recipe_list_item.dart';
@@ -31,6 +32,7 @@ class _RecipesPageState extends State<RecipesPage>
   late TextEditingController _searchController;
   String _searchQuery = '';
   String? _activeTag;
+  LibraryFilter _libraryFilter = LibraryFilter.all;
   bool _usesImperialUnits = false;
   // Multi-select state. Empty set = normal mode.
   final Set<String> _selectedIds = {};
@@ -78,7 +80,7 @@ class _RecipesPageState extends State<RecipesPage>
     // iPhone and the create/import actions live where you'd expect them.
     return Scaffold(
       appBar: AppBar(
-        title: Text(S.of(context).recipesLabel),
+        title: Text(S.of(context).libraryLabel),
         actions: [
           PopupMenuButton<_RecipesAction>(
             tooltip: S.of(context).addLabel,
@@ -123,24 +125,121 @@ class _RecipesPageState extends State<RecipesPage>
         value: _customMealsBloc,
         child: Column(
           children: [
+            _buildLibraryFilters(context),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Dimens.spacing16,
+                Dimens.spacing4,
+                Dimens.spacing16,
+                Dimens.spacing8,
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) => setState(() => _searchQuery = value),
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: S.of(context).librarySearchHint,
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  suffixIcon: _searchQuery.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: S.of(context).dialogCancelLabel,
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                          icon: const Icon(Icons.clear_rounded),
+                        ),
+                ),
+              ),
+            ),
+            if (_libraryFilter == LibraryFilter.rescue)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  Dimens.spacing16,
+                  Dimens.spacing4,
+                  Dimens.spacing16,
+                  Dimens.spacing8,
+                ),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.10),
+                    borderRadius: Dimens.borderRadiusM,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(Dimens.spacing12),
+                    child: Text(
+                      S.of(context).libraryRescueDescription,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ),
+              ),
             TabBar(
               controller: _tabController,
               tabs: [
+                Tab(text: S.of(context).librarySavedMealsLabel),
                 Tab(text: S.of(context).recipesLabel),
-                Tab(text: S.of(context).settingsCustomMealsLabel),
               ],
             ),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: [
+                  CustomMealsTab(
+                    usesImperialUnits: _usesImperialUnits,
+                    filter: _libraryFilter,
+                    searchQuery: _searchQuery,
+                  ),
                   _buildRecipesTab(),
-                  CustomMealsTab(usesImperialUnits: _usesImperialUnits),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLibraryFilters(BuildContext context) {
+    Widget chip(LibraryFilter filter, String label, {IconData? icon}) {
+      return Padding(
+        padding: const EdgeInsets.only(right: Dimens.spacing8),
+        child: ChoiceChip(
+          avatar: icon == null ? null : Icon(icon, size: 16),
+          label: Text(label),
+          selected: _libraryFilter == filter,
+          showCheckmark: false,
+          onSelected: (_) => setState(() => _libraryFilter = filter),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 52,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(
+          Dimens.spacing16,
+          Dimens.spacing8,
+          Dimens.spacing8,
+          Dimens.spacing4,
+        ),
+        children: [
+          chip(LibraryFilter.all, S.of(context).allItemsLabel),
+          chip(
+            LibraryFilter.favorites,
+            S.of(context).libraryFavoritesLabel,
+            icon: Icons.favorite_rounded,
+          ),
+          chip(
+            LibraryFilter.rescue,
+            S.of(context).libraryRescueLabel,
+            icon: Icons.volunteer_activism_rounded,
+          ),
+        ],
       ),
     );
   }
@@ -151,7 +250,9 @@ class _RecipesPageState extends State<RecipesPage>
   ) async {
     switch (action) {
       case _RecipesAction.newRecipe:
-        await Navigator.of(context).pushNamed(NavigationOptions.recipeBuilderRoute);
+        await Navigator.of(
+          context,
+        ).pushNamed(NavigationOptions.recipeBuilderRoute);
         _bloc.add(const LoadRecipesEvent());
       case _RecipesAction.newCustomMeal:
         await Navigator.of(context).pushNamed(
@@ -166,8 +267,9 @@ class _RecipesPageState extends State<RecipesPage>
         );
         _customMealsBloc.add(LoadCustomMealsEvent());
       case _RecipesAction.importRecipe:
-        await Navigator.of(context)
-            .pushNamed(NavigationOptions.importRecipeScannerRoute);
+        await Navigator.of(
+          context,
+        ).pushNamed(NavigationOptions.importRecipeScannerRoute);
         _bloc.add(const LoadRecipesEvent());
     }
   }
@@ -194,10 +296,7 @@ class _RecipesPageState extends State<RecipesPage>
           final q = _searchQuery.trim().toLowerCase();
           // Build the union of all tags across recipes (sorted) for the
           // filter chip row. Skipped entirely when no recipe has tags.
-          final allTags = state.recipes
-              .expand((r) => r.tags)
-              .toSet()
-              .toList()
+          final allTags = state.recipes.expand((r) => r.tags).toSet().toList()
             ..sort();
           // Reset _activeTag if the chosen tag no longer exists (e.g. user
           // removed it from every recipe).
@@ -207,67 +306,44 @@ class _RecipesPageState extends State<RecipesPage>
             );
           }
           final filtered = state.recipes.where((r) {
-            final matchesQuery =
-                q.isEmpty || r.name.toLowerCase().contains(q);
+            final matchesQuery = q.isEmpty || r.name.toLowerCase().contains(q);
             final matchesTag =
                 _activeTag == null || r.tags.contains(_activeTag);
-            return matchesQuery && matchesTag;
+            final matchesLibraryFilter = switch (_libraryFilter) {
+              LibraryFilter.all => true,
+              LibraryFilter.favorites => r.isFavorite,
+              LibraryFilter.rescue => r.isRescue,
+            };
+            return matchesQuery && matchesTag && matchesLibraryFilter;
           }).toList();
           final isDark = Theme.of(context).brightness == Brightness.dark;
           final palette = isDark ? AppPalette.dark : AppPalette.light;
           return Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    Dimens.spacing16, Dimens.spacing12, Dimens.spacing16, Dimens.spacing4),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (v) => setState(() => _searchQuery = v),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    filled: true,
-                    fillColor: palette.surfaceMuted,
-                    hintText: S.of(context).searchLabel,
-                    prefixIcon: Icon(Icons.search_rounded, color: palette.textMuted),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: Icon(Icons.clear_rounded, color: palette.textMuted),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() => _searchQuery = '');
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: Dimens.borderRadiusM,
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: Dimens.borderRadiusM,
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ),
               if (allTags.isNotEmpty)
                 SizedBox(
                   height: 44,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Dimens.spacing12,
+                    ),
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: Dimens.spacing4,
+                        ),
                         child: ChoiceChip(
                           label: Text(S.of(context).recipesFilterAllLabel),
                           selected: _activeTag == null,
-                          onSelected: (_) =>
-                              setState(() => _activeTag = null),
+                          onSelected: (_) => setState(() => _activeTag = null),
                         ),
                       ),
                       for (final tag in allTags)
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: Dimens.spacing4,
+                          ),
                           child: ChoiceChip(
                             label: Text(tag),
                             selected: _activeTag == tag,
@@ -285,10 +361,12 @@ class _RecipesPageState extends State<RecipesPage>
                         child: Padding(
                           padding: const EdgeInsets.all(Dimens.spacing32),
                           child: Text(
-                            S.of(context).recipesEmptyLabel,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
+                            _searchQuery.isNotEmpty ||
+                                    _activeTag != null ||
+                                    _libraryFilter != LibraryFilter.all
+                                ? S.of(context).libraryNoMatches
+                                : S.of(context).recipesEmptyLabel,
+                            style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(color: palette.textMuted),
                           ),
                         ),
@@ -298,15 +376,31 @@ class _RecipesPageState extends State<RecipesPage>
                           if (_selectionMode) _buildSelectionBar(context),
                           Expanded(
                             child: ListView.builder(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: Dimens.spacing8),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: Dimens.spacing8,
+                              ),
                               itemCount: filtered.length,
                               itemBuilder: (context, index) {
                                 final recipe = filtered[index];
-                                final isSelected =
-                                    _selectedIds.contains(recipe.id);
+                                final isSelected = _selectedIds.contains(
+                                  recipe.id,
+                                );
                                 return RecipeListItem(
                                   recipe: recipe,
+                                  onFavorite: () => _bloc.add(
+                                    UpdateRecipeLibraryFlagsEvent(
+                                      recipeId: recipe.id,
+                                      favorite: !recipe.isFavorite,
+                                      rescue: recipe.isRescue,
+                                    ),
+                                  ),
+                                  onRescue: () => _bloc.add(
+                                    UpdateRecipeLibraryFlagsEvent(
+                                      recipeId: recipe.id,
+                                      favorite: recipe.isFavorite,
+                                      rescue: !recipe.isRescue,
+                                    ),
+                                  ),
                                   isSelected: isSelected,
                                   onTap: () async {
                                     if (_selectionMode) {
@@ -322,7 +416,8 @@ class _RecipesPageState extends State<RecipesPage>
                                     await Navigator.of(context).pushNamed(
                                       NavigationOptions.recipeDetailRoute,
                                       arguments: RecipeDetailArguments(
-                                          recipeId: recipe.id),
+                                        recipeId: recipe.id,
+                                      ),
                                     );
                                     if (mounted) {
                                       _bloc.add(const LoadRecipesEvent());
@@ -350,8 +445,16 @@ class _RecipesPageState extends State<RecipesPage>
     final s = S.of(context);
     final accent = Theme.of(context).colorScheme.primary;
     return Container(
-      margin: const EdgeInsets.fromLTRB(Dimens.spacing16, Dimens.spacing4, Dimens.spacing16, Dimens.spacing4),
-      padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing8, vertical: Dimens.spacing4),
+      margin: const EdgeInsets.fromLTRB(
+        Dimens.spacing16,
+        Dimens.spacing4,
+        Dimens.spacing16,
+        Dimens.spacing4,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: Dimens.spacing8,
+        vertical: Dimens.spacing4,
+      ),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.12),
         borderRadius: Dimens.borderRadiusM,
@@ -367,9 +470,9 @@ class _RecipesPageState extends State<RecipesPage>
             child: Text(
               s.selectionCountLabel(_selectedIds.length),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w700,
-                  ),
+                color: accent,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           IconButton(
@@ -433,13 +536,17 @@ class _RecipesPageState extends State<RecipesPage>
             const SizedBox(height: Dimens.spacing24),
             Text(
               S.of(context).recipesEmptyLabel,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Dimens.spacing8),
             Text(
               S.of(context).recipesEmptyHint,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: palette.textMuted),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: palette.textMuted),
               textAlign: TextAlign.center,
             ),
           ],

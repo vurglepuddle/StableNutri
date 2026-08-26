@@ -68,6 +68,7 @@ import 'package:opennutritracker/core/domain/usecase/switch_profile_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_profile_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/update_library_item_usecase.dart';
 import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
@@ -205,7 +206,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<ProfileBloc>(
     () => ProfileBloc(locator(), locator(), locator(), locator(), locator()),
   );
-  locator.registerLazySingleton<RecipesBloc>(() => RecipesBloc(locator()));
+  locator.registerLazySingleton<RecipesBloc>(
+    () => RecipesBloc(locator(), locator()),
+  );
   // Singleton so a unit change in Settings can refresh the live Trends page
   // (it lives in the main IndexedStack and isn't recreated on tab switch).
   locator.registerLazySingleton<TrendsBloc>(
@@ -448,6 +451,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(),
     ),
   );
   locator.registerLazySingleton(() => ImportMealsCsvUsecase(locator()));
@@ -478,6 +482,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => GetAllRecipesUseCase(locator()));
   locator.registerLazySingleton(() => GetRecipeByIdUseCase(locator()));
   locator.registerLazySingleton(() => DeleteRecipeUseCase(locator()));
+  locator.registerLazySingleton(
+    () => UpdateLibraryItemUsecase(locator(), locator()),
+  );
   locator.registerLazySingleton(
     () => MergeCustomMealsUseCase(locator(), locator(), locator()),
   );

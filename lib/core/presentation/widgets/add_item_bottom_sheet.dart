@@ -188,7 +188,7 @@ class AddItemBottomSheet extends StatelessWidget {
             identifier: 'add-item-recipes',
             child: ListTile(
               title: Text(
-                S.of(context).recipesLabel,
+                S.of(context).libraryLabel,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,
                     ),

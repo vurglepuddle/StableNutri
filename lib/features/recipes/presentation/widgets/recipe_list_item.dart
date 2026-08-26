@@ -17,6 +17,8 @@ class RecipeListItem extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
   final bool isSelected;
+  final VoidCallback? onFavorite;
+  final VoidCallback? onRescue;
 
   static const double _thumbSize = 52;
 
@@ -26,6 +28,8 @@ class RecipeListItem extends StatelessWidget {
     required this.onTap,
     this.onLongPress,
     this.isSelected = false,
+    this.onFavorite,
+    this.onRescue,
   });
 
   @override
@@ -49,7 +53,10 @@ class RecipeListItem extends StatelessWidget {
     // AppCard's own onTap is left null so the inner InkWell can carry both the
     // tap and the long-press (multi-select) gestures from a single hit target.
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16, vertical: Dimens.spacing4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: Dimens.spacing16,
+        vertical: Dimens.spacing4,
+      ),
       child: AppCard(
         color: isSelected ? accent.withValues(alpha: 0.12) : null,
         padding: EdgeInsets.zero,
@@ -60,35 +67,81 @@ class RecipeListItem extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(Dimens.spacing12),
             child: Row(
-            children: [
-              _buildLeading(context, palette, accent, thumbnailUrl),
-              const SizedBox(width: Dimens.spacing12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      recipe.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: Dimens.spacing4),
-                    Text(
-                      '${S.of(context).recipeIngredientCountLabel(ingredientCount)} · '
-                      '${EnergyDisplay.formatWithUnit(context, totalKcal)}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodyMedium?.copyWith(color: palette.textMuted),
-                    ),
-                  ],
+              children: [
+                _buildLeading(context, palette, accent, thumbnailUrl),
+                const SizedBox(width: Dimens.spacing12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        recipe.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: Dimens.spacing4),
+                      Text(
+                        '${S.of(context).recipeIngredientCountLabel(ingredientCount)} · '
+                        '${EnergyDisplay.formatWithUnit(context, totalKcal)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: palette.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: Dimens.spacing8),
-              isSelected
-                  ? Icon(Icons.check_circle_rounded, color: accent, size: 24)
-                  : Icon(Icons.chevron_right_rounded, color: palette.textMuted, size: 24),
-            ],
+                const SizedBox(width: Dimens.spacing8),
+                isSelected
+                    ? Icon(Icons.check_circle_rounded, color: accent, size: 24)
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (onRescue != null)
+                            IconButton(
+                              tooltip: recipe.isRescue
+                                  ? S.of(context).libraryRemoveRescue
+                                  : S.of(context).libraryAddRescue,
+                              visualDensity: VisualDensity.compact,
+                              onPressed: onRescue,
+                              icon: Icon(
+                                recipe.isRescue
+                                    ? Icons.volunteer_activism_rounded
+                                    : Icons.volunteer_activism_outlined,
+                                color: recipe.isRescue
+                                    ? accent
+                                    : palette.textMuted,
+                              ),
+                            ),
+                          if (onFavorite != null)
+                            IconButton(
+                              tooltip: recipe.isFavorite
+                                  ? S.of(context).libraryRemoveFavorite
+                                  : S.of(context).libraryAddFavorite,
+                              visualDensity: VisualDensity.compact,
+                              onPressed: onFavorite,
+                              icon: Icon(
+                                recipe.isFavorite
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                color: recipe.isFavorite
+                                    ? Theme.of(context).colorScheme.error
+                                    : palette.textMuted,
+                              ),
+                            )
+                          else
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: palette.textMuted,
+                              size: 24,
+                            ),
+                        ],
+                      ),
+              ],
             ),
           ),
         ),
@@ -96,7 +149,12 @@ class RecipeListItem extends StatelessWidget {
     );
   }
 
-  Widget _buildLeading(BuildContext context, AppPalette palette, Color accent, String? thumbnailUrl) {
+  Widget _buildLeading(
+    BuildContext context,
+    AppPalette palette,
+    Color accent,
+    String? thumbnailUrl,
+  ) {
     if (recipe.imagePath != null) {
       return _UserImageThumbnail(relativePath: recipe.imagePath!);
     }

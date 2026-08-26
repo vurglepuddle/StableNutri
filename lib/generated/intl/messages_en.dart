@@ -139,8 +139,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m49(age) => "${age} years";
 
-  static String m50(count) =>
-      "Body measurement trend with ${count} readings";
+  static String m50(count) => "Body measurement trend with ${count} readings";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1946,9 +1945,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "toward daily range",
     ),
     "rangeGoalLabel": MessageLookupByLibrary.simpleMessage("Range"),
-    "rangeToReachLabel": MessageLookupByLibrary.simpleMessage(
-      "to reach range",
-    ),
+    "rangeToReachLabel": MessageLookupByLibrary.simpleMessage("to reach range"),
     "rangeWithinLabel": MessageLookupByLibrary.simpleMessage(
       "within daily range",
     ),
@@ -1987,9 +1984,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Log this measurement on at least two days to see a trend.",
     ),
     "measurementsChartSemantics": m50,
-    "measurementsViewHistory": MessageLookupByLibrary.simpleMessage(
-      "View all",
-    ),
+    "measurementsViewHistory": MessageLookupByLibrary.simpleMessage("View all"),
     "measurementsHistoryTitle": MessageLookupByLibrary.simpleMessage(
       "Measurement history",
     ),
@@ -1998,6 +1993,33 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "measurementsDelete": MessageLookupByLibrary.simpleMessage(
       "Delete measurement",
+    ),
+    "libraryLabel": MessageLookupByLibrary.simpleMessage("Library"),
+    "librarySavedMealsLabel": MessageLookupByLibrary.simpleMessage(
+      "Saved meals",
+    ),
+    "librarySearchHint": MessageLookupByLibrary.simpleMessage(
+      "Search saved meals and recipesâ€¦",
+    ),
+    "libraryFavoritesLabel": MessageLookupByLibrary.simpleMessage("Favorites"),
+    "libraryRescueLabel": MessageLookupByLibrary.simpleMessage("Rescue"),
+    "libraryRescueDescription": MessageLookupByLibrary.simpleMessage(
+      "Some days are just harder. Keep easy, low-pressure options here for when appetite or energy is low.",
+    ),
+    "libraryAddFavorite": MessageLookupByLibrary.simpleMessage(
+      "Add to favorites",
+    ),
+    "libraryRemoveFavorite": MessageLookupByLibrary.simpleMessage(
+      "Remove from favorites",
+    ),
+    "libraryAddRescue": MessageLookupByLibrary.simpleMessage(
+      "Mark as a rescue option",
+    ),
+    "libraryRemoveRescue": MessageLookupByLibrary.simpleMessage(
+      "Remove rescue label",
+    ),
+    "libraryNoMatches": MessageLookupByLibrary.simpleMessage(
+      "No Library items match this search or filter yet.",
     ),
     "yearsLabel": m49,
     "youLabel": MessageLookupByLibrary.simpleMessage("You"),

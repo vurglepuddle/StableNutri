@@ -53,6 +53,11 @@ class MealEntity extends Equatable {
   /// disclosure hint under the title for these.
   final bool machineTranslatedName;
 
+  /// Optional Library labels. Remote foods default to false; once labelled,
+  /// a snapshot is retained in the encrypted saved-meals box.
+  final bool isFavorite;
+  final bool isRescue;
+
   /// Relative path (`meal_images/<code>.webp`) to a user-attached photo
   /// for a custom meal, or null if none is set. Resolved to an absolute
   /// path at render time via `MealImageStorage.absolutePath`. Always
@@ -91,6 +96,8 @@ class MealEntity extends Equatable {
     required this.source,
     this.backendSource,
     this.machineTranslatedName = false,
+    this.isFavorite = false,
+    this.isRescue = false,
     this.localImagePath,
     this.detailed = false,
   });
@@ -124,6 +131,8 @@ class MealEntity extends Equatable {
     source: MealSourceEntity.fromMealSourceDBO(mealDBO.source),
     backendSource: mealDBO.backendSource,
     machineTranslatedName: mealDBO.machineTranslatedName ?? false,
+    isFavorite: mealDBO.isFavorite ?? false,
+    isRescue: mealDBO.isRescue ?? false,
     localImagePath: mealDBO.localImagePath,
     detailed: mealDBO.detailed ?? false,
   );
@@ -345,6 +354,28 @@ class MealEntity extends Equatable {
         return 'g';
     }
   }
+
+  MealEntity copyWith({bool? isFavorite, bool? isRescue}) => MealEntity(
+    code: code,
+    name: name,
+    brands: brands,
+    thumbnailImageUrl: thumbnailImageUrl,
+    mainImageUrl: mainImageUrl,
+    url: url,
+    mealQuantity: mealQuantity,
+    mealUnit: mealUnit,
+    servingQuantity: servingQuantity,
+    servingUnit: servingUnit,
+    servingSize: servingSize,
+    nutriments: nutriments,
+    source: source,
+    backendSource: backendSource,
+    machineTranslatedName: machineTranslatedName,
+    isFavorite: isFavorite ?? this.isFavorite,
+    isRescue: isRescue ?? this.isRescue,
+    localImagePath: localImagePath,
+    detailed: detailed,
+  );
 
   @override
   List<Object?> get props => [code, name];

@@ -24,6 +24,7 @@ The export is a single `.zip` file (default filename
 | `user_recipes.json`   | JSON   | Recipes only. Nested-ingredient shape, no CSV counterpart.         |
 | `weight_log.json`     | JSON   | Daily weight readings. No CSV counterpart.                         |
 | `body_measurements.json` | JSON | Daily optional waist/hips/chest/arm/thigh/body-fat snapshots.      |
+| `saved_meals.json`     | JSON   | Saved foods/custom meals plus Favorite and Rescue Library labels.  |
 
 User profile (height, weight, birthday, PAL, goal) is intentionally **not**
 included — see `core/data/data_source/user_data_source.dart` for the box that
@@ -168,6 +169,12 @@ body fat is stored as a percentage. Any measurement field can be `null`.
   }
 ]
 ```
+
+### `saved_meals.json`
+
+An array of saved food snapshots. It uses the same meal object shape embedded
+inside `user_intake.json`, with two additional optional booleans:
+`isFavorite` and `isRescue`. Older backups without this file remain compatible.
 
 ## CSV schema
 

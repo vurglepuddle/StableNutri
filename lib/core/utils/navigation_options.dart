@@ -1,5 +1,6 @@
 class NavigationOptions {
   static const mainRoute = "main";
+  static const diaryRoute = "diary";
   static const onboardingRoute = "onboarding";
   static const settingsRoute = "settings";
   static const addMealRoute = "addMeal";

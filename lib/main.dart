@@ -25,6 +25,7 @@ import 'package:opennutritracker/features/activity_detail/activity_detail_screen
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/diary/diary_page.dart';
 import 'package:opennutritracker/features/onboarding/onboarding_screen.dart';
 import 'package:opennutritracker/features/fasting/presentation/fasting_screen.dart';
 import 'package:opennutritracker/features/profile/presentation/screens/manage_profiles_screen.dart';
@@ -59,8 +60,7 @@ Future<void> main() async {
 
   final config = await configRepo.getConfig();
   final savedLocaleCode = await configRepo.getSelectedLocale();
-  final savedLocale =
-      savedLocaleCode != null ? Locale(savedLocaleCode) : null;
+  final savedLocale = savedLocaleCode != null ? Locale(savedLocaleCode) : null;
 
   // #312: Restore scheduled notifications after app start / device reboot.
   // Load the user's localized strings first — there's no widget tree yet, so
@@ -70,7 +70,8 @@ Future<void> main() async {
   // reverting to English on each launch.
   if (config.notificationsEnabled) {
     await S.load(
-        savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale);
+      savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale,
+    );
     final s = S.current;
     final notificationService = locator<NotificationService>();
     await notificationService.initialize();
@@ -83,8 +84,8 @@ Future<void> main() async {
       channelDescription: s.notificationsDailyReminderChannelDescription,
     );
   }
-  final hasAcceptedAnonymousData =
-      await configRepo.getConfigHasAcceptedAnonymousData();
+  final hasAcceptedAnonymousData = await configRepo
+      .getConfigHasAcceptedAnonymousData();
   final savedAppTheme = await configRepo.getConfigAppTheme();
   final savedUsesKilojoules = config.usesKilojoules;
   final savedUseMaterialYou = config.useMaterialYou;
@@ -95,12 +96,24 @@ Future<void> main() async {
   // sentry enabled, else run without it
   if (kReleaseMode && hasAcceptedAnonymousData) {
     log.info('Starting App with Sentry enabled ...');
-    _runAppWithSentryReporting(isUserInitialized, savedAppTheme, savedLocale,
-        savedUsesKilojoules, savedUseMaterialYou, savedAccentColor);
+    _runAppWithSentryReporting(
+      isUserInitialized,
+      savedAppTheme,
+      savedLocale,
+      savedUsesKilojoules,
+      savedUseMaterialYou,
+      savedAccentColor,
+    );
   } else {
     log.info('Starting App ...');
-    runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, savedLocale,
-        savedUsesKilojoules, savedUseMaterialYou, savedAccentColor);
+    runAppWithChangeNotifiers(
+      isUserInitialized,
+      savedAppTheme,
+      savedLocale,
+      savedUsesKilojoules,
+      savedUseMaterialYou,
+      savedAccentColor,
+    );
   }
 }
 
@@ -117,8 +130,14 @@ void _runAppWithSentryReporting(
       options.dsn = Env.sentryDns;
       options.tracesSampleRate = 1.0;
     },
-    appRunner: () => runAppWithChangeNotifiers(isUserInitialized, savedAppTheme,
-        savedLocale, savedUsesKilojoules, savedUseMaterialYou, savedAccentColor),
+    appRunner: () => runAppWithChangeNotifiers(
+      isUserInitialized,
+      savedAppTheme,
+      savedLocale,
+      savedUsesKilojoules,
+      savedUseMaterialYou,
+      savedAccentColor,
+    ),
   );
 }
 
@@ -129,28 +148,26 @@ void runAppWithChangeNotifiers(
   bool savedUsesKilojoules,
   bool savedUseMaterialYou,
   int? savedAccentColor,
-) =>
-    runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (_) => ThemeModeProvider(
-              appTheme: savedAppTheme,
-              useMaterialYou: savedUseMaterialYou,
-              accentColor: savedAccentColor,
-            ),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => LocaleProvider(locale: savedLocale),
-          ),
-          ChangeNotifierProvider(
-            create: (_) =>
-                EnergyUnitProvider(usesKilojoules: savedUsesKilojoules),
-          ),
-        ],
-        child: OpenNutriTrackerApp(userInitialized: userInitialized),
+) => runApp(
+  MultiProvider(
+    providers: [
+      ChangeNotifierProvider(
+        create: (_) => ThemeModeProvider(
+          appTheme: savedAppTheme,
+          useMaterialYou: savedUseMaterialYou,
+          accentColor: savedAccentColor,
+        ),
       ),
-    );
+      ChangeNotifierProvider(
+        create: (_) => LocaleProvider(locale: savedLocale),
+      ),
+      ChangeNotifierProvider(
+        create: (_) => EnergyUnitProvider(usesKilojoules: savedUsesKilojoules),
+      ),
+    ],
+    child: OpenNutriTrackerApp(userInitialized: userInitialized),
+  ),
+);
 
 class OpenNutriTrackerApp extends StatelessWidget {
   final bool userInitialized;
@@ -209,6 +226,10 @@ class OpenNutriTrackerApp extends StatelessWidget {
           : NavigationOptions.onboardingRoute,
       routes: {
         NavigationOptions.mainRoute: (context) => const MainScreen(),
+        NavigationOptions.diaryRoute: (context) => Scaffold(
+          appBar: AppBar(title: Text(S.of(context).diaryLabel)),
+          body: const DiaryPage(),
+        ),
         NavigationOptions.onboardingRoute: (context) =>
             const OnboardingScreen(),
         NavigationOptions.settingsRoute: (context) => const SettingsScreen(),

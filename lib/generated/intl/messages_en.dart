@@ -588,6 +588,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Tap + to log your first meal or activity",
     ),
     "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
+    "todayLabel": MessageLookupByLibrary.simpleMessage("Today"),
     "hoursLabel": MessageLookupByLibrary.simpleMessage("hours"),
     "importAction": MessageLookupByLibrary.simpleMessage("Import"),
     "importActivityConfirmContent": MessageLookupByLibrary.simpleMessage(

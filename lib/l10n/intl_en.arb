@@ -418,6 +418,7 @@
   "gramUnit": "g",
   "heightLabel": "Height",
   "homeLabel": "Home",
+  "todayLabel": "Today",
   "homeFirstMealHint": "Tap + to log your first meal or activity",
   "trendsDailyAverageLabel": "Daily average",
   "trendsLabel": "Trends",

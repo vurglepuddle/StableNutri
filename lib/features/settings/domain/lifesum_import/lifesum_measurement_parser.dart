@@ -73,17 +73,28 @@ class LifesumMeasurementParseResult {
 /// the candidates with existing Stable history before choosing to apply them.
 class LifesumMeasurementParser {
   static LifesumMeasurementParseResult parse({
-    required String weighInsCsv,
-    required String bodyMeasuresCsv,
-    required String bodyFatCsv,
+    String? weighInsCsv,
+    String? bodyMeasuresCsv,
+    String? bodyFatCsv,
   }) {
     final issues = <LifesumMeasurementIssue>[];
     final sourceRowCounts = <LifesumExportSection, int>{};
 
-    final weights = _parseWeights(weighInsCsv, issues, sourceRowCounts);
+    final weights = weighInsCsv == null
+        ? <WeightLogEntity>[]
+        : _parseWeights(weighInsCsv, issues, sourceRowCounts);
     final bodyBuilders = <int, _BodyMeasurementBuilder>{};
-    _parseBodyMeasures(bodyMeasuresCsv, bodyBuilders, issues, sourceRowCounts);
-    _parseBodyFat(bodyFatCsv, bodyBuilders, issues, sourceRowCounts);
+    if (bodyMeasuresCsv != null) {
+      _parseBodyMeasures(
+        bodyMeasuresCsv,
+        bodyBuilders,
+        issues,
+        sourceRowCounts,
+      );
+    }
+    if (bodyFatCsv != null) {
+      _parseBodyFat(bodyFatCsv, bodyBuilders, issues, sourceRowCounts);
+    }
 
     final bodyMeasurements =
         bodyBuilders.values

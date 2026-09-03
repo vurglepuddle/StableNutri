@@ -118,6 +118,13 @@ import 'package:opennutritracker/features/settings/domain/usecase/import_data_us
 import 'package:opennutritracker/features/settings/domain/usecase/import_meals_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_meals_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_csv_usecase.dart';
+import 'package:opennutritracker/features/settings/data/lifesum_import/lifesum_archive_picker.dart';
+import 'package:opennutritracker/features/settings/data/lifesum_import/lifesum_import_journal_data_source.dart';
+import 'package:opennutritracker/features/settings/data/lifesum_import/lifesum_import_target_data_source.dart';
+import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_existing_history_loader.dart';
+import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_import_coordinator.dart';
+import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_import_executor.dart';
+import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_tracked_day_plan.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/custom_meals_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
@@ -578,6 +585,56 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<ProfileDataSource>(
     () => ProfileDataSource(hiveDBProvider),
   );
+
+  // Lifesum import coordination is a factory because each preparation owns a
+  // single profile-generation token and one explicit confirmation boundary.
+  locator.registerLazySingleton<LifesumArchivePicker>(
+    FilePickerLifesumArchivePicker.new,
+  );
+  locator.registerFactory<LifesumImportCoordinator>(() {
+    final database = locator<HiveDBProvider>();
+    final kcalGoals = locator<GetKcalGoalUsecase>();
+    final macroGoals = locator<GetMacroGoalUsecase>();
+    return LifesumImportCoordinator(
+      database: database,
+      picker: locator(),
+      historyLoader: LifesumExistingHistoryLoader.fromRepositories(
+        database: database,
+        intakeRepository: locator(),
+        activityRepository: locator(),
+        weightRepository: locator(),
+        bodyMeasurementRepository: locator(),
+        trackedDayRepository: locator(),
+        waterRepository: locator(),
+        recipeRepository: locator(),
+      ),
+      loadSettings: () async {
+        final config = await locator<ConfigRepository>().getConfig();
+        final calorieGoal = await kcalGoals.getKcalGoal(
+          totalKcalActivitiesParam: 0,
+        );
+        final macroValues = await Future.wait<double>(<Future<double>>[
+          macroGoals.getCarbsGoal(calorieGoal),
+          macroGoals.getFatsGoal(calorieGoal),
+          macroGoals.getProteinsGoal(calorieGoal),
+        ]);
+        return LifesumImportSettingsSnapshot(
+          dayStartOffsetMinutes:
+              config.dayStartOffsetHours * 60 + config.dayStartOffsetMinutes,
+          historicalGoals: LifesumHistoricalGoalSnapshot(
+            calorieGoal: calorieGoal,
+            carbsGoal: macroValues[0],
+            fatGoal: macroValues[1],
+            proteinGoal: macroValues[2],
+          ),
+        );
+      },
+      createExecutor: () => LifesumImportExecutor(
+        journals: LifesumImportJournalDataSource(database),
+        targets: LifesumImportTargetDataSource(database),
+      ),
+    );
+  });
 
   await ensureConfigInitialized(locator());
 }

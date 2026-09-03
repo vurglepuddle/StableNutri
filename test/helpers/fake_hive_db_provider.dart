@@ -18,6 +18,8 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 /// Accessing a box that wasn't provided throws, which keeps tests honest
 /// about what they actually touch.
 class FakeHiveDBProvider extends HiveDBProvider {
+  String _fakeActiveProfileId;
+  int _fakeActiveProfileGeneration;
   final Box<ConfigDBO>? _configBox;
   final Box<ConfigDBO>? _appConfigBox;
   final Box<IntakeDBO>? _intakeBox;
@@ -34,6 +36,8 @@ class FakeHiveDBProvider extends HiveDBProvider {
   final Box<FastingSessionDBO>? _fastingBox;
 
   FakeHiveDBProvider({
+    String activeProfileId = '',
+    int activeProfileGeneration = 0,
     Box<ConfigDBO>? configBox,
     Box<ConfigDBO>? appConfigBox,
     Box<IntakeDBO>? intakeBox,
@@ -48,7 +52,9 @@ class FakeHiveDBProvider extends HiveDBProvider {
     Box<String>? lifesumImportJournalBox,
     Box<WaterIntakeDBO>? waterIntakeBox,
     Box<FastingSessionDBO>? fastingBox,
-  }) : _configBox = configBox,
+  }) : _fakeActiveProfileId = activeProfileId,
+       _fakeActiveProfileGeneration = activeProfileGeneration,
+       _configBox = configBox,
        _appConfigBox = appConfigBox ?? configBox,
        _intakeBox = intakeBox,
        _userActivityBox = userActivityBox,
@@ -63,12 +69,25 @@ class FakeHiveDBProvider extends HiveDBProvider {
        _waterIntakeBox = waterIntakeBox,
        _fastingBox = fastingBox;
 
+  void simulateProfileSwitch({
+    required String profileId,
+    required int generation,
+  }) {
+    _fakeActiveProfileId = profileId;
+    _fakeActiveProfileGeneration = generation;
+  }
+
   T _require<T>(T? box) {
     if (box == null) {
       throw StateError('FakeHiveDBProvider: box not provided for this test');
     }
     return box;
   }
+
+  @override
+  String get activeProfileId => _fakeActiveProfileId;
+  @override
+  int get activeProfileGeneration => _fakeActiveProfileGeneration;
 
   @override
   Box<ConfigDBO> get configBox => _require(_configBox);

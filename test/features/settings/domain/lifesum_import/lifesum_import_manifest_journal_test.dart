@@ -7,6 +7,7 @@ import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum
 import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_import_journal.dart';
 import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_import_manifest.dart';
 import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_import_preview.dart';
+import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_tracked_day_plan.dart';
 
 import '../../../../fixture/lifesum_export_fixture.dart';
 
@@ -14,6 +15,7 @@ void main() {
   late Directory temporaryDirectory;
   late LifesumImportPreview preview;
   late LifesumImportManifest manifest;
+  late LifesumImportManifest journalManifest;
 
   setUp(() {
     temporaryDirectory = Directory.systemTemp.createTempSync(
@@ -26,6 +28,15 @@ void main() {
     );
     preview = LifesumImportPreview.fromSelection(selection);
     manifest = LifesumImportManifest.fromPreview(preview);
+    journalManifest = LifesumTrackedDayPlan.fromManifest(
+      manifest,
+      goals: LifesumHistoricalGoalSnapshot(
+        calorieGoal: 2000,
+        carbsGoal: 300,
+        fatGoal: 55,
+        proteinGoal: 75,
+      ),
+    ).completeManifest(manifest);
   });
 
   tearDown(() {
@@ -162,15 +173,15 @@ void main() {
 
   group('LifesumImportJournal', () {
     test('round-trips value-free JSON against the exact manifest', () {
-      final journal = LifesumImportJournal.prepare(manifest);
+      final journal = LifesumImportJournal.prepare(journalManifest);
 
       final encoded = jsonEncode(journal.toJson());
       final restored = LifesumImportJournal.fromJson(
         jsonDecode(encoded) as Map<String, dynamic>,
-        expectedManifest: manifest,
+        expectedManifest: journalManifest,
       );
 
-      expect(restored.manifestId, manifest.manifestId);
+      expect(restored.manifestId, journalManifest.manifestId);
       expect(restored.phase, LifesumImportJournalPhase.prepared);
       expect(restored.operationProgress, journal.operationProgress);
       expect(encoded, isNot(contains('Example')));
@@ -179,9 +190,9 @@ void main() {
     });
 
     test('records a complete apply as explicit durable transitions', () {
-      var journal = LifesumImportJournal.prepare(manifest).beginApply();
+      var journal = LifesumImportJournal.prepare(journalManifest).beginApply();
 
-      for (final operation in manifest.operations) {
+      for (final operation in journalManifest.operations) {
         journal = journal.markOperationApplying(operation.operationId);
         expect(
           journal.markOperationApplying(operation.operationId),
@@ -198,15 +209,15 @@ void main() {
       expect(journal.phase, LifesumImportJournalPhase.completed);
       expect(
         journal.countFor(LifesumImportOperationProgress.applied),
-        manifest.operationCount,
+        journalManifest.operationCount,
       );
       expect(journal.failure, isNull);
     });
 
     test('reconciles an interrupted apply without duplicating a target', () {
-      final operationId = manifest.operations.first.operationId;
+      final operationId = journalManifest.operations.first.operationId;
       final interrupted = LifesumImportJournal.prepare(
-        manifest,
+        journalManifest,
       ).beginApply().markOperationApplying(operationId);
 
       final absent = interrupted.reconcileApplyingOperation(
@@ -237,9 +248,11 @@ void main() {
     test(
       'rolls back applied and ambiguous operations, leaving pending alone',
       () {
-        final firstId = manifest.operations[0].operationId;
-        final secondId = manifest.operations[1].operationId;
-        var journal = LifesumImportJournal.prepare(manifest).beginApply();
+        final firstId = journalManifest.operations[0].operationId;
+        final secondId = journalManifest.operations[1].operationId;
+        var journal = LifesumImportJournal.prepare(
+          journalManifest,
+        ).beginApply();
         journal = journal
             .markOperationApplying(firstId)
             .markOperationApplied(firstId)
@@ -259,13 +272,13 @@ void main() {
         expect(journal.countFor(LifesumImportOperationProgress.rolledBack), 2);
         expect(
           journal.countFor(LifesumImportOperationProgress.pending),
-          manifest.operationCount - 2,
+          journalManifest.operationCount - 2,
         );
       },
     );
 
     test('rejects invalid transitions, snapshots, and manifest reuse', () {
-      final journal = LifesumImportJournal.prepare(manifest);
+      final journal = LifesumImportJournal.prepare(journalManifest);
       final otherManifest = LifesumImportManifest.fromPreview(
         preview,
         selection: const LifesumImportSelection(includeEstimatedWater: true),
@@ -273,6 +286,10 @@ void main() {
       final invalidSnapshot = Map<String, dynamic>.of(journal.toJson())
         ..['phase'] = LifesumImportJournalPhase.completed.name;
 
+      expect(
+        () => LifesumImportJournal.prepare(manifest),
+        _throwsJournalError(LifesumImportJournalError.incompleteManifest),
+      );
       expect(
         journal.completeApply,
         _throwsJournalError(LifesumImportJournalError.invalidTransition),

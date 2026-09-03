@@ -24,6 +24,7 @@ enum LifesumImportTargetProbe { absent, matching, conflicting }
 enum LifesumImportJournalError {
   invalidSnapshot,
   manifestMismatch,
+  incompleteManifest,
   invalidTransition,
   unknownOperation,
 }
@@ -54,16 +55,22 @@ class LifesumImportJournal {
     _validateCoherence();
   }
 
-  factory LifesumImportJournal.prepare(LifesumImportManifest manifest) =>
-      LifesumImportJournal._(
-        manifestId: manifest.manifestId,
-        phase: LifesumImportJournalPhase.prepared,
-        operationProgress: <String, LifesumImportOperationProgress>{
-          for (final operation in manifest.operations)
-            operation.operationId: LifesumImportOperationProgress.pending,
-        },
-        failure: null,
+  factory LifesumImportJournal.prepare(LifesumImportManifest manifest) {
+    if (!manifest.isExecutable) {
+      throw const LifesumImportJournalException(
+        LifesumImportJournalError.incompleteManifest,
       );
+    }
+    return LifesumImportJournal._(
+      manifestId: manifest.manifestId,
+      phase: LifesumImportJournalPhase.prepared,
+      operationProgress: <String, LifesumImportOperationProgress>{
+        for (final operation in manifest.operations)
+          operation.operationId: LifesumImportOperationProgress.pending,
+      },
+      failure: null,
+    );
+  }
 
   factory LifesumImportJournal.fromJson(
     Map<String, dynamic> json, {

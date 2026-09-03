@@ -1,5 +1,6 @@
 import 'package:opennutritracker/core/domain/entity/body_measurement_log_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
@@ -9,6 +10,7 @@ import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum
 enum LifesumImportOperationKind {
   weight,
   bodyMeasurement,
+  trackedDay,
   intake,
   activity,
   estimatedWater,
@@ -57,6 +59,20 @@ class LifesumBodyMeasurementImportOperation extends LifesumImportOperation {
       );
 
   final BodyMeasurementLogEntity entry;
+}
+
+class LifesumTrackedDayImportOperation extends LifesumImportOperation {
+  LifesumTrackedDayImportOperation(this.entry)
+    : super(
+        kind: LifesumImportOperationKind.trackedDay,
+        operationId:
+            'tracked-day:${_dateSlug(entry.day)}:'
+            '${_trackedDayPayloadDigest(entry)}',
+        targetKey: _dateSlug(entry.day),
+        logicalDay: _calendarDay(entry.day),
+      );
+
+  final TrackedDayEntity entry;
 }
 
 class LifesumIntakeImportOperation extends LifesumImportOperation {
@@ -220,14 +236,7 @@ class LifesumImportManifest {
       affectedDayKeys[_dayKey(day)] = day;
     }
     final affectedTrackedDays = affectedDayKeys.values.toList()..sort();
-    final signature = <String>[
-      'lifesum-import-manifest-v1',
-      'offset:${preview.dayStartOffsetMinutes}',
-      ...operationIds,
-    ].join('\u001f');
-
-    return LifesumImportManifest._(
-      manifestId: 'lifesum-manifest-${_stableDigest(signature)}',
+    return _fromOperations(
       dayStartOffsetMinutes: preview.dayStartOffsetMinutes,
       selection: selection,
       operations: operations,
@@ -249,10 +258,93 @@ class LifesumImportManifest {
 
   /// Historical tracked-day goals still need an explicit user-facing policy
   /// before food or activity manifests can be executed.
-  bool get requiresTrackedDayPolicy => affectedTrackedDays.isNotEmpty;
+  bool get requiresTrackedDayPolicy {
+    final requiredDays = affectedTrackedDays.map(_dayKey).toSet();
+    if (requiredDays.isEmpty) return false;
+    final plannedDays = operations
+        .where(
+          (operation) =>
+              operation.kind == LifesumImportOperationKind.trackedDay,
+        )
+        .map((operation) => _dayKey(operation.logicalDay))
+        .toSet();
+    return !plannedDays.containsAll(requiredDays);
+  }
+
+  bool get isExecutable => !requiresTrackedDayPolicy;
 
   int operationCountFor(LifesumImportOperationKind kind) =>
       operations.where((operation) => operation.kind == kind).length;
+
+  /// Adds the explicit historical tracked-day result and produces the final
+  /// manifest identity that a journal may execute.
+  LifesumImportManifest withTrackedDays(
+    Iterable<TrackedDayEntity> trackedDays,
+  ) {
+    if (operations.any(
+      (operation) => operation.kind == LifesumImportOperationKind.trackedDay,
+    )) {
+      throw StateError('Lifesum manifest already contains tracked days');
+    }
+    final entries = trackedDays.toList(growable: false)
+      ..sort((left, right) => left.day.compareTo(right.day));
+    final expectedKeys = affectedTrackedDays.map(_dayKey).toSet();
+    final actualKeys = entries.map((entry) => _dayKey(entry.day)).toList();
+    if (actualKeys.toSet().length != actualKeys.length ||
+        actualKeys.toSet().length != expectedKeys.length ||
+        !actualKeys.toSet().containsAll(expectedKeys)) {
+      throw StateError(
+        'Tracked-day plan does not cover the Lifesum manifest exactly',
+      );
+    }
+
+    final firstPrimaryIndex = operations.indexWhere(
+      (operation) =>
+          operation.kind == LifesumImportOperationKind.intake ||
+          operation.kind == LifesumImportOperationKind.activity ||
+          operation.kind == LifesumImportOperationKind.estimatedWater,
+    );
+    final insertionIndex = firstPrimaryIndex == -1
+        ? operations.length
+        : firstPrimaryIndex;
+    final completedOperations = <LifesumImportOperation>[
+      ...operations.take(insertionIndex),
+      ...entries.map(LifesumTrackedDayImportOperation.new),
+      ...operations.skip(insertionIndex),
+    ];
+    return _fromOperations(
+      dayStartOffsetMinutes: dayStartOffsetMinutes,
+      selection: selection,
+      operations: completedOperations,
+      affectedTrackedDays: affectedTrackedDays,
+    );
+  }
+
+  static LifesumImportManifest _fromOperations({
+    required int dayStartOffsetMinutes,
+    required LifesumImportSelection selection,
+    required List<LifesumImportOperation> operations,
+    required List<DateTime> affectedTrackedDays,
+  }) {
+    final operationIds = operations
+        .map((operation) => operation.operationId)
+        .toList(growable: false);
+    if (operationIds.toSet().length != operationIds.length) {
+      throw StateError('Lifesum manifest contains duplicate operation IDs');
+    }
+    final signature = <String>[
+      'lifesum-import-manifest-v1',
+      'offset:$dayStartOffsetMinutes',
+      ...operationIds,
+    ].join('\u001f');
+    return LifesumImportManifest._(
+      manifestId: 'lifesum-manifest-${_stableDigest(signature)}',
+      dayStartOffsetMinutes: dayStartOffsetMinutes,
+      selection: selection,
+      operations: operations,
+      affectedTrackedDays: affectedTrackedDays,
+    );
+  }
 }
 
 int _compareIntakes(IntakeEntity left, IntakeEntity right) {
@@ -296,6 +388,29 @@ String _bodyMeasurementPayloadDigest(BodyMeasurementLogEntity entry) =>
         entry.note ?? '',
       ].join('\u001f'),
     );
+
+String _trackedDayPayloadDigest(TrackedDayEntity entry) => _stableDigest(
+  <String>[
+    entry.calorieGoal.toString(),
+    entry.caloriesTracked.toString(),
+    entry.carbsGoal?.toString() ?? '',
+    entry.carbsTracked?.toString() ?? '',
+    entry.fatGoal?.toString() ?? '',
+    entry.fatTracked?.toString() ?? '',
+    entry.proteinGoal?.toString() ?? '',
+    entry.proteinTracked?.toString() ?? '',
+    entry.fibreGoal?.toString() ?? '',
+    entry.satFatGoal?.toString() ?? '',
+    entry.sugarsGoal?.toString() ?? '',
+    entry.sodiumGoal?.toString() ?? '',
+    entry.calciumGoal?.toString() ?? '',
+    entry.ironGoal?.toString() ?? '',
+    entry.potassiumGoal?.toString() ?? '',
+    entry.vitaminDGoal?.toString() ?? '',
+    entry.vitaminB12Goal?.toString() ?? '',
+    entry.magnesiumGoal?.toString() ?? '',
+  ].join('\u001f'),
+);
 
 String _stableDigest(String input) {
   var fnv = 0x811c9dc5;

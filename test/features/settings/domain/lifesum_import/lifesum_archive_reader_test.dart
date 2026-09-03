@@ -122,5 +122,82 @@ void main() {
 
       expect(() => zip.deleteSync(), returnsNormally);
     });
+
+    test('loads only requested schema-valid CSV sections', () {
+      final zip = writeSanitizedLifesumZip(temporaryDirectory);
+
+      final selection = const LifesumArchiveReader().readCsvSectionsPath(
+        zip.path,
+        <LifesumExportSection>{
+          LifesumExportSection.food,
+          LifesumExportSection.exercise,
+        },
+      );
+
+      expect(
+        selection.loadedSections,
+        unorderedEquals(<LifesumExportSection>{
+          LifesumExportSection.food,
+          LifesumExportSection.exercise,
+        }),
+      );
+      expect(selection.unavailableSections, isEmpty);
+      expect(
+        selection[LifesumExportSection.food],
+        sanitizedLifesumFiles['food.csv'],
+      );
+      expect(
+        selection[LifesumExportSection.exercise],
+        sanitizedLifesumFiles['exercise.csv'],
+      );
+      expect(selection[LifesumExportSection.recipes], isNull);
+    });
+
+    test('reports requested sections with invalid schemas as unavailable', () {
+      final files = Map<String, String>.of(sanitizedLifesumFiles)
+        ..['weighins.csv'] =
+            'date,height_cm,goal_weight_kg\n2024-01-02,170,68\n';
+      final zip = writeSanitizedLifesumZip(temporaryDirectory, files: files);
+
+      final selection = const LifesumArchiveReader().readCsvSectionsPath(
+        zip.path,
+        <LifesumExportSection>{
+          LifesumExportSection.food,
+          LifesumExportSection.weighIns,
+        },
+      );
+
+      expect(selection.loadedSections, {LifesumExportSection.food});
+      expect(selection.unavailableSections, {LifesumExportSection.weighIns});
+    });
+
+    test('enforces an aggregate selected-content memory limit', () {
+      final zip = writeSanitizedLifesumZip(temporaryDirectory);
+      const reader = LifesumArchiveReader(maxSelectedUncompressedSizeBytes: 8);
+
+      expect(
+        () => reader.readCsvSectionsPath(zip.path, <LifesumExportSection>{
+          LifesumExportSection.food,
+        }),
+        throwsA(
+          isA<LifesumArchiveReadException>().having(
+            (error) => error.failure,
+            'failure',
+            LifesumArchiveFailure.selectedContentTooLarge,
+          ),
+        ),
+      );
+    });
+
+    test('closes the archive file after reading selected content', () {
+      final zip = writeSanitizedLifesumZip(temporaryDirectory);
+
+      const LifesumArchiveReader().readCsvSectionsPath(
+        zip.path,
+        <LifesumExportSection>{LifesumExportSection.food},
+      );
+
+      expect(() => zip.deleteSync(), returnsNormally);
+    });
   });
 }

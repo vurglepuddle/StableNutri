@@ -193,6 +193,21 @@ class LifesumImportSelection {
 
   /// Estimated water is user-provided history and therefore default-off.
   final bool includeEstimatedWater;
+
+  LifesumImportSelection copyWith({
+    bool? includeFood,
+    bool? includeActivity,
+    bool? includeWeights,
+    bool? includeBodyMeasurements,
+    bool? includeEstimatedWater,
+  }) => LifesumImportSelection(
+    includeFood: includeFood ?? this.includeFood,
+    includeActivity: includeActivity ?? this.includeActivity,
+    includeWeights: includeWeights ?? this.includeWeights,
+    includeBodyMeasurements:
+        includeBodyMeasurements ?? this.includeBodyMeasurements,
+    includeEstimatedWater: includeEstimatedWater ?? this.includeEstimatedWater,
+  );
 }
 
 /// An immutable, deterministic plan produced only from conflict-free preview

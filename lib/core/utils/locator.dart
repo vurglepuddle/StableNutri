@@ -127,6 +127,7 @@ import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum
 import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_tracked_day_plan.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/custom_meals_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/lifesum_import_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -256,6 +257,9 @@ Future<void> initLocator() async {
       locator(),
       locator(),
     ),
+  );
+  locator.registerFactory<LifesumImportBloc>(
+    () => LifesumImportBloc(locator()),
   );
   // Lazy singleton: shared between RecipesPage's Custom Meals tab and the
   // create-from-popup flow on the same tab — both must mutate / observe the

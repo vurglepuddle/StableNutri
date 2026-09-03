@@ -115,9 +115,11 @@ class HiveDBProvider extends ChangeNotifier {
   late final HiveAesCipher _cipher;
   String _activeProfileId = '';
   String _activeBoxSuffix = '';
+  int _activeProfileGeneration = 0;
   bool _switching = false;
 
   String get activeProfileId => _activeProfileId;
+  int get activeProfileGeneration => _activeProfileGeneration;
 
   Box<ConfigDBO> get configBox => _requireBox(_configBox, configBoxName);
   Box<IntakeDBO> get intakeBox => _requireBox(_intakeBox, intakeBoxName);
@@ -199,6 +201,7 @@ class HiveDBProvider extends ChangeNotifier {
     _activeProfileId = profileId;
     _activeBoxSuffix = boxSuffix;
     await _openActiveProfileBoxes();
+    _activeProfileGeneration++;
   }
 
   /// Closes the current profile's box-set and opens [profileId]'s. The
@@ -207,6 +210,7 @@ class HiveDBProvider extends ChangeNotifier {
   Future<void> switchProfile(String profileId, String boxSuffix) async {
     if (profileId == _activeProfileId) return;
     _switching = true;
+    _activeProfileGeneration++;
     try {
       await _closeActiveProfileBoxes();
       _activeProfileId = profileId;

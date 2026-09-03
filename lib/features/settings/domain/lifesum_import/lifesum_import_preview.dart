@@ -1,6 +1,7 @@
 import 'package:opennutritracker/core/domain/entity/body_measurement_log_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
@@ -39,13 +40,18 @@ class LifesumFoodImportPreview {
   factory LifesumFoodImportPreview.fromParseResult(
     LifesumFoodParseResult result, {
     Iterable<IntakeEntity> existingIntakes = const <IntakeEntity>[],
+    Iterable<DateTime> occupiedLogicalDays = const <DateTime>[],
     int dayStartOffsetMinutes = 0,
   }) {
     final existing = existingIntakes.toList(growable: false);
     final existingIds = existing.map((entry) => entry.id).toSet();
-    final existingDays = existing
-        .map((entry) => _logicalDayKey(entry.dateTime, dayStartOffsetMinutes))
-        .toSet();
+    final existingDays =
+        existing
+            .map(
+              (entry) => _logicalDayKey(entry.dateTime, dayStartOffsetMinutes),
+            )
+            .toSet()
+          ..addAll(occupiedLogicalDays.map(_calendarDayKey));
     return LifesumFoodImportPreview._(
       parseResult: result,
       reviews: result.candidates.map((candidate) {
@@ -111,13 +117,16 @@ class LifesumActivityImportPreview {
     LifesumActivityParseResult result, {
     Iterable<UserActivityEntity> existingActivities =
         const <UserActivityEntity>[],
+    Iterable<DateTime> occupiedLogicalDays = const <DateTime>[],
     int dayStartOffsetMinutes = 0,
   }) {
     final existing = existingActivities.toList(growable: false);
     final existingIds = existing.map((entry) => entry.id).toSet();
-    final existingDays = existing
-        .map((entry) => _logicalDayKey(entry.date, dayStartOffsetMinutes))
-        .toSet();
+    final existingDays =
+        existing
+            .map((entry) => _logicalDayKey(entry.date, dayStartOffsetMinutes))
+            .toSet()
+          ..addAll(occupiedLogicalDays.map(_calendarDayKey));
     return LifesumActivityImportPreview._(
       parseResult: result,
       reviews: result.candidates.map((candidate) {
@@ -277,12 +286,16 @@ class LifesumImportPreview {
     Iterable<BodyMeasurementLogEntity> existingBodyMeasurements =
         const <BodyMeasurementLogEntity>[],
     Iterable<RecipeEntity> existingRecipes = const <RecipeEntity>[],
+    Iterable<TrackedDayEntity> existingTrackedDays = const <TrackedDayEntity>[],
     Iterable<WaterIntakeEntity> existingWaterEntries =
         const <WaterIntakeEntity>[],
     int dayStartOffsetMinutes = 0,
     int estimatedWaterAmountPerDayMl = 2000,
   }) {
     final offsetMinutes = _validDayOffset(dayStartOffsetMinutes);
+    final occupiedLogicalDays = existingTrackedDays
+        .map((entry) => entry.day)
+        .toList(growable: false);
     final foodCsv = selection[LifesumExportSection.food];
     final food = foodCsv == null
         ? null
@@ -292,6 +305,7 @@ class LifesumImportPreview {
               dayStartOffsetMinutes: offsetMinutes,
             ),
             existingIntakes: existingIntakes,
+            occupiedLogicalDays: occupiedLogicalDays,
             dayStartOffsetMinutes: offsetMinutes,
           );
 
@@ -304,6 +318,7 @@ class LifesumImportPreview {
               dayStartOffsetMinutes: offsetMinutes,
             ),
             existingActivities: existingActivities,
+            occupiedLogicalDays: occupiedLogicalDays,
             dayStartOffsetMinutes: offsetMinutes,
           );
 

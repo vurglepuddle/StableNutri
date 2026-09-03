@@ -2,6 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/domain/entity/body_measurement_log_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_archive_reader.dart';
 import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_import_journal.dart';
@@ -125,6 +130,43 @@ void main() {
       expect(first.targetKey, revised.targetKey);
       expect(first.operationId, isNot(revised.operationId));
       expect(first.operationId, isNot(contains('private marker')));
+    });
+
+    test('exact matching detects edits for every persisted target kind', () {
+      final waterManifest = LifesumImportManifest.fromPreview(
+        preview,
+        selection: const LifesumImportSelection(
+          includeFood: false,
+          includeActivity: false,
+          includeWeights: false,
+          includeBodyMeasurements: false,
+          includeEstimatedWater: true,
+        ),
+      );
+      final operations = <LifesumImportOperation>[
+        ...journalManifest.operations,
+        ...waterManifest.operations,
+      ];
+
+      expect(
+        operations.map((operation) => operation.kind).toSet(),
+        LifesumImportOperationKind.values.toSet(),
+      );
+      for (final operation in operations) {
+        final original = _operationPayload(operation);
+        final edited = _editedPayload(operation);
+        final editedOperation = _operationForPayload(
+          operation,
+          edited,
+          dayStartOffsetMinutes: preview.dayStartOffsetMinutes,
+        );
+
+        expect(operation.matchesTargetEntity(original), isTrue);
+        expect(operation.matchesTargetEntity(edited), isFalse);
+        expect(editedOperation.targetKey, operation.targetKey);
+        expect(editedOperation.operationId, isNot(operation.operationId));
+        expect(operation.payloadDigest, hasLength(16));
+      }
     });
 
     test('a rerun preview produces no duplicate operations', () {
@@ -320,3 +362,101 @@ Matcher _throwsJournalError(LifesumImportJournalError error) => throwsA(
     error,
   ),
 );
+
+Object _operationPayload(LifesumImportOperation operation) =>
+    switch (operation) {
+      LifesumWeightImportOperation() => operation.entry,
+      LifesumBodyMeasurementImportOperation() => operation.entry,
+      LifesumTrackedDayImportOperation() => operation.entry,
+      LifesumIntakeImportOperation() => operation.entry,
+      LifesumActivityImportOperation() => operation.entry,
+      LifesumEstimatedWaterImportOperation() => operation.entry,
+    };
+
+Object _editedPayload(LifesumImportOperation operation) => switch (operation) {
+  LifesumWeightImportOperation() => WeightLogEntity(
+    date: operation.entry.date,
+    weightKg: operation.entry.weightKg + 1,
+    note: operation.entry.note,
+  ),
+  LifesumBodyMeasurementImportOperation() => BodyMeasurementLogEntity(
+    date: operation.entry.date,
+    waistCm: (operation.entry.waistCm ?? 0) + 1,
+    hipsCm: operation.entry.hipsCm,
+    chestCm: operation.entry.chestCm,
+    armCm: operation.entry.armCm,
+    thighCm: operation.entry.thighCm,
+    bodyFatPercent: operation.entry.bodyFatPercent,
+    note: operation.entry.note,
+  ),
+  LifesumTrackedDayImportOperation() => TrackedDayEntity(
+    day: operation.entry.day,
+    calorieGoal: operation.entry.calorieGoal + 1,
+    caloriesTracked: operation.entry.caloriesTracked,
+    carbsGoal: operation.entry.carbsGoal,
+    carbsTracked: operation.entry.carbsTracked,
+    fatGoal: operation.entry.fatGoal,
+    fatTracked: operation.entry.fatTracked,
+    proteinGoal: operation.entry.proteinGoal,
+    proteinTracked: operation.entry.proteinTracked,
+    fibreGoal: operation.entry.fibreGoal,
+    satFatGoal: operation.entry.satFatGoal,
+    sugarsGoal: operation.entry.sugarsGoal,
+    sodiumGoal: operation.entry.sodiumGoal,
+    calciumGoal: operation.entry.calciumGoal,
+    ironGoal: operation.entry.ironGoal,
+    potassiumGoal: operation.entry.potassiumGoal,
+    vitaminDGoal: operation.entry.vitaminDGoal,
+    vitaminB12Goal: operation.entry.vitaminB12Goal,
+    magnesiumGoal: operation.entry.magnesiumGoal,
+  ),
+  LifesumIntakeImportOperation() => IntakeEntity(
+    id: operation.entry.id,
+    unit: operation.entry.unit,
+    amount: operation.entry.amount + 1,
+    type: operation.entry.type,
+    meal: operation.entry.meal,
+    dateTime: operation.entry.dateTime,
+  ),
+  LifesumActivityImportOperation() => UserActivityEntity(
+    operation.entry.id,
+    operation.entry.duration + 1,
+    operation.entry.burnedKcal,
+    operation.entry.date,
+    operation.entry.physicalActivityEntity,
+    userKcal: operation.entry.userKcal,
+  ),
+  LifesumEstimatedWaterImportOperation() => WaterIntakeEntity(
+    id: operation.entry.id,
+    dateTime: operation.entry.dateTime,
+    amountMl: operation.entry.amountMl + 1,
+  ),
+};
+
+LifesumImportOperation _operationForPayload(
+  LifesumImportOperation operation,
+  Object payload, {
+  required int dayStartOffsetMinutes,
+}) => switch (operation) {
+  LifesumWeightImportOperation() => LifesumWeightImportOperation(
+    payload as WeightLogEntity,
+  ),
+  LifesumBodyMeasurementImportOperation() =>
+    LifesumBodyMeasurementImportOperation(payload as BodyMeasurementLogEntity),
+  LifesumTrackedDayImportOperation() => LifesumTrackedDayImportOperation(
+    payload as TrackedDayEntity,
+  ),
+  LifesumIntakeImportOperation() => LifesumIntakeImportOperation(
+    payload as IntakeEntity,
+    dayStartOffsetMinutes: dayStartOffsetMinutes,
+  ),
+  LifesumActivityImportOperation() => LifesumActivityImportOperation(
+    payload as UserActivityEntity,
+    dayStartOffsetMinutes: dayStartOffsetMinutes,
+  ),
+  LifesumEstimatedWaterImportOperation() =>
+    LifesumEstimatedWaterImportOperation(
+      payload as WaterIntakeEntity,
+      dayStartOffsetMinutes: dayStartOffsetMinutes,
+    ),
+};

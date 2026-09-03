@@ -22,6 +22,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/lifesum_import_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_dialog.dart';
@@ -406,6 +407,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: S.of(context).settingsFoodSourcesLabel,
                     subtitle: S.of(context).settingsFoodSourcesSubtitle,
                     onTap: () => _openFoodSourcesScreen(context),
+                  ),
+                  _SettingsTile(
+                    identifier: 'settings-import-lifesum',
+                    palette: palette,
+                    icon: Icons.archive_outlined,
+                    title: S.of(context).lifesumImportTitle,
+                    subtitle: S.of(context).lifesumImportSettingsSubtitle,
+                    onTap: () => _openLifesumImportScreen(context),
                   ),
                   _SettingsTile(
                     identifier: 'settings-import-custom-food',
@@ -998,6 +1007,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showExportImportDialog(BuildContext context) {
     showDialog(context: context, builder: (context) => ExportImportDialog());
+  }
+
+  void _openLifesumImportScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const LifesumImportScreen()),
+    );
   }
 
   void _showImportCustomFoodDataDialog(BuildContext context) {

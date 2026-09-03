@@ -104,6 +104,30 @@ void main() {
     });
 
     test(
+      'rejects a file with no supported export sections before reads',
+      () async {
+        final invalidArchive = File(
+          '${temporaryDirectory.path}${Platform.pathSeparator}not-an-export.txt',
+        )..writeAsStringSync('not an archive');
+        final invalid = buildCoordinator(
+          archivePicker: _TestPicker(invalidArchive.path),
+        );
+
+        await expectLater(
+          invalid.chooseArchive(),
+          _throwsCoordinatorError(
+            LifesumImportCoordinatorFailure.invalidArchiveSelection,
+          ),
+        );
+        expect(historyLoadCount, 0);
+        expect(settingsLoadCount, 0);
+        expect(executorCreateCount, 0);
+        expect(targets.values, isEmpty);
+        expect(journals.values, isEmpty);
+      },
+    );
+
+    test(
       'prepares a read-only review with estimated water default-off',
       () async {
         final preparation = await coordinator.chooseArchive();

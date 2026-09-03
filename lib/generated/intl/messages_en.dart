@@ -141,6 +141,31 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m50(count) => "Body measurement trend with ${count} readings";
 
+  static String m51(count) =>
+      "Stable will add ${count} records, including the daily summaries needed for your diary. Existing Stable data will be kept.";
+
+  static String m52(count) => "${count} Health Connect step mirrors ignored";
+
+  static String m53(amount, start, end) =>
+      "${amount} ml per missing day · ${start}–${end} · not present in the export";
+
+  static String m54(count) =>
+      "${count} recipe snapshots found. Stable will keep them out of this import until it can represent their missing ingredient weights honestly.";
+
+  static String m55(count) => "${count} to add";
+
+  static String m56(count) => "${count} existing kept";
+
+  static String m57(count) => "${count} warnings";
+
+  static String m58(added) => "${added} records added.";
+
+  static String m59(added, kept) =>
+      "${added} records added · ${kept} exact records kept.";
+
+  static String m60(start, end) =>
+      "Supported history from ${start} to ${end}. Existing Stable days will be kept.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -2022,6 +2047,133 @@ class MessageLookup extends MessageLookupByLibrary {
     "libraryNoMatches": MessageLookupByLibrary.simpleMessage(
       "No Library items match this search or filter yet.",
     ),
+    "lifesumImportTitle": MessageLookupByLibrary.simpleMessage(
+      "Import from Lifesum",
+    ),
+    "lifesumImportSettingsSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Review a local export ZIP before importing",
+    ),
+    "lifesumImportReading": MessageLookupByLibrary.simpleMessage(
+      "Reading your export on this device…",
+    ),
+    "lifesumImportApplying": MessageLookupByLibrary.simpleMessage(
+      "Importing your selected history…",
+    ),
+    "lifesumImportConfirmTitle": MessageLookupByLibrary.simpleMessage(
+      "Import selected history?",
+    ),
+    "lifesumImportConfirmBody": m51,
+    "lifesumImportConfirmAction": MessageLookupByLibrary.simpleMessage(
+      "Import now",
+    ),
+    "lifesumImportChooseHeading": MessageLookupByLibrary.simpleMessage(
+      "Bring your history",
+    ),
+    "lifesumImportChooseIntro": MessageLookupByLibrary.simpleMessage(
+      "Choose the ZIP from your Lifesum data export. It stays on this device and nothing is added until you review and confirm it.",
+    ),
+    "lifesumImportArchiveLabel": MessageLookupByLibrary.simpleMessage(
+      "Lifesum export ZIP",
+    ),
+    "lifesumImportArchiveSupport": MessageLookupByLibrary.simpleMessage(
+      "Diary, activities, weight and body measurements can be reviewed before import.",
+    ),
+    "lifesumImportChooseZip": MessageLookupByLibrary.simpleMessage(
+      "Choose ZIP…",
+    ),
+    "lifesumImportReviewHeading": MessageLookupByLibrary.simpleMessage(
+      "Review before importing",
+    ),
+    "lifesumImportFoodDiary": MessageLookupByLibrary.simpleMessage(
+      "Food diary",
+    ),
+    "lifesumImportActivities": MessageLookupByLibrary.simpleMessage(
+      "Activities",
+    ),
+    "lifesumImportHealthConnectIgnored": m52,
+    "lifesumImportWaterTitle": MessageLookupByLibrary.simpleMessage(
+      "Estimated water history",
+    ),
+    "lifesumImportWaterDetail": m53,
+    "lifesumImportRecipesDetail": m54,
+    "lifesumImportFavoritesDetail": MessageLookupByLibrary.simpleMessage(
+      "No favorite markers were included in this export.",
+    ),
+    "lifesumImportSelectedAction": MessageLookupByLibrary.simpleMessage(
+      "Import selected history",
+    ),
+    "lifesumImportChooseAgain": MessageLookupByLibrary.simpleMessage(
+      "Choose again",
+    ),
+    "lifesumImportReady": MessageLookupByLibrary.simpleMessage("Ready"),
+    "lifesumImportKeepExisting": MessageLookupByLibrary.simpleMessage(
+      "Keep existing",
+    ),
+    "lifesumImportWarnings": MessageLookupByLibrary.simpleMessage("Warnings"),
+    "lifesumImportFilesIgnored": MessageLookupByLibrary.simpleMessage(
+      "Files ignored",
+    ),
+    "lifesumImportToAdd": m55,
+    "lifesumImportExistingKept": m56,
+    "lifesumImportWarningCount": m57,
+    "lifesumImportWeightHistory": MessageLookupByLibrary.simpleMessage(
+      "Weight history",
+    ),
+    "lifesumImportBodyMeasurements": MessageLookupByLibrary.simpleMessage(
+      "Body measurements",
+    ),
+    "lifesumImportNotImported": MessageLookupByLibrary.simpleMessage(
+      "Not imported",
+    ),
+    "lifesumImportPrivacy": MessageLookupByLibrary.simpleMessage(
+      "Processed locally. The archive is not uploaded or copied into Stable.",
+    ),
+    "lifesumImportSuccessTitle": MessageLookupByLibrary.simpleMessage(
+      "History imported",
+    ),
+    "lifesumImportSuccessBody": m58,
+    "lifesumImportSuccessBodyWithKept": m59,
+    "lifesumImportDone": MessageLookupByLibrary.simpleMessage("Done"),
+    "lifesumImportInvalidTitle": MessageLookupByLibrary.simpleMessage(
+      "This export could not be read",
+    ),
+    "lifesumImportInvalidDetail": MessageLookupByLibrary.simpleMessage(
+      "Choose the original Lifesum ZIP again. Stable has not changed any of your data.",
+    ),
+    "lifesumImportProfileChangedTitle": MessageLookupByLibrary.simpleMessage(
+      "The active profile changed",
+    ),
+    "lifesumImportProfileChangedDetail": MessageLookupByLibrary.simpleMessage(
+      "Choose the export again for the profile that should receive it. No history was added.",
+    ),
+    "lifesumImportPreviewChangedTitle": MessageLookupByLibrary.simpleMessage(
+      "The preview changed",
+    ),
+    "lifesumImportPreviewChangedDetail": MessageLookupByLibrary.simpleMessage(
+      "The export, your settings, or existing history changed after review. Choose it again to see fresh counts.",
+    ),
+    "lifesumImportExpiredTitle": MessageLookupByLibrary.simpleMessage(
+      "This confirmation expired",
+    ),
+    "lifesumImportExpiredDetail": MessageLookupByLibrary.simpleMessage(
+      "Choose the export again to start a fresh, safe review.",
+    ),
+    "lifesumImportRolledBackTitle": MessageLookupByLibrary.simpleMessage(
+      "The import was rolled back",
+    ),
+    "lifesumImportRolledBackDetail": MessageLookupByLibrary.simpleMessage(
+      "Stable could not complete every write, so its import changes were reversed. Existing data was kept.",
+    ),
+    "lifesumImportFailedTitle": MessageLookupByLibrary.simpleMessage(
+      "The import could not finish",
+    ),
+    "lifesumImportFailedDetail": MessageLookupByLibrary.simpleMessage(
+      "Stable stopped safely. Choose the export again to resume or review the import.",
+    ),
+    "lifesumImportSupportedHistoryFound": MessageLookupByLibrary.simpleMessage(
+      "Supported history found in this local export.",
+    ),
+    "lifesumImportSupportedHistoryRange": m60,
     "yearsLabel": m49,
     "youLabel": MessageLookupByLibrary.simpleMessage("You"),
     "zincLabel": MessageLookupByLibrary.simpleMessage("zinc"),

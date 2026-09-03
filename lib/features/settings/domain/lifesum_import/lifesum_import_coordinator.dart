@@ -168,6 +168,11 @@ class LifesumImportCoordinator {
       path,
       LifesumExportSection.values.toSet(),
     );
+    if (archiveSelection.loadedSections.isEmpty) {
+      throw const LifesumImportCoordinatorException(
+        LifesumImportCoordinatorFailure.invalidArchiveSelection,
+      );
+    }
     final results = await Future.wait<Object>(<Future<Object>>[
       _historyLoader.load(),
       _loadSettings(),

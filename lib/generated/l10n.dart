@@ -8294,6 +8294,359 @@ class S {
     desc: '',
     args: [],
   );
+
+  String get lifesumImportTitle => Intl.message(
+    'Import from Lifesum',
+    name: 'lifesumImportTitle',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportSettingsSubtitle => Intl.message(
+    'Review a local export ZIP before importing',
+    name: 'lifesumImportSettingsSubtitle',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportReading => Intl.message(
+    'Reading your export on this device…',
+    name: 'lifesumImportReading',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportApplying => Intl.message(
+    'Importing your selected history…',
+    name: 'lifesumImportApplying',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportConfirmTitle => Intl.message(
+    'Import selected history?',
+    name: 'lifesumImportConfirmTitle',
+    desc: '',
+    args: [],
+  );
+
+  String lifesumImportConfirmBody(int count) => Intl.message(
+    'Stable will add $count records, including the daily summaries needed for your diary. Existing Stable data will be kept.',
+    name: 'lifesumImportConfirmBody',
+    desc: '',
+    args: [count],
+  );
+
+  String get lifesumImportConfirmAction => Intl.message(
+    'Import now',
+    name: 'lifesumImportConfirmAction',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportChooseHeading => Intl.message(
+    'Bring your history',
+    name: 'lifesumImportChooseHeading',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportChooseIntro => Intl.message(
+    'Choose the ZIP from your Lifesum data export. It stays on this device and nothing is added until you review and confirm it.',
+    name: 'lifesumImportChooseIntro',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportArchiveLabel => Intl.message(
+    'Lifesum export ZIP',
+    name: 'lifesumImportArchiveLabel',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportArchiveSupport => Intl.message(
+    'Diary, activities, weight and body measurements can be reviewed before import.',
+    name: 'lifesumImportArchiveSupport',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportChooseZip => Intl.message(
+    'Choose ZIP…',
+    name: 'lifesumImportChooseZip',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportReviewHeading => Intl.message(
+    'Review before importing',
+    name: 'lifesumImportReviewHeading',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportFoodDiary => Intl.message(
+    'Food diary',
+    name: 'lifesumImportFoodDiary',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportActivities => Intl.message(
+    'Activities',
+    name: 'lifesumImportActivities',
+    desc: '',
+    args: [],
+  );
+
+  String lifesumImportHealthConnectIgnored(int count) => Intl.message(
+    '$count Health Connect step mirrors ignored',
+    name: 'lifesumImportHealthConnectIgnored',
+    desc: '',
+    args: [count],
+  );
+
+  String get lifesumImportWaterTitle => Intl.message(
+    'Estimated water history',
+    name: 'lifesumImportWaterTitle',
+    desc: '',
+    args: [],
+  );
+
+  String lifesumImportWaterDetail(int amount, String start, String end) =>
+      Intl.message(
+        '$amount ml per missing day · $start–$end · not present in the export',
+        name: 'lifesumImportWaterDetail',
+        desc: '',
+        args: [amount, start, end],
+      );
+
+  String lifesumImportRecipesDetail(int count) => Intl.message(
+    '$count recipe snapshots found. Stable will keep them out of this import until it can represent their missing ingredient weights honestly.',
+    name: 'lifesumImportRecipesDetail',
+    desc: '',
+    args: [count],
+  );
+
+  String get lifesumImportFavoritesDetail => Intl.message(
+    'No favorite markers were included in this export.',
+    name: 'lifesumImportFavoritesDetail',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportSelectedAction => Intl.message(
+    'Import selected history',
+    name: 'lifesumImportSelectedAction',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportChooseAgain => Intl.message(
+    'Choose again',
+    name: 'lifesumImportChooseAgain',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportReady =>
+      Intl.message('Ready', name: 'lifesumImportReady', desc: '', args: []);
+
+  String get lifesumImportKeepExisting => Intl.message(
+    'Keep existing',
+    name: 'lifesumImportKeepExisting',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportWarnings => Intl.message(
+    'Warnings',
+    name: 'lifesumImportWarnings',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportFilesIgnored => Intl.message(
+    'Files ignored',
+    name: 'lifesumImportFilesIgnored',
+    desc: '',
+    args: [],
+  );
+
+  String lifesumImportToAdd(int count) => Intl.message(
+    '$count to add',
+    name: 'lifesumImportToAdd',
+    desc: '',
+    args: [count],
+  );
+
+  String lifesumImportExistingKept(int count) => Intl.message(
+    '$count existing kept',
+    name: 'lifesumImportExistingKept',
+    desc: '',
+    args: [count],
+  );
+
+  String lifesumImportWarningCount(int count) => Intl.message(
+    '$count warnings',
+    name: 'lifesumImportWarningCount',
+    desc: '',
+    args: [count],
+  );
+
+  String get lifesumImportWeightHistory => Intl.message(
+    'Weight history',
+    name: 'lifesumImportWeightHistory',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportBodyMeasurements => Intl.message(
+    'Body measurements',
+    name: 'lifesumImportBodyMeasurements',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportNotImported => Intl.message(
+    'Not imported',
+    name: 'lifesumImportNotImported',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportPrivacy => Intl.message(
+    'Processed locally. The archive is not uploaded or copied into Stable.',
+    name: 'lifesumImportPrivacy',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportSuccessTitle => Intl.message(
+    'History imported',
+    name: 'lifesumImportSuccessTitle',
+    desc: '',
+    args: [],
+  );
+
+  String lifesumImportSuccessBody(int added) => Intl.message(
+    '$added records added.',
+    name: 'lifesumImportSuccessBody',
+    desc: '',
+    args: [added],
+  );
+
+  String lifesumImportSuccessBodyWithKept(int added, int kept) => Intl.message(
+    '$added records added · $kept exact records kept.',
+    name: 'lifesumImportSuccessBodyWithKept',
+    desc: '',
+    args: [added, kept],
+  );
+
+  String get lifesumImportDone =>
+      Intl.message('Done', name: 'lifesumImportDone', desc: '', args: []);
+
+  String get lifesumImportInvalidTitle => Intl.message(
+    'This export could not be read',
+    name: 'lifesumImportInvalidTitle',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportInvalidDetail => Intl.message(
+    'Choose the original Lifesum ZIP again. Stable has not changed any of your data.',
+    name: 'lifesumImportInvalidDetail',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportProfileChangedTitle => Intl.message(
+    'The active profile changed',
+    name: 'lifesumImportProfileChangedTitle',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportProfileChangedDetail => Intl.message(
+    'Choose the export again for the profile that should receive it. No history was added.',
+    name: 'lifesumImportProfileChangedDetail',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportPreviewChangedTitle => Intl.message(
+    'The preview changed',
+    name: 'lifesumImportPreviewChangedTitle',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportPreviewChangedDetail => Intl.message(
+    'The export, your settings, or existing history changed after review. Choose it again to see fresh counts.',
+    name: 'lifesumImportPreviewChangedDetail',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportExpiredTitle => Intl.message(
+    'This confirmation expired',
+    name: 'lifesumImportExpiredTitle',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportExpiredDetail => Intl.message(
+    'Choose the export again to start a fresh, safe review.',
+    name: 'lifesumImportExpiredDetail',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportRolledBackTitle => Intl.message(
+    'The import was rolled back',
+    name: 'lifesumImportRolledBackTitle',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportRolledBackDetail => Intl.message(
+    'Stable could not complete every write, so its import changes were reversed. Existing data was kept.',
+    name: 'lifesumImportRolledBackDetail',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportFailedTitle => Intl.message(
+    'The import could not finish',
+    name: 'lifesumImportFailedTitle',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportFailedDetail => Intl.message(
+    'Stable stopped safely. Choose the export again to resume or review the import.',
+    name: 'lifesumImportFailedDetail',
+    desc: '',
+    args: [],
+  );
+
+  String get lifesumImportSupportedHistoryFound => Intl.message(
+    'Supported history found in this local export.',
+    name: 'lifesumImportSupportedHistoryFound',
+    desc: '',
+    args: [],
+  );
+
+  String lifesumImportSupportedHistoryRange(
+    String start,
+    String end,
+  ) => Intl.message(
+    'Supported history from $start to $end. Existing Stable days will be kept.',
+    name: 'lifesumImportSupportedHistoryRange',
+    desc: '',
+    args: [start, end],
+  );
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

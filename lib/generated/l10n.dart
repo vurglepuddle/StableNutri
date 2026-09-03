@@ -1858,6 +1858,11 @@ class S {
     return Intl.message('Home', name: 'homeLabel', desc: '', args: []);
   }
 
+  /// `Today`
+  String get todayLabel {
+    return Intl.message('Today', name: 'todayLabel', desc: '', args: []);
+  }
+
   /// `Tap + to log your first meal or activity`
   String get homeFirstMealHint {
     return Intl.message(

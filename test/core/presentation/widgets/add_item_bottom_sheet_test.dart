@@ -20,51 +20,92 @@ Widget _wrapWithMaterial(Widget child) {
 }
 
 void main() {
-  testWidgets(
-    'shows the Activity tile when showActivityTracking is true',
-    (tester) async {
-      await tester.pumpWidget(_wrapWithMaterial(
+  testWidgets('shows the Activity tile when showActivityTracking is true', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrapWithMaterial(
         AddItemBottomSheet(
           day: DateTime(2026, 1, 1),
           showActivityTracking: true,
         ),
-      ));
-      await tester.pumpAndSettle();
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      expect(find.text(S.current.activityLabel), findsOneWidget);
-      expect(find.text(S.current.breakfastLabel), findsOneWidget);
-    },
-  );
+    expect(find.text(S.current.activityLabel), findsOneWidget);
+    expect(find.text(S.current.breakfastLabel), findsOneWidget);
+  });
 
-  testWidgets(
-    'hides the Activity tile when showActivityTracking is false',
-    (tester) async {
-      await tester.pumpWidget(_wrapWithMaterial(
+  testWidgets('hides the Activity tile when showActivityTracking is false', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrapWithMaterial(
         AddItemBottomSheet(
           day: DateTime(2026, 1, 1),
           showActivityTracking: false,
         ),
-      ));
-      await tester.pumpAndSettle();
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      expect(find.text(S.current.activityLabel), findsNothing);
-      // Meal tiles still render so the sheet stays useful for food logging.
-      expect(find.text(S.current.breakfastLabel), findsOneWidget);
-      expect(find.text(S.current.lunchLabel), findsOneWidget);
-      expect(find.text(S.current.dinnerLabel), findsOneWidget);
-      expect(find.text(S.current.snackLabel), findsOneWidget);
-    },
-  );
+    expect(find.text(S.current.activityLabel), findsNothing);
+    // Meal tiles still render so the sheet stays useful for food logging.
+    expect(find.text(S.current.breakfastLabel), findsOneWidget);
+    expect(find.text(S.current.lunchLabel), findsOneWidget);
+    expect(find.text(S.current.dinnerLabel), findsOneWidget);
+    expect(find.text(S.current.snackLabel), findsOneWidget);
+  });
 
   testWidgets(
     'defaults to showing the Activity tile when the flag is omitted',
     (tester) async {
-      await tester.pumpWidget(_wrapWithMaterial(
-        AddItemBottomSheet(day: DateTime(2026, 1, 1)),
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterial(AddItemBottomSheet(day: DateTime(2026, 1, 1))),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text(S.current.activityLabel), findsOneWidget);
     },
   );
+
+  testWidgets('uses the shell callback when Library is selected', (
+    tester,
+  ) async {
+    var openedLibrary = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: const [S.delegate],
+        supportedLocales: S.delegate.supportedLocales,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: FilledButton(
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (_) => AddItemBottomSheet(
+                    day: DateTime(2026, 1, 1),
+                    showActivityTracking: false,
+                    onOpenLibrary: () => openedLibrary = true,
+                  ),
+                ),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text(S.current.libraryLabel));
+    await tester.tap(find.text(S.current.libraryLabel));
+    await tester.pumpAndSettle();
+
+    expect(openedLibrary, isTrue);
+    expect(find.byType(AddItemBottomSheet), findsNothing);
+  });
 }

@@ -163,12 +163,42 @@ class LifesumArchiveInspection {
       .toSet();
 }
 
+/// Bounded UTF-8 contents for only the requested, schema-valid sections.
+/// Unknown, duplicate, malformed, and unrequested files are never retained.
+class LifesumArchiveCsvSelection {
+  LifesumArchiveCsvSelection({
+    required this.inspection,
+    required Set<LifesumExportSection> requestedSections,
+    required Map<LifesumExportSection, String> csvBySection,
+  }) : requestedSections = Set<LifesumExportSection>.unmodifiable(
+         requestedSections,
+       ),
+       csvBySection = Map<LifesumExportSection, String>.unmodifiable(
+         csvBySection,
+       );
+
+  final LifesumArchiveInspection inspection;
+  final Set<LifesumExportSection> requestedSections;
+  final Map<LifesumExportSection, String> csvBySection;
+
+  Set<LifesumExportSection> get loadedSections => csvBySection.keys.toSet();
+
+  Set<LifesumExportSection> get unavailableSections => requestedSections
+      .where((section) => !csvBySection.containsKey(section))
+      .toSet();
+
+  String? operator [](LifesumExportSection section) => csvBySection[section];
+}
+
 enum LifesumArchiveFailure {
   fileNotFound,
   invalidArchive,
   tooManyEntries,
   entryTooLarge,
   archiveTooLarge,
+  selectedContentTooLarge,
+  invalidCsvEncoding,
+  missingSelectedEntry,
 }
 
 class LifesumArchiveReadException implements Exception {
@@ -192,12 +222,14 @@ class LifesumArchiveReader {
     this.maxEntrySizeBytes = 256 * 1024 * 1024,
     this.maxTotalUncompressedSizeBytes = 512 * 1024 * 1024,
     this.maxHeaderSizeBytes = 16 * 1024,
+    this.maxSelectedUncompressedSizeBytes = 32 * 1024 * 1024,
   });
 
   final int maxEntries;
   final int maxEntrySizeBytes;
   final int maxTotalUncompressedSizeBytes;
   final int maxHeaderSizeBytes;
+  final int maxSelectedUncompressedSizeBytes;
 
   LifesumArchiveInspection inspectPath(String path) {
     final file = File(path);
@@ -222,6 +254,105 @@ class LifesumArchiveReader {
     } finally {
       input?.closeSync();
     }
+  }
+
+  /// Validates the archive first, then reopens its file-backed stream and
+  /// retains only requested sections whose schemas are importable.
+  ///
+  /// The two-pass shape prevents a duplicate or malformed section discovered
+  /// late in the central directory from yielding partial source data. It also
+  /// means unknown and unrequested entries are never decompressed during the
+  /// content pass. Nothing is extracted to disk.
+  LifesumArchiveCsvSelection readCsvSectionsPath(
+    String path,
+    Set<LifesumExportSection> requestedSections,
+  ) {
+    final requested = Set<LifesumExportSection>.of(requestedSections);
+    final inspection = inspectPath(path);
+    final sectionsToLoad = requested.intersection(
+      inspection.importableSections,
+    );
+    if (sectionsToLoad.isEmpty) {
+      return LifesumArchiveCsvSelection(
+        inspection: inspection,
+        requestedSections: requested,
+        csvBySection: const <LifesumExportSection, String>{},
+      );
+    }
+
+    final declaredSelectionSize = inspection.recognizedEntries
+        .where((entry) => sectionsToLoad.contains(entry.section))
+        .fold<int>(0, (sum, entry) => sum + entry.uncompressedSizeBytes);
+    if (declaredSelectionSize > maxSelectedUncompressedSizeBytes) {
+      throw const LifesumArchiveReadException(
+        LifesumArchiveFailure.selectedContentTooLarge,
+      );
+    }
+
+    final file = File(path);
+    if (!file.existsSync()) {
+      throw const LifesumArchiveReadException(
+        LifesumArchiveFailure.fileNotFound,
+      );
+    }
+    if (file.lengthSync() != inspection.archiveSizeBytes) {
+      throw const LifesumArchiveReadException(
+        LifesumArchiveFailure.invalidArchive,
+      );
+    }
+
+    InputFileStream? input;
+    final csvBySection = <LifesumExportSection, String>{};
+    var capturedBytes = 0;
+    try {
+      input = InputFileStream(path);
+      final archive = ZipDecoder().decodeStream(input);
+      for (final entry in archive) {
+        if (!entry.isFile) continue;
+        final section = _sectionForFlatPath(entry.name);
+        if (section == null || !sectionsToLoad.contains(section)) continue;
+
+        final remainingBytes = maxSelectedUncompressedSizeBytes - capturedBytes;
+        final output = _BoundedCaptureOutput(remainingBytes);
+        try {
+          entry.writeContent(output, freeMemory: true);
+        } on _ExpandedEntryTooLarge {
+          throw const LifesumArchiveReadException(
+            LifesumArchiveFailure.selectedContentTooLarge,
+          );
+        }
+        capturedBytes += output.length;
+        try {
+          csvBySection[section] = utf8.decode(
+            output.bytes,
+            allowMalformed: false,
+          );
+        } on FormatException {
+          throw const LifesumArchiveReadException(
+            LifesumArchiveFailure.invalidCsvEncoding,
+          );
+        }
+      }
+    } on LifesumArchiveReadException {
+      rethrow;
+    } on Object {
+      throw const LifesumArchiveReadException(
+        LifesumArchiveFailure.invalidArchive,
+      );
+    } finally {
+      input?.closeSync();
+    }
+
+    if (!csvBySection.keys.toSet().containsAll(sectionsToLoad)) {
+      throw const LifesumArchiveReadException(
+        LifesumArchiveFailure.missingSelectedEntry,
+      );
+    }
+    return LifesumArchiveCsvSelection(
+      inspection: inspection,
+      requestedSections: requested,
+      csvBySection: csvBySection,
+    );
   }
 
   LifesumArchiveInspection _inspectArchive(
@@ -444,6 +575,62 @@ class _HeaderCaptureOutput extends OutputStream {
   Uint8List subset(int start, [int? end]) {
     final actualEnd = end ?? _header.length;
     return Uint8List.fromList(_header.sublist(start, actualEnd));
+  }
+}
+
+class _BoundedCaptureOutput extends OutputStream {
+  _BoundedCaptureOutput(this.maxOutputSizeBytes)
+    : super(byteOrder: ByteOrder.littleEndian);
+
+  final int maxOutputSizeBytes;
+  final BytesBuilder _builder = BytesBuilder(copy: false);
+  var _writtenLength = 0;
+
+  Uint8List get bytes => _builder.toBytes();
+
+  @override
+  int get length => _writtenLength;
+
+  @override
+  void clear() {
+    _builder.clear();
+    _writtenLength = 0;
+  }
+
+  @override
+  void flush() {}
+
+  @override
+  void writeByte(int value) {
+    if (_writtenLength >= maxOutputSizeBytes) {
+      throw const _ExpandedEntryTooLarge();
+    }
+    _builder.addByte(value);
+    _writtenLength++;
+  }
+
+  @override
+  void writeBytes(List<int> bytes, {int? length}) {
+    final byteCount = length ?? bytes.length;
+    if (_writtenLength + byteCount > maxOutputSizeBytes) {
+      throw const _ExpandedEntryTooLarge();
+    }
+    _builder.add(bytes.take(byteCount).toList(growable: false));
+    _writtenLength += byteCount;
+  }
+
+  @override
+  void writeStream(InputStream stream) {
+    while (!stream.isEOS) {
+      final count = stream.length > 4096 ? 4096 : stream.length;
+      writeBytes(stream.readBytes(count).toUint8List());
+    }
+  }
+
+  @override
+  Uint8List subset(int start, [int? end]) {
+    final allBytes = bytes;
+    return Uint8List.fromList(allBytes.sublist(start, end));
   }
 }
 

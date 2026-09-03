@@ -13,6 +13,7 @@ enum LifesumImportOperationProgress {
   pending,
   applying,
   applied,
+  preserved,
   rollingBack,
   rolledBack,
 }
@@ -150,6 +151,9 @@ class LifesumImportJournal {
   final LifesumImportJournalFailure? failure;
 
   int get operationCount => operationProgress.length;
+  bool get isTerminal =>
+      phase == LifesumImportJournalPhase.completed ||
+      phase == LifesumImportJournalPhase.rolledBack;
   int countFor(LifesumImportOperationProgress progress) =>
       operationProgress.values.where((current) => current == progress).length;
 
@@ -197,6 +201,16 @@ class LifesumImportJournal {
     return _withProgress(operationId, LifesumImportOperationProgress.applied);
   }
 
+  /// Marks a matching target that existed before this executor attempted the
+  /// operation. It counts as complete but is never removed during rollback.
+  LifesumImportJournal markOperationPreserved(String operationId) {
+    _requirePhase(LifesumImportJournalPhase.applying);
+    final progress = _progressFor(operationId);
+    if (progress == LifesumImportOperationProgress.preserved) return this;
+    _requireProgress(progress, LifesumImportOperationProgress.pending);
+    return _withProgress(operationId, LifesumImportOperationProgress.preserved);
+  }
+
   /// Resolves a crash after "applying" was durably journaled but before the
   /// result was. Matching data is accepted, absence is retried, and a
   /// different value at the deterministic target forces rollback.
@@ -226,7 +240,9 @@ class LifesumImportJournal {
   LifesumImportJournal completeApply() {
     _requirePhase(LifesumImportJournalPhase.applying);
     if (operationProgress.values.any(
-      (progress) => progress != LifesumImportOperationProgress.applied,
+      (progress) =>
+          progress != LifesumImportOperationProgress.applied &&
+          progress != LifesumImportOperationProgress.preserved,
     )) {
       throw const LifesumImportJournalException(
         LifesumImportJournalError.invalidTransition,
@@ -290,6 +306,7 @@ class LifesumImportJournal {
     if (operationProgress.values.any(
       (progress) =>
           progress != LifesumImportOperationProgress.pending &&
+          progress != LifesumImportOperationProgress.preserved &&
           progress != LifesumImportOperationProgress.rolledBack,
     )) {
       throw const LifesumImportJournalException(
@@ -363,7 +380,8 @@ class LifesumImportJournal {
               (progress) =>
                   progress == LifesumImportOperationProgress.pending ||
                   progress == LifesumImportOperationProgress.applying ||
-                  progress == LifesumImportOperationProgress.applied,
+                  progress == LifesumImportOperationProgress.applied ||
+                  progress == LifesumImportOperationProgress.preserved,
             ),
       LifesumImportJournalPhase.rollbackRequired =>
         failure != null &&
@@ -371,7 +389,8 @@ class LifesumImportJournal {
               (progress) =>
                   progress == LifesumImportOperationProgress.pending ||
                   progress == LifesumImportOperationProgress.applying ||
-                  progress == LifesumImportOperationProgress.applied,
+                  progress == LifesumImportOperationProgress.applied ||
+                  progress == LifesumImportOperationProgress.preserved,
             ),
       LifesumImportJournalPhase.rollingBack =>
         failure != null &&
@@ -380,19 +399,23 @@ class LifesumImportJournal {
                   progress == LifesumImportOperationProgress.pending ||
                   progress == LifesumImportOperationProgress.applying ||
                   progress == LifesumImportOperationProgress.applied ||
+                  progress == LifesumImportOperationProgress.preserved ||
                   progress == LifesumImportOperationProgress.rollingBack ||
                   progress == LifesumImportOperationProgress.rolledBack,
             ),
       LifesumImportJournalPhase.completed =>
         failure == null &&
             values.every(
-              (progress) => progress == LifesumImportOperationProgress.applied,
+              (progress) =>
+                  progress == LifesumImportOperationProgress.applied ||
+                  progress == LifesumImportOperationProgress.preserved,
             ),
       LifesumImportJournalPhase.rolledBack =>
         failure != null &&
             values.every(
               (progress) =>
                   progress == LifesumImportOperationProgress.pending ||
+                  progress == LifesumImportOperationProgress.preserved ||
                   progress == LifesumImportOperationProgress.rolledBack,
             ),
     };

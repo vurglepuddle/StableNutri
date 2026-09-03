@@ -40,7 +40,7 @@ class LifesumWeightImportOperation extends LifesumImportOperation {
         kind: LifesumImportOperationKind.weight,
         operationId:
             'weight:${_dateSlug(entry.date)}:${_weightPayloadDigest(entry)}',
-        targetKey: _dateSlug(entry.date),
+        targetKey: 'weight:${_dateSlug(entry.date)}',
         logicalDay: _calendarDay(entry.date),
       );
 
@@ -54,7 +54,7 @@ class LifesumBodyMeasurementImportOperation extends LifesumImportOperation {
         operationId:
             'body-measurement:${_dateSlug(entry.date)}:'
             '${_bodyMeasurementPayloadDigest(entry)}',
-        targetKey: _dateSlug(entry.date),
+        targetKey: 'body-measurement:${_dateSlug(entry.date)}',
         logicalDay: _calendarDay(entry.date),
       );
 
@@ -68,7 +68,7 @@ class LifesumTrackedDayImportOperation extends LifesumImportOperation {
         operationId:
             'tracked-day:${_dateSlug(entry.day)}:'
             '${_trackedDayPayloadDigest(entry)}',
-        targetKey: _dateSlug(entry.day),
+        targetKey: 'tracked-day:${_dateSlug(entry.day)}',
         logicalDay: _calendarDay(entry.day),
       );
 
@@ -80,7 +80,7 @@ class LifesumIntakeImportOperation extends LifesumImportOperation {
     : super(
         kind: LifesumImportOperationKind.intake,
         operationId: 'intake:${entry.id}',
-        targetKey: entry.id,
+        targetKey: 'intake:${entry.id}',
         logicalDay: DayBoundaryCalc.logicalDayOfMinutes(
           entry.dateTime,
           dayStartOffsetMinutes,
@@ -97,7 +97,7 @@ class LifesumActivityImportOperation extends LifesumImportOperation {
   }) : super(
          kind: LifesumImportOperationKind.activity,
          operationId: 'activity:${entry.id}',
-         targetKey: entry.id,
+         targetKey: 'activity:${entry.id}',
          logicalDay: DayBoundaryCalc.logicalDayOfMinutes(
            entry.date,
            dayStartOffsetMinutes,
@@ -114,7 +114,7 @@ class LifesumEstimatedWaterImportOperation extends LifesumImportOperation {
   }) : super(
          kind: LifesumImportOperationKind.estimatedWater,
          operationId: 'estimated-water:${entry.id}',
-         targetKey: entry.id,
+         targetKey: 'estimated-water:${entry.id}',
          logicalDay: DayBoundaryCalc.logicalDayOfMinutes(
            entry.dateTime,
            dayStartOffsetMinutes,

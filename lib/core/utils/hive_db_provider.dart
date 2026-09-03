@@ -51,6 +51,7 @@ class HiveDBProvider extends ChangeNotifier {
   static const customActivityTemplateBoxName = 'CustomActivityTemplateBox';
   static const weightLogBoxName = 'WeightLogBox';
   static const bodyMeasurementLogBoxName = 'BodyMeasurementLogBox';
+  static const lifesumImportJournalBoxName = 'LifesumImportJournalBox';
   // #32: per-entry water intake log keyed by uuid; one row per sip so the
   // dialog's "undo last" can roll a single entry back without losing the
   // rest of the day.
@@ -81,6 +82,7 @@ class HiveDBProvider extends ChangeNotifier {
     trackedDayBoxName,
     weightLogBoxName,
     bodyMeasurementLogBoxName,
+    lifesumImportJournalBoxName,
     waterIntakeBoxName,
     fastingBoxName,
   ];
@@ -109,6 +111,7 @@ class HiveDBProvider extends ChangeNotifier {
   Box<TrackedDayDBO>? _trackedDayBox;
   Box<WeightLogDBO>? _weightLogBox;
   Box<BodyMeasurementLogDBO>? _bodyMeasurementLogBox;
+  Box<String>? _lifesumImportJournalBox;
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
 
@@ -132,6 +135,8 @@ class HiveDBProvider extends ChangeNotifier {
       _requireBox(_weightLogBox, weightLogBoxName);
   Box<BodyMeasurementLogDBO> get bodyMeasurementLogBox =>
       _requireBox(_bodyMeasurementLogBox, bodyMeasurementLogBoxName);
+  Box<String> get lifesumImportJournalBox =>
+      _requireBox(_lifesumImportJournalBox, lifesumImportJournalBoxName);
   Box<WaterIntakeDBO> get waterIntakeBox =>
       _requireBox(_waterIntakeBox, waterIntakeBoxName);
   Box<FastingSessionDBO> get fastingBox =>
@@ -252,6 +257,10 @@ class HiveDBProvider extends ChangeNotifier {
       boxNameFor(bodyMeasurementLogBoxName, suffix),
       encryptionCipher: _cipher,
     );
+    _lifesumImportJournalBox = await Hive.openBox(
+      boxNameFor(lifesumImportJournalBoxName, suffix),
+      encryptionCipher: _cipher,
+    );
     _waterIntakeBox = await Hive.openBox(
       boxNameFor(waterIntakeBoxName, suffix),
       encryptionCipher: _cipher,
@@ -271,6 +280,7 @@ class HiveDBProvider extends ChangeNotifier {
       if (_trackedDayBox != null) _trackedDayBox!.close(),
       if (_weightLogBox != null) _weightLogBox!.close(),
       if (_bodyMeasurementLogBox != null) _bodyMeasurementLogBox!.close(),
+      if (_lifesumImportJournalBox != null) _lifesumImportJournalBox!.close(),
       if (_waterIntakeBox != null) _waterIntakeBox!.close(),
       if (_fastingBox != null) _fastingBox!.close(),
     ]);
@@ -281,6 +291,7 @@ class HiveDBProvider extends ChangeNotifier {
     _trackedDayBox = null;
     _weightLogBox = null;
     _bodyMeasurementLogBox = null;
+    _lifesumImportJournalBox = null;
     _waterIntakeBox = null;
     _fastingBox = null;
   }

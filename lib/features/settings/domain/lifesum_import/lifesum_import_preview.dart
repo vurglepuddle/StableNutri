@@ -252,6 +252,7 @@ class LifesumImportPreview {
     required Set<LifesumExportSection> requestedSections,
     required Set<LifesumExportSection> loadedSections,
     required Set<LifesumExportSection> unavailableSections,
+    required this.dayStartOffsetMinutes,
     required this.food,
     required this.activity,
     required this.measurements,
@@ -281,16 +282,17 @@ class LifesumImportPreview {
     int dayStartOffsetMinutes = 0,
     int estimatedWaterAmountPerDayMl = 2000,
   }) {
+    final offsetMinutes = _validDayOffset(dayStartOffsetMinutes);
     final foodCsv = selection[LifesumExportSection.food];
     final food = foodCsv == null
         ? null
         : LifesumFoodImportPreview.fromParseResult(
             LifesumFoodParser.parse(
               foodCsv,
-              dayStartOffsetMinutes: dayStartOffsetMinutes,
+              dayStartOffsetMinutes: offsetMinutes,
             ),
             existingIntakes: existingIntakes,
-            dayStartOffsetMinutes: dayStartOffsetMinutes,
+            dayStartOffsetMinutes: offsetMinutes,
           );
 
     final activityCsv = selection[LifesumExportSection.exercise];
@@ -299,10 +301,10 @@ class LifesumImportPreview {
         : LifesumActivityImportPreview.fromParseResult(
             LifesumActivityParser.parse(
               activityCsv,
-              dayStartOffsetMinutes: dayStartOffsetMinutes,
+              dayStartOffsetMinutes: offsetMinutes,
             ),
             existingActivities: existingActivities,
-            dayStartOffsetMinutes: dayStartOffsetMinutes,
+            dayStartOffsetMinutes: offsetMinutes,
           );
 
     const measurementSections = <LifesumExportSection>{
@@ -340,7 +342,7 @@ class LifesumImportPreview {
             startDay: trackedDays.first.day,
             endDay: trackedDays.last.day,
             amountPerDayMl: estimatedWaterAmountPerDayMl,
-            dayStartOffsetMinutes: dayStartOffsetMinutes,
+            dayStartOffsetMinutes: offsetMinutes,
             existingEntries: existingWaterEntries,
           );
 
@@ -360,6 +362,7 @@ class LifesumImportPreview {
       requestedSections: selection.requestedSections,
       loadedSections: selection.loadedSections,
       unavailableSections: selection.unavailableSections,
+      dayStartOffsetMinutes: offsetMinutes,
       food: food,
       activity: activity,
       measurements: measurements,
@@ -378,6 +381,7 @@ class LifesumImportPreview {
   final Set<LifesumExportSection> requestedSections;
   final Set<LifesumExportSection> loadedSections;
   final Set<LifesumExportSection> unavailableSections;
+  final int dayStartOffsetMinutes;
   final LifesumFoodImportPreview? food;
   final LifesumActivityImportPreview? activity;
   final LifesumMeasurementPreview? measurements;
@@ -432,3 +436,5 @@ int _calendarDayKey(DateTime date) =>
 
 String _normalizeName(String value) =>
     value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+
+int _validDayOffset(int value) => value >= 0 && value < 24 * 60 ? value : 0;

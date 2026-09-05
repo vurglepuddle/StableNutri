@@ -94,6 +94,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
       child: Column(
         children: [
           AppCard(
+            width: double.infinity,
             padding: const EdgeInsets.fromLTRB(
               Dimens.spacing24,
               Dimens.spacing20,

@@ -32,7 +32,7 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     return Wrap(
-      alignment: WrapAlignment.spaceAround,
+      alignment: WrapAlignment.center,
       spacing: Dimens.spacing12,
       runSpacing: Dimens.spacing12,
       children: [

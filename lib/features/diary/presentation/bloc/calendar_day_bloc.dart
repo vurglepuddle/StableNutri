@@ -5,6 +5,8 @@ import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
@@ -34,6 +36,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   final UpdateUserActivityUsecase _updateUserActivityUsecase;
   final GetConfigUsecase _getConfigUsecase;
   final AddConfigUsecase _addConfigUsecase;
+  final GetWaterIntakeUsecase _getWaterIntakeUsecase;
 
   DateTime? _currentDay;
 
@@ -48,6 +51,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     this._updateUserActivityUsecase,
     this._getConfigUsecase,
     this._addConfigUsecase,
+    this._getWaterIntakeUsecase,
   ) : super(CalendarDayInitial()) {
     on<LoadCalendarDayEvent>((event, emit) async {
       emit(CalendarDayLoading());
@@ -105,6 +109,10 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     );
 
     final trackedDayEntity = await _getTrackedDayUsecase.getTrackedDay(day);
+    final waterEntries = await _getWaterIntakeUsecase.getEntriesForDay(
+      DateTime(day.year, day.month, day.day),
+      dayStartOffsetTotalMinutes: dayStartOffsetHours * 60 + dayStartOffsetMinutes,
+    );
     final configData = await _getConfigUsecase.getConfig();
 
     // #150: only surface per-meal targets when this calendar day has a
@@ -143,6 +151,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
         configData.mealKcalSharesPct[ConfigEntity.mealKeyDinner] ?? 0,
         configData.mealKcalSharesPct[ConfigEntity.mealKeySnack] ?? 0,
         diarySortPreferences: config.diarySortPreferences,
+        waterEntries: waterEntries,
       ),
     );
   }

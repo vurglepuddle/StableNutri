@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -36,6 +37,53 @@ void main() {
   });
 
   group('LifesumImportJournalDataSource', () {
+    test(
+      'reads legacy snapshots and appends recoverable transitions',
+      () async {
+        final prepared = LifesumImportJournal.prepare(manifest);
+        await journalBox.put(
+          manifest.manifestId,
+          jsonEncode(prepared.toJson()),
+        );
+        await journalBox.put('_latestManifest', manifest.manifestId);
+        final loaded = (await dataSource.load(manifest))!;
+        final applying = loaded.beginApply();
+        await dataSource.save(applying);
+        final pending = applying.markOperationApplying(
+          manifest.operations.first.operationId,
+        );
+        await dataSource.save(pending);
+        expect(
+          prepared.countFor(LifesumImportOperationProgress.pending),
+          manifest.operationCount,
+        );
+        expect(applying.countFor(LifesumImportOperationProgress.applying), 0);
+        expect((await dataSource.loadLatest())?.toJson(), pending.toJson());
+        expect(
+          jsonDecode(journalBox.get(manifest.manifestId)!),
+          prepared.toJson(),
+        );
+        await dataSource.delete(manifest.manifestId);
+        expect(journalBox, isEmpty);
+      },
+    );
+
+    test('rejects a missing transition in a stored sequence', () async {
+      var journal = LifesumImportJournal.prepare(manifest);
+      await dataSource.save(journal);
+      journal = journal.beginApply();
+      await dataSource.save(journal);
+      journal = journal.markOperationApplying(
+        manifest.operations.first.operationId,
+      );
+      await dataSource.save(journal);
+      await journalBox.delete('${manifest.manifestId}:step:0');
+      await expectLater(
+        dataSource.load(manifest),
+        _throwsJournalError(LifesumImportJournalError.invalidSnapshot),
+      );
+    });
+
     test('round-trips the latest journal without candidate payloads', () async {
       final firstOperation = manifest.operations.first;
       final journal = LifesumImportJournal.prepare(

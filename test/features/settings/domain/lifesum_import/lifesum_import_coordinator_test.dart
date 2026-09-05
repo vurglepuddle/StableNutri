@@ -92,6 +92,33 @@ void main() {
   });
 
   group('LifesumImportCoordinator', () {
+    test(
+      'releases the selected copy after success, cancellation, and failure',
+      () async {
+        final preparation = (await coordinator.chooseArchive())!;
+        expect(picker.cleanupCount, 0);
+        await coordinator.confirm(preparation);
+        expect(picker.cleanupCount, 1);
+
+        await coordinator.discardArchive();
+        expect(picker.cleanupCount, 2);
+
+        archive.writeAsStringSync('invalid zip');
+        await expectLater(coordinator.chooseArchive(), throwsA(anything));
+        expect(picker.cleanupCount, 3);
+      },
+    );
+
+    test(
+      'releases the copy when confirmation detects a stale profile',
+      () async {
+        final preparation = (await coordinator.chooseArchive())!;
+        database.simulateProfileSwitch(profileId: 'other', generation: 2);
+        await expectLater(coordinator.confirm(preparation), throwsA(anything));
+        expect(picker.cleanupCount, 1);
+        expect(targets.values, isEmpty);
+      },
+    );
     test('picker cancellation is a no-op', () async {
       final cancelled = buildCoordinator(archivePicker: _TestPicker(null));
 
@@ -247,10 +274,16 @@ void main() {
   });
 }
 
-class _TestPicker implements LifesumArchivePicker {
-  const _TestPicker(this.path);
+class _TestPicker implements LifesumArchivePicker, LifesumArchiveCleanup {
+  _TestPicker(this.path);
 
   final String? path;
+  int cleanupCount = 0;
+
+  @override
+  Future<void> cleanupArchive() async {
+    cleanupCount++;
+  }
 
   @override
   Future<String?> pickArchivePath() async => path;

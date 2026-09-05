@@ -64,12 +64,14 @@ class LifesumImportTargetDataSource implements LifesumImportTargetStore {
   Future<LifesumImportTargetProbe> probe(
     LifesumImportOperation operation,
   ) async {
+    await Future<void>.delayed(Duration.zero);
     _requireProfile();
     return _locate(operation).probe;
   }
 
   @override
   Future<void> apply(LifesumImportOperation operation) async {
+    await Future<void>.delayed(Duration.zero);
     _requireProfile();
     if (_locate(operation).probe != LifesumImportTargetProbe.absent) {
       throw const LifesumImportTargetStoreException(
@@ -114,6 +116,7 @@ class LifesumImportTargetDataSource implements LifesumImportTargetStore {
 
   @override
   Future<void> rollback(LifesumImportOperation operation) async {
+    await Future<void>.delayed(Duration.zero);
     _requireProfile();
     final located = _locate(operation);
     switch (located.probe) {
@@ -220,19 +223,19 @@ class LifesumImportTargetDataSource implements LifesumImportTargetStore {
     if (valueAtFutureKey != null && entityId(valueAtFutureKey) != id) {
       return const _LocatedTarget.conflicting();
     }
-    final candidates = box
-        .toMap()
-        .entries
-        .where((entry) => entityId(entry.value) == id)
-        .toList(growable: false);
+    final candidates = _IdIndex.forBox(box, entityId).keysFor(id);
     if (candidates.isEmpty) return const _LocatedTarget.absent();
     if (candidates.length != 1) return const _LocatedTarget.conflicting();
-    final candidate = candidates.single;
+    final key = candidates.single;
+    final value = box.get(key);
+    if (value == null || entityId(value) != id) {
+      return const _LocatedTarget.conflicting();
+    }
     return _LocatedTarget(
-      probe: operation.matchesTargetEntity(toEntity(candidate.value))
+      probe: operation.matchesTargetEntity(toEntity(value))
           ? LifesumImportTargetProbe.matching
           : LifesumImportTargetProbe.conflicting,
-      storageKey: candidate.key,
+      storageKey: key,
     );
   }
 
@@ -252,6 +255,42 @@ class LifesumImportTargetDataSource implements LifesumImportTargetStore {
       );
     }
   }
+}
+
+/// One index per open box, maintained by Hive's change stream (including
+/// reverted writes). It lasts only as long as that box and sees legacy numeric
+/// keys as well as deterministic import keys. Probes yield to drain queued
+/// notifications before checking; the payload itself is always read afresh.
+class _IdIndex<T> {
+  _IdIndex(Box<T> box, String Function(T) entityId) {
+    void refresh(dynamic key) {
+      final previous = _idsByKey.remove(key);
+      if (previous != null) {
+        final keys = _keysById[previous]!;
+        keys.remove(key);
+        if (keys.isEmpty) _keysById.remove(previous);
+      }
+      final value = box.get(key);
+      if (value != null) {
+        final id = entityId(value);
+        _idsByKey[key] = id;
+        (_keysById[id] ??= <dynamic>{}).add(key);
+      }
+    }
+
+    for (final key in box.keys) {
+      refresh(key);
+    }
+    box.watch().listen((event) => refresh(event.key));
+  }
+
+  static final _indices = Expando<Object>();
+  static _IdIndex<T> forBox<T>(Box<T> box, String Function(T) entityId) =>
+      (_indices[box] ??= _IdIndex<T>(box, entityId)) as _IdIndex<T>;
+
+  final _idsByKey = <dynamic, String>{};
+  final _keysById = <String, Set<dynamic>>{};
+  Set<dynamic> keysFor(String id) => _keysById[id] ?? const <dynamic>{};
 }
 
 class _LocatedTarget {

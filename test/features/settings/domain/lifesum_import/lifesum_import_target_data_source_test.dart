@@ -62,7 +62,10 @@ void main() {
       'measurements',
     );
     waterBox = await Hive.openBox<WaterIntakeDBO>('water');
-    journalBox = await Hive.openBox<String>('journals');
+    journalBox = await Hive.openBox<String>(
+      'journals',
+      encryptionCipher: HiveAesCipher(List<int>.filled(32, 7)),
+    );
     provider = FakeHiveDBProvider(
       activeProfileId: 'profile-a',
       activeProfileGeneration: 1,
@@ -85,6 +88,149 @@ void main() {
   });
 
   group('LifesumImportTargetDataSource', () {
+    test(
+      'imports 8000 synthetic foods with bounded journal writes',
+      () async {
+        final foodLines = sanitizedLifesumFiles['food.csv']!.split('\n');
+        final zip = writeSanitizedLifesumZip(
+          temporaryDirectory,
+          files: {
+            'food.csv':
+                '${foodLines.first}\n${List.filled(8000, foodLines[1]).join('\n')}\n',
+          },
+        );
+        final preview = LifesumImportPreview.fromSelection(
+          const LifesumArchiveReader().readCsvSectionsPath(zip.path, {
+            LifesumExportSection.food,
+          }),
+        );
+        final primary = LifesumImportManifest.fromPreview(preview);
+        final large = LifesumTrackedDayPlan.fromManifest(
+          primary,
+          goals: LifesumHistoricalGoalSnapshot(
+            calorieGoal: 2000,
+            carbsGoal: 300,
+            fatGoal: 55,
+            proteinGoal: 75,
+          ),
+        ).completeManifest(primary);
+        var writtenBytes = 0;
+        var largestTransition = 0;
+        final subscription = journalBox.watch().listen((event) {
+          if (event.deleted) return;
+          final size = (event.value as String).length;
+          writtenBytes += size;
+          if (event.key.toString().contains(':step:') &&
+              size > largestTransition) {
+            largestTransition = size;
+          }
+        });
+        final stopwatch = Stopwatch()..start();
+        final completed = await LifesumImportExecutor(
+          journals: journals,
+          targets: targets,
+        ).execute(large);
+        stopwatch.stop();
+        await subscription.cancel();
+        expect(completed.phase, LifesumImportJournalPhase.completed);
+        expect(intakeBox.length, 8000);
+        expect(completed.operationCount, 8001);
+        expect(largestTransition, lessThan(300));
+        expect(writtenBytes, lessThan(large.operationCount * 700));
+        expect(stopwatch.elapsed, lessThan(const Duration(seconds: 60)));
+        final restored = await LifesumImportJournalDataSource(
+          provider,
+        ).load(large);
+        expect(restored?.toJson(), completed.toJson());
+        // Aggregate-only benchmark output: no personal archive or profile used.
+        // ignore: avoid_print
+        print(
+          'Synthetic ${large.operationCount}-operation import: ${stopwatch.elapsedMilliseconds} ms, $writtenBytes journal bytes',
+        );
+      },
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
+
+    test(
+      'index tracks legacy duplicates, replacement IDs, and deletion',
+      () async {
+        final operation = manifest.operations
+            .whereType<LifesumIntakeImportOperation>()
+            .single;
+        expect(await targets.probe(operation), LifesumImportTargetProbe.absent);
+        final dbo = IntakeDBO.fromIntakeEntity(operation.entry);
+        await intakeBox.put(42, dbo);
+        expect(
+          await targets.probe(operation),
+          LifesumImportTargetProbe.matching,
+        );
+        await intakeBox.put(43, IntakeDBO.fromIntakeEntity(operation.entry));
+        expect(
+          await targets.probe(operation),
+          LifesumImportTargetProbe.conflicting,
+        );
+        await intakeBox.delete(42);
+        expect(
+          await targets.probe(operation),
+          LifesumImportTargetProbe.matching,
+        );
+        final other = IntakeEntity(
+          id: 'different-id',
+          unit: operation.entry.unit,
+          amount: operation.entry.amount,
+          type: operation.entry.type,
+          meal: operation.entry.meal,
+          dateTime: operation.entry.dateTime,
+        );
+        await intakeBox.put(43, IntakeDBO.fromIntakeEntity(other));
+        expect(await targets.probe(operation), LifesumImportTargetProbe.absent);
+        await intakeBox.put(
+          operation.entry.id,
+          IntakeDBO.fromIntakeEntity(other),
+        );
+        expect(
+          await targets.probe(operation),
+          LifesumImportTargetProbe.conflicting,
+        );
+        await intakeBox.clear();
+        expect(await targets.probe(operation), LifesumImportTargetProbe.absent);
+      },
+    );
+
+    test(
+      'resumes a persisted ambiguous target after reopening the journal',
+      () async {
+        var journal = LifesumImportJournal.prepare(manifest);
+        await journals.save(journal);
+        journal = journal.beginApply();
+        await journals.save(journal);
+        final first = manifest.operations.first;
+        journal = journal.markOperationApplying(first.operationId);
+        await journals.save(journal);
+        await targets.apply(first);
+        // Reopening the journal verifies disk persistence independently of the
+        // data source's cached lineage; target matching verifies crash recovery.
+        await journalBox.close();
+        journalBox = await Hive.openBox<String>(
+          'journals',
+          encryptionCipher: HiveAesCipher(List<int>.filled(32, 7)),
+        );
+        final resumedProvider = FakeHiveDBProvider(
+          lifesumImportJournalBox: journalBox,
+        );
+        final resumed = await LifesumImportExecutor(
+          journals: LifesumImportJournalDataSource(resumedProvider),
+          targets: targets,
+        ).execute(manifest);
+        expect(resumed.phase, LifesumImportJournalPhase.completed);
+        expect(
+          resumed.operationProgress[first.operationId],
+          LifesumImportOperationProgress.applied,
+        );
+        expect(boxLengths(), everyElement(1));
+      },
+    );
+
     test(
       'round-trips every operation kind through isolated Hive boxes',
       () async {

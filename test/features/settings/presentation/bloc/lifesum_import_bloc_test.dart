@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -32,6 +33,37 @@ void main() {
     await bloc.close();
     harness.dispose();
   });
+
+  test('leaving review releases the archive without importing', () async {
+    final ready = bloc.stream.firstWhere(
+      (state) => state is LifesumImportReady,
+    );
+    bloc.add(const ChooseLifesumArchiveEvent());
+    await ready;
+    await bloc.close();
+    expect(harness.picker.cleanupCount, 1);
+    expect(harness.targets.values, isEmpty);
+  });
+
+  test(
+    'a picker result arriving after the screen closes is still released',
+    () async {
+      final pending = Completer<String?>();
+      harness.picker.pending = pending;
+      final loading = bloc.stream.firstWhere(
+        (state) => state is LifesumImportLoading,
+      );
+      bloc.add(const ChooseLifesumArchiveEvent());
+      await loading;
+      await bloc.close();
+      final released = Completer<void>();
+      harness.picker.nextCleanup = released;
+      pending.complete(harness.pickedPath);
+      await released.future;
+      expect(harness.picker.cleanupCount, 2);
+      expect(harness.targets.values, isEmpty);
+    },
+  );
 
   test(
     'picker cancellation returns to the initial state without writes',
@@ -180,7 +212,7 @@ class _Harness {
     );
     coordinator = LifesumImportCoordinator(
       database: database,
-      picker: _TestPicker(cancelPicker ? null : pickedPath),
+      picker: picker = _TestPicker(cancelPicker ? null : pickedPath),
       historyLoader: historyLoader,
       loadSettings: () async => LifesumImportSettingsSnapshot(
         dayStartOffsetMinutes: 0,
@@ -204,18 +236,30 @@ class _Harness {
   late final _MemoryJournalStore journals;
   late final _MemoryTargetStore targets;
   late final LifesumImportCoordinator coordinator;
+  late final _TestPicker picker;
   var executorCreateCount = 0;
 
   void dispose() => directory.deleteSync(recursive: true);
 }
 
-class _TestPicker implements LifesumArchivePicker {
-  const _TestPicker(this.path);
+class _TestPicker implements LifesumArchivePicker, LifesumArchiveCleanup {
+  _TestPicker(this.path);
 
   final String? path;
+  int cleanupCount = 0;
+  Completer<String?>? pending;
+  Completer<void>? nextCleanup;
 
   @override
-  Future<String?> pickArchivePath() async => path;
+  Future<void> cleanupArchive() async {
+    cleanupCount++;
+    final completion = nextCleanup;
+    nextCleanup = null;
+    completion?.complete();
+  }
+
+  @override
+  Future<String?> pickArchivePath() => pending?.future ?? Future.value(path);
 }
 
 class _MemoryJournalStore implements LifesumImportJournalStore {

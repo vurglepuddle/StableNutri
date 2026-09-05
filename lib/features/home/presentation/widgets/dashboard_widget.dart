@@ -1,6 +1,5 @@
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -71,12 +70,11 @@ class _DashboardWidgetState extends State<DashboardWidget> {
         ? UnitCalc.kcalToKj(widget.totalKcalBurned)
         : widget.totalKcalBurned;
     final unitLabel = usesKilojoules ? s.kjLabel : s.kcalLabel;
-    final towardLabel = '$unitLabel · ${s.towardDailyRangeLabel}';
     final rangeLabel =
         '${s.rangeGoalLabel} ${displayLower.round()}–${displayUpper.round()} $unitLabel';
     final statusLabel = switch (rangeResult.status) {
       StableRangeStatus.below =>
-        '${displayDistance.round()} $unitLabel ${s.rangeToReachLabel}',
+        '${displayDistance.round()}–${(displayUpper - displayValue).round()} $unitLabel ${s.rangeToReachLabel}',
       StableRangeStatus.within => s.rangeWithinLabel,
       StableRangeStatus.above =>
         '${displayDistance.round()} $unitLabel ${s.rangeAboveLabel}',
@@ -104,45 +102,22 @@ class _DashboardWidgetState extends State<DashboardWidget> {
             ),
             child: Column(
               children: [
-                Row(
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: Dimens.spacing16,
+                  runSpacing: Dimens.spacing4,
                   children: [
-                    _MiniStat(
-                      icon: Icons.track_changes_rounded,
-                      value:
-                          '${displayLower.round()}–${displayUpper.round()} $unitLabel',
-                      label: s.rangeGoalLabel,
-                      color: palette.proteinColor,
-                    ),
-                    const Spacer(),
-                    Semantics(
-                      identifier: 'home-dashboard-sources',
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const SourcesScreen(),
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.info_outline_rounded,
-                          color: palette.textMuted,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    _MiniStat(
-                      icon: Icons.local_fire_department_rounded,
-                      value: '${displayBurned.toInt()}',
-                      label: s.burnedLabel,
-                      color: palette.carbsColor,
-                      trailing: true,
+                    Text(rangeLabel, style: textTheme.labelMedium),
+                    Text(
+                      '${s.burnedLabel} ${displayBurned.round()} $unitLabel',
+                      style: textTheme.labelMedium,
                     ),
                   ],
                 ),
-                const SizedBox(height: Dimens.spacing16),
+                const SizedBox(height: Dimens.spacing12),
                 Semantics(
                   label:
-                      '${displayValue.toInt()} $towardLabel. $rangeLabel. $statusLabel',
+                      '${displayValue.toInt()} $unitLabel. $rangeLabel. $statusLabel',
                   excludeSemantics: true,
                   child: CircularPercentIndicator(
                     radius: 90,
@@ -154,31 +129,38 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                     circularStrokeCap: CircularStrokeCap.round,
                     backgroundColor: palette.surfaceMuted,
                     progressColor: Theme.of(context).colorScheme.primary,
-                    center: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AnimatedFlipCounter(
-                          duration: const Duration(milliseconds: 800),
-                          curve: AppMotion.emphasized,
-                          value: displayValue.toInt(),
-                          textStyle: textTheme.displaySmall?.copyWith(
-                            height: 1,
-                          ),
+                    center: SizedBox(
+                      width: 136,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AnimatedFlipCounter(
+                              duration: const Duration(milliseconds: 800),
+                              curve: AppMotion.emphasized,
+                              value: displayValue.toInt(),
+                              textStyle: textTheme.displaySmall?.copyWith(
+                                height: 1,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              unitLabel,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: palette.textMuted,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          towardLabel,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: palette.textMuted,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: Dimens.spacing12),
                 Text(
                   statusLabel,
+                  textAlign: TextAlign.center,
                   style: textTheme.bodyMedium?.copyWith(
                     color: palette.textMuted,
                     fontWeight: FontWeight.w600,
@@ -223,45 +205,6 @@ class _DashboardWidgetState extends State<DashboardWidget> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color color;
-  final bool trailing;
-
-  const _MiniStat({
-    required this.icon,
-    required this.value,
-    required this.label,
-    required this.color,
-    this.trailing = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: trailing
-          ? CrossAxisAlignment.end
-          : CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.16),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(height: 6),
-        Text(value, style: textTheme.titleMedium),
-        Text(label, style: textTheme.labelSmall),
-      ],
     );
   }
 }

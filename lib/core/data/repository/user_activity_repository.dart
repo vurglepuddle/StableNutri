@@ -47,12 +47,12 @@ class UserActivityRepository {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
   }) async {
-    final userActivityDBOList =
-        await _userActivityDataSource.getAllUserActivitiesByDate(
-      dateTime,
-      dayStartOffsetHours: dayStartOffsetHours,
-      dayStartOffsetMinutes: dayStartOffsetMinutes,
-    );
+    final userActivityDBOList = await _userActivityDataSource
+        .getAllUserActivitiesByDate(
+          dateTime,
+          dayStartOffsetHours: dayStartOffsetHours,
+          dayStartOffsetMinutes: dayStartOffsetMinutes,
+        );
 
     return userActivityDBOList
         .map(
@@ -63,8 +63,8 @@ class UserActivityRepository {
   }
 
   Future<List<UserActivityEntity>> getRecentUserActivity() async {
-    final userActivityDBOList =
-        await _userActivityDataSource.getRecentlyAddedUserActivity();
+    final userActivityDBOList = await _userActivityDataSource
+        .getRecentlyAddedUserActivity();
     return userActivityDBOList
         .map(
           (userActivityDBO) =>

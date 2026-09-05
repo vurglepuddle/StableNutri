@@ -55,7 +55,8 @@ class ProductsRepository {
       if (dto.nutriments == null) continue;
       final meal = MealEntity.fromOFFProduct(dto);
       if (!_keepIfConsistent(meal)) continue;
-      final inUserCountry = userCountryTag != null &&
+      final inUserCountry =
+          userCountryTag != null &&
           (dto.countries_tags?.contains(userCountryTag) ?? false);
       candidates.add(
         _RankedOffProduct(meal, dto.popularity_key ?? 0, i, inUserCountry),
@@ -80,7 +81,8 @@ class ProductsRepository {
     }
 
     double score(_RankedOffProduct p) {
-      final fused = 1 / (_rankFusionK + p.relevanceRank) +
+      final fused =
+          1 / (_rankFusionK + p.relevanceRank) +
           1 / (_rankFusionK + popularityRank[p]!);
       return p.inUserCountry ? fused * _localCountryBoost : fused;
     }
@@ -94,8 +96,9 @@ class ProductsRepository {
 
     final ranked = [...candidates]
       ..sort((a, b) {
-        final byConsistency =
-            consistencyBucket(a).compareTo(consistencyBucket(b));
+        final byConsistency = consistencyBucket(
+          a,
+        ).compareTo(consistencyBucket(b));
         if (byConsistency != 0) return byConsistency;
         return score(b).compareTo(score(a));
       });
@@ -113,9 +116,7 @@ class ProductsRepository {
     return products;
   }
 
-  Future<List<MealEntity>> getSupabaseFoodsByString(
-    String searchString,
-  ) async {
+  Future<List<MealEntity>> getSupabaseFoodsByString(String searchString) async {
     final spWordResponse = await _spBackendDataSource.fetchSearchWordResults(
       searchString,
     );
@@ -150,17 +151,19 @@ class ProductsRepository {
       'Dropping ${meal.source.name} item code=${meal.code} '
       'name="${meal.name}" — failed rule: $reason',
     );
-    Sentry.addBreadcrumb(Breadcrumb(
-      category: 'food_import.validation',
-      level: SentryLevel.warning,
-      message: 'Dropped corrupt food entry from search results',
-      data: {
-        'source': meal.source.name,
-        'code': meal.code,
-        'name': meal.name,
-        'rule': reason,
-      },
-    ));
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        category: 'food_import.validation',
+        level: SentryLevel.warning,
+        message: 'Dropped corrupt food entry from search results',
+        data: {
+          'source': meal.source.name,
+          'code': meal.code,
+          'name': meal.name,
+          'rule': reason,
+        },
+      ),
+    );
     return false;
   }
 }

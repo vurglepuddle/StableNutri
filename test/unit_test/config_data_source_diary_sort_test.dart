@@ -34,7 +34,8 @@ void main() {
     setUp(() async {
       Hive.init('.');
       box = await Hive.openBox<ConfigDBO>(
-          'config_diary_sort_test_${DateTime.now().microsecondsSinceEpoch}');
+        'config_diary_sort_test_${DateTime.now().microsecondsSinceEpoch}',
+      );
       // The data source only writes via _configBox.get(_configKey)?.save(),
       // so we have to seed an initial config the same way initializeConfig
       // would at app startup.
@@ -45,50 +46,55 @@ void main() {
       await box.deleteFromDisk();
     });
 
-    test('breakfast sort preference survives recreating the data source',
-        () async {
-      final firstSource = ConfigDataSource(FakeHiveDBProvider(configBox: box));
+    test(
+      'breakfast sort preference survives recreating the data source',
+      () async {
+        final firstSource = ConfigDataSource(
+          FakeHiveDBProvider(configBox: box),
+        );
 
-      expect(
-        await firstSource.getDiarySortPreferences(),
-        isNull,
-        reason: 'freshly initialised config should have no preferences yet',
-      );
+        expect(
+          await firstSource.getDiarySortPreferences(),
+          isNull,
+          reason: 'freshly initialised config should have no preferences yet',
+        );
 
-      await firstSource.setDiarySortPreference(
-        'breakfast',
-        DiarySortType.protein.index,
-      );
+        await firstSource.setDiarySortPreference(
+          'breakfast',
+          DiarySortType.protein.index,
+        );
 
-      // Simulate the bloc tearing down and a fresh one wiring itself up
-      // against the same underlying Hive box on the next app launch.
-      final secondSource = ConfigDataSource(FakeHiveDBProvider(configBox: box));
-      final prefs = await secondSource.getDiarySortPreferences();
+        // Simulate the bloc tearing down and a fresh one wiring itself up
+        // against the same underlying Hive box on the next app launch.
+        final secondSource = ConfigDataSource(
+          FakeHiveDBProvider(configBox: box),
+        );
+        final prefs = await secondSource.getDiarySortPreferences();
 
-      expect(prefs, isNotNull);
-      expect(prefs!['breakfast'], equals(DiarySortType.protein.index));
-      // No other meal was touched — they should not have crept into the map.
-      expect(prefs.containsKey('lunch'), isFalse);
-    });
+        expect(prefs, isNotNull);
+        expect(prefs!['breakfast'], equals(DiarySortType.protein.index));
+        // No other meal was touched — they should not have crept into the map.
+        expect(prefs.containsKey('lunch'), isFalse);
+      },
+    );
 
-    test('setting lunch after breakfast preserves the breakfast choice',
-        () async {
-      final source = ConfigDataSource(FakeHiveDBProvider(configBox: box));
+    test(
+      'setting lunch after breakfast preserves the breakfast choice',
+      () async {
+        final source = ConfigDataSource(FakeHiveDBProvider(configBox: box));
 
-      await source.setDiarySortPreference(
-        'breakfast',
-        DiarySortType.kcal.index,
-      );
-      await source.setDiarySortPreference(
-        'lunch',
-        DiarySortType.fat.index,
-      );
+        await source.setDiarySortPreference(
+          'breakfast',
+          DiarySortType.kcal.index,
+        );
+        await source.setDiarySortPreference('lunch', DiarySortType.fat.index);
 
-      final prefs = await source.getDiarySortPreferences();
-      expect(prefs, isNotNull);
-      expect(prefs!['breakfast'], equals(DiarySortType.kcal.index));
-      expect(prefs['lunch'], equals(DiarySortType.fat.index));
-    });
+        final prefs = await source.getDiarySortPreferences();
+        expect(prefs, isNotNull);
+        expect(prefs!['breakfast'], equals(DiarySortType.kcal.index));
+        expect(prefs['lunch'], equals(DiarySortType.fat.index));
+      },
+    );
 
     test('pre-existing config with null map reads back as null', () async {
       // Overwrite the seeded config with one that explicitly leaves the

@@ -7,8 +7,8 @@ class PhysicalActivityRepository {
   PhysicalActivityRepository(this._physicalActivityDataSource);
 
   Future<List<PhysicalActivityEntity>> getAllPhysicalActivities() async {
-    final physicalActivitiesDBOList =
-        _physicalActivityDataSource.getPhysicalActivityList();
+    final physicalActivitiesDBOList = _physicalActivityDataSource
+        .getPhysicalActivityList();
     return physicalActivitiesDBOList
         .map((dbo) => PhysicalActivityEntity.fromPhysicalActivityDBO(dbo))
         .toList();

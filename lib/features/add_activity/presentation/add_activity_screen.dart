@@ -40,8 +40,9 @@ class _AddActivityScreenState extends State<AddActivityScreen>
 
   @override
   void didChangeDependencies() {
-    final args = ModalRoute.of(context)!.settings.arguments
-        as AddActivityScreenArguments;
+    final args =
+        ModalRoute.of(context)!.settings.arguments
+            as AddActivityScreenArguments;
     _day = args.day;
     super.didChangeDependencies();
   }
@@ -93,15 +94,24 @@ class _AddActivityScreenState extends State<AddActivityScreen>
               decoration: InputDecoration(
                 filled: true,
                 fillColor: palette.surface,
-                prefixIcon: Icon(Icons.search_rounded, color: palette.textMuted),
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  color: palette.textMuted,
+                ),
                 hintText: S.of(context).searchLabel,
                 border: OutlineInputBorder(
                   borderRadius: Dimens.borderRadiusM,
-                  borderSide: BorderSide(color: palette.border, width: Dimens.hairline),
+                  borderSide: BorderSide(
+                    color: palette.border,
+                    width: Dimens.hairline,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: Dimens.borderRadiusM,
-                  borderSide: BorderSide(color: palette.border, width: Dimens.hairline),
+                  borderSide: BorderSide(
+                    color: palette.border,
+                    width: Dimens.hairline,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: Dimens.borderRadiusM,

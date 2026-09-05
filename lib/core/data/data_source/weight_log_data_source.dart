@@ -32,14 +32,9 @@ class WeightLogDataSource {
     return _weightLogBox.values.toList();
   }
 
-  Future<List<WeightLogDBO>> entriesInRange(
-    DateTime from,
-    DateTime to,
-  ) async {
+  Future<List<WeightLogDBO>> entriesInRange(DateTime from, DateTime to) async {
     return _weightLogBox.values
-        .where(
-          (entry) => !entry.date.isBefore(from) && !entry.date.isAfter(to),
-        )
+        .where((entry) => !entry.date.isBefore(from) && !entry.date.isAfter(to))
         .toList();
   }
 

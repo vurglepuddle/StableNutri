@@ -53,32 +53,22 @@ void main() {
       expect(bloc.state, isA<RecipesInitial>());
     });
 
-    test('LoadRecipesEvent emits Loaded with most-recently-updated first',
-        () async {
-      useCase.recipes = [
-        _recipe(
-            id: 'a',
-            name: 'Old',
-            updatedAt: DateTime.utc(2024, 1, 1)),
-        _recipe(
-            id: 'b',
-            name: 'New',
-            updatedAt: DateTime.utc(2025, 6, 1)),
-        _recipe(
-            id: 'c',
-            name: 'Middle',
-            updatedAt: DateTime.utc(2024, 8, 1)),
-      ];
+    test(
+      'LoadRecipesEvent emits Loaded with most-recently-updated first',
+      () async {
+        useCase.recipes = [
+          _recipe(id: 'a', name: 'Old', updatedAt: DateTime.utc(2024, 1, 1)),
+          _recipe(id: 'b', name: 'New', updatedAt: DateTime.utc(2025, 6, 1)),
+          _recipe(id: 'c', name: 'Middle', updatedAt: DateTime.utc(2024, 8, 1)),
+        ];
 
-      bloc.add(const LoadRecipesEvent());
-      // Drain the stream until we see the loaded state, then assert.
-      await bloc.stream.firstWhere((s) => s is RecipesLoaded);
-      final loaded = bloc.state as RecipesLoaded;
-      expect(
-        loaded.recipes.map((r) => r.id).toList(),
-        ['b', 'c', 'a'],
-      );
-    });
+        bloc.add(const LoadRecipesEvent());
+        // Drain the stream until we see the loaded state, then assert.
+        await bloc.stream.firstWhere((s) => s is RecipesLoaded);
+        final loaded = bloc.state as RecipesLoaded;
+        expect(loaded.recipes.map((r) => r.id).toList(), ['b', 'c', 'a']);
+      },
+    );
 
     test('LoadRecipesEvent emits Failed when use case throws', () async {
       useCase.throwOnGetAll = true;
@@ -86,23 +76,22 @@ void main() {
       bloc.add(const LoadRecipesEvent());
       await expectLater(
         bloc.stream,
-        emitsInOrder([
-          isA<RecipesLoading>(),
-          isA<RecipesFailed>(),
-        ]),
+        emitsInOrder([isA<RecipesLoading>(), isA<RecipesFailed>()]),
       );
     });
 
-    test('LoadRecipesEvent on empty store emits Loaded with empty list',
-        () async {
-      bloc.add(const LoadRecipesEvent());
-      await expectLater(
-        bloc.stream,
-        emitsInOrder([
-          isA<RecipesLoading>(),
-          predicate<RecipesLoaded>((s) => s.recipes.isEmpty),
-        ]),
-      );
-    });
+    test(
+      'LoadRecipesEvent on empty store emits Loaded with empty list',
+      () async {
+        bloc.add(const LoadRecipesEvent());
+        await expectLater(
+          bloc.stream,
+          emitsInOrder([
+            isA<RecipesLoading>(),
+            predicate<RecipesLoaded>((s) => s.recipes.isEmpty),
+          ]),
+        );
+      },
+    );
   });
 }

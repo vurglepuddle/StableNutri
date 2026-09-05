@@ -99,9 +99,7 @@ class JsonRecipeImporter {
         } else {
           return JsonRecipeImportResult(
             recipes: const [],
-            errors: [
-              'Could not parse: entry #${i + 1} is not an object',
-            ],
+            errors: ['Could not parse: entry #${i + 1} is not an object'],
           );
         }
       }
@@ -211,19 +209,22 @@ class JsonRecipeImporter {
           source: MealSourceEntity.custom,
         );
 
-        final convertedG = compute.convertAmountToGrams(
+        final convertedG =
+            compute.convertAmountToGrams(
               amount: amount,
               unit: unit,
               servingQuantityG: null,
             ) ??
             0;
 
-        ingredients.add(RecipeIngredientEntity(
-          snapshotMeal: ingredientMeal,
-          amount: amount,
-          unit: unit,
-          convertedAmountG: convertedG,
-        ));
+        ingredients.add(
+          RecipeIngredientEntity(
+            snapshotMeal: ingredientMeal,
+            amount: amount,
+            unit: unit,
+            convertedAmountG: convertedG,
+          ),
+        );
       }
 
       if (ingredientHadError || ingredients.isEmpty) {
@@ -248,19 +249,22 @@ class JsonRecipeImporter {
         totalWeightOverride: totalWeightOverride,
       );
 
-      recipes.add(RecipeEntity(
-        id: IdGenerator.getUniqueID(),
-        name: name,
-        description:
-            (description != null && description.isNotEmpty) ? description : null,
-        ingredients: ingredients,
-        totalWeightG: result.totalWeightG,
-        aggregatedNutrimentsPer100: result.perHundredG,
-        createdAt: now,
-        updatedAt: now,
-        servingsCount: servingsCount,
-        tags: List.unmodifiable(tags),
-      ));
+      recipes.add(
+        RecipeEntity(
+          id: IdGenerator.getUniqueID(),
+          name: name,
+          description: (description != null && description.isNotEmpty)
+              ? description
+              : null,
+          ingredients: ingredients,
+          totalWeightG: result.totalWeightG,
+          aggregatedNutrimentsPer100: result.perHundredG,
+          createdAt: now,
+          updatedAt: now,
+          servingsCount: servingsCount,
+          tags: List.unmodifiable(tags),
+        ),
+      );
     }
 
     return JsonRecipeImportResult(recipes: recipes, errors: errors);

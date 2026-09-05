@@ -65,7 +65,13 @@ class JsonMealImporter {
   static const _kDate = 'date';
   static const _kServingSize = 'serving_size';
 
-  static const _requiredKeys = <String>[_kName, _kKcal, _kProtein, _kCarbs, _kFat];
+  static const _requiredKeys = <String>[
+    _kName,
+    _kKcal,
+    _kProtein,
+    _kCarbs,
+    _kFat,
+  ];
 
   /// Pretty-printed JSON the "Sample meals (json)" button hands to the user. Three
   /// entries that between them show every supported field, including the
@@ -115,10 +121,7 @@ class JsonMealImporter {
 
     final trimmed = jsonContent.trim();
     if (trimmed.isEmpty) {
-      return const JsonImportResult(
-        intakes: [],
-        errors: ['JSON is empty'],
-      );
+      return const JsonImportResult(intakes: [], errors: ['JSON is empty']);
     }
 
     dynamic decoded;
@@ -142,9 +145,7 @@ class JsonMealImporter {
         } else {
           return JsonImportResult(
             intakes: const [],
-            errors: [
-              'Could not parse: entry #${i + 1} is not an object',
-            ],
+            errors: ['Could not parse: entry #${i + 1} is not an object'],
           );
         }
       }
@@ -166,7 +167,9 @@ class JsonMealImporter {
 
       final missing = _requiredKeys.where((k) => entry[k] == null).toList();
       if (missing.isNotEmpty) {
-        errors.add('Entry $entryNum: missing required field(s): ${missing.join(', ')}');
+        errors.add(
+          'Entry $entryNum: missing required field(s): ${missing.join(', ')}',
+        );
         continue;
       }
 
@@ -180,12 +183,18 @@ class JsonMealImporter {
       final proteinTotal = _asDouble(entry[_kProtein]);
       final carbsTotal = _asDouble(entry[_kCarbs]);
       final fatTotal = _asDouble(entry[_kFat]);
-      if (kcalTotal == null || proteinTotal == null || carbsTotal == null || fatTotal == null) {
-        errors.add('Entry $entryNum: kcal / protein / carbs / fat must all be numbers');
+      if (kcalTotal == null ||
+          proteinTotal == null ||
+          carbsTotal == null ||
+          fatTotal == null) {
+        errors.add(
+          'Entry $entryNum: kcal / protein / carbs / fat must all be numbers',
+        );
         continue;
       }
 
-      final mealTypeRaw = (entry[_kMealType]?.toString().trim() ?? '').toLowerCase();
+      final mealTypeRaw = (entry[_kMealType]?.toString().trim() ?? '')
+          .toLowerCase();
       final IntakeTypeEntity mealType;
       if (mealTypeRaw.isEmpty) {
         mealType = IntakeTypeEntity.snack;
@@ -201,7 +210,9 @@ class JsonMealImporter {
         mealType = parsed;
       }
 
-      final amount = entry[_kAmount] == null ? 100.0 : _asDouble(entry[_kAmount]);
+      final amount = entry[_kAmount] == null
+          ? 100.0
+          : _asDouble(entry[_kAmount]);
       if (amount == null || amount <= 0) {
         errors.add('Entry $entryNum: amount must be a positive number');
         continue;

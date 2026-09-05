@@ -11,16 +11,14 @@ class SetGenderDialog extends StatelessWidget {
     return SimpleDialog(
       title: Row(
         children: [
-          Expanded(
-            child: Text(S.of(context).selectGenderDialogLabel),
-          ),
+          Expanded(child: Text(S.of(context).selectGenderDialogLabel)),
           IconButton(
             visualDensity: VisualDensity.compact,
             tooltip: S.of(context).sourcesIconTooltip,
             icon: const Icon(Icons.info_outline),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SourcesScreen()),
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SourcesScreen())),
           ),
         ],
       ),

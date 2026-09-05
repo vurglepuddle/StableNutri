@@ -19,7 +19,11 @@ bool isValidBarcodeCheckDigit(String code) {
 
   var sum = 0;
   // Walk the payload right-to-left so the rightmost payload digit gets weight 3.
-  for (var i = digits.length - 2, weightIs3 = true; i >= 0; i--, weightIs3 = !weightIs3) {
+  for (
+    var i = digits.length - 2, weightIs3 = true;
+    i >= 0;
+    i--, weightIs3 = !weightIs3
+  ) {
     sum += digits[i] * (weightIs3 ? 3 : 1);
   }
 

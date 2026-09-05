@@ -49,7 +49,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('2350 ml'), findsOneWidget);
+      expect(find.text('2.4 l'), findsOneWidget);
       await tester.tap(find.byKey(const Key('diary-water')));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);

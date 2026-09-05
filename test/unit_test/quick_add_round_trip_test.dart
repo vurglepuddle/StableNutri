@@ -55,12 +55,7 @@ void main() {
     });
 
     test('macros round-trip exactly when entered alongside kcal', () {
-      final intake = _buildIntake(
-        kcal: 420,
-        carbs: 30,
-        fat: 12,
-        protein: 25,
-      );
+      final intake = _buildIntake(kcal: 420, carbs: 30, fat: 12, protein: 25);
       expect(intake.totalKcal, closeTo(420, 0.0001));
       expect(intake.totalCarbsGram, closeTo(30, 0.0001));
       expect(intake.totalFatsGram, closeTo(12, 0.0001));

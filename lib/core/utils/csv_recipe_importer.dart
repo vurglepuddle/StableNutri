@@ -86,9 +86,9 @@ class CsvRecipeImporter {
     }
 
     // Headers never carry decimal-comma payloads; parse strict.
-    final headerCells = CsvRowParser.splitRow(lines.first)
-        .map((c) => c.trim().toLowerCase())
-        .toList();
+    final headerCells = CsvRowParser.splitRow(
+      lines.first,
+    ).map((c) => c.trim().toLowerCase()).toList();
     final missingRequired = requiredColumns
         .where((req) => !headerCells.contains(req))
         .toList();
@@ -96,7 +96,7 @@ class CsvRecipeImporter {
       return CsvRecipeImportResult(
         recipes: const [],
         errors: [
-          'Header is missing required column(s): ${missingRequired.join(', ')}'
+          'Header is missing required column(s): ${missingRequired.join(', ')}',
         ],
       );
     }
@@ -115,9 +115,10 @@ class CsvRecipeImporter {
       }
       if (cells.length > headerCells.length) {
         errors.add(
-            'Row $rowNum: too many columns. If a value contains a comma '
-            '(for example a decimal like 1,5), wrap that cell in double '
-            'quotes: "1,5".');
+          'Row $rowNum: too many columns. If a value contains a comma '
+          '(for example a decimal like 1,5), wrap that cell in double '
+          'quotes: "1,5".',
+        );
         continue;
       }
       final row = <String, String>{};
@@ -157,20 +158,19 @@ class CsvRecipeImporter {
       );
 
       // Recipe-level fields: take the first non-empty value seen per group.
-      group.description ??=
-          row[_kRecipeDescription]?.isNotEmpty == true
-              ? row[_kRecipeDescription]
-              : null;
+      group.description ??= row[_kRecipeDescription]?.isNotEmpty == true
+          ? row[_kRecipeDescription]
+          : null;
       group.servingsCount ??= _parseIntOrNull(row[_kRecipeServings]);
-      group.totalWeightOverride ??=
-          CsvRowParser.parseDoubleOrNull(row[_kRecipeTotalWeightG]);
+      group.totalWeightOverride ??= CsvRowParser.parseDoubleOrNull(
+        row[_kRecipeTotalWeightG],
+      );
       if (group.tags.isEmpty) {
         final tagsRaw = row[_kRecipeTags] ?? '';
         if (tagsRaw.isNotEmpty) {
-          group.tags.addAll(tagsRaw
-              .split(',')
-              .map((t) => t.trim())
-              .where((t) => t.isNotEmpty));
+          group.tags.addAll(
+            tagsRaw.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty),
+          );
         }
       }
 
@@ -188,21 +188,23 @@ class CsvRecipeImporter {
         servingSize: null,
         nutriments: MealNutrimentsEntity(
           energyKcal100: kcal,
-          carbohydrates100: CsvRowParser.parseDoubleOrNull(row[_kIngredientCarbs]),
+          carbohydrates100: CsvRowParser.parseDoubleOrNull(
+            row[_kIngredientCarbs],
+          ),
           fat100: CsvRowParser.parseDoubleOrNull(row[_kIngredientFat]),
           proteins100: CsvRowParser.parseDoubleOrNull(row[_kIngredientProtein]),
           sugars100: CsvRowParser.parseDoubleOrNull(row[_kIngredientSugars]),
-          saturatedFat100: CsvRowParser.parseDoubleOrNull(row[_kIngredientSatFat]),
+          saturatedFat100: CsvRowParser.parseDoubleOrNull(
+            row[_kIngredientSatFat],
+          ),
           fiber100: CsvRowParser.parseDoubleOrNull(row[_kIngredientFiber]),
         ),
         source: MealSourceEntity.custom,
       );
 
-      group.ingredients.add(_PendingIngredient(
-        meal: ingredientMeal,
-        amount: amount,
-        unit: unit,
-      ));
+      group.ingredients.add(
+        _PendingIngredient(meal: ingredientMeal, amount: amount, unit: unit),
+      );
     }
 
     // Build RecipeEntity for each group. Nutrition is computed inline so
@@ -214,7 +216,8 @@ class CsvRecipeImporter {
     for (final group in groups.values) {
       if (group.ingredients.isEmpty) continue;
       final ingredients = group.ingredients.map((p) {
-        final convertedG = compute.convertAmountToGrams(
+        final convertedG =
+            compute.convertAmountToGrams(
               amount: p.amount,
               unit: p.unit,
               servingQuantityG: p.meal.servingQuantity,
@@ -234,18 +237,20 @@ class CsvRecipeImporter {
       );
 
       final now = DateTime.now();
-      recipes.add(RecipeEntity(
-        id: IdGenerator.getUniqueID(),
-        name: group.name,
-        description: group.description,
-        ingredients: ingredients,
-        totalWeightG: result.totalWeightG,
-        aggregatedNutrimentsPer100: result.perHundredG,
-        createdAt: now,
-        updatedAt: now,
-        servingsCount: group.servingsCount,
-        tags: List.unmodifiable(group.tags),
-      ));
+      recipes.add(
+        RecipeEntity(
+          id: IdGenerator.getUniqueID(),
+          name: group.name,
+          description: group.description,
+          ingredients: ingredients,
+          totalWeightG: result.totalWeightG,
+          aggregatedNutrimentsPer100: result.perHundredG,
+          createdAt: now,
+          updatedAt: now,
+          servingsCount: group.servingsCount,
+          tags: List.unmodifiable(group.tags),
+        ),
+      );
     }
 
     return CsvRecipeImportResult(recipes: recipes, errors: errors);

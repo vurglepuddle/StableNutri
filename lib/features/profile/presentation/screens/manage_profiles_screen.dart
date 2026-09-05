@@ -86,9 +86,7 @@ class _ManageProfilesScreenState extends State<ManageProfilesScreen> {
 
   Future<void> _onEdit(ProfileEntity profile) async {
     final saved = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => ProfileEditorScreen(profile: profile),
-      ),
+      MaterialPageRoute(builder: (_) => ProfileEditorScreen(profile: profile)),
     );
     if (saved == true && mounted) setState(_reload);
   }

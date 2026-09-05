@@ -98,8 +98,7 @@ void main() {
     });
 
     test('quoted fields with embedded commas are preserved', () {
-      const csv =
-          'name,kcal_per_100g\n"Granola, oats and nuts",450';
+      const csv = 'name,kcal_per_100g\n"Granola, oats and nuts",450';
 
       final result = CsvMealImporter.parse(csv);
 
@@ -130,7 +129,8 @@ void main() {
       // CSV format alone doesn't disambiguate `288,12,5` (288 + 12.5
       // vs three integers vs 288.12 + 5). The error path below tells
       // users so when they get it wrong.
-      const csv = 'name,kcal_per_100g,fat_per_100g,protein_per_100g\n'
+      const csv =
+          'name,kcal_per_100g,fat_per_100g,protein_per_100g\n'
           'Butter,717,"82,5","0,9"\n';
 
       final result = CsvMealImporter.parse(csv);
@@ -144,7 +144,8 @@ void main() {
     test('unquoted decimal-comma triggers a clear too-many-columns hint', () {
       // 3 expected columns; the unquoted `12,5` over-splits to 4.
       // Surface a hint about quoting so the user knows what to fix.
-      const csv = 'name,kcal_per_100g,fat_per_100g\n'
+      const csv =
+          'name,kcal_per_100g,fat_per_100g\n'
           'Butter,717,82,5\n';
 
       final result = CsvMealImporter.parse(csv);
@@ -254,18 +255,22 @@ void main() {
       expect(result.errors[1], contains('serving_size'));
     });
 
-    test('old CSV without serving_size column still parses (backward-compat)', () {
-      // The header set predating issue #420. Importers in the wild that
-      // omit the new column must keep working.
-      const csv = 'name,brands,barcode,kcal_per_100g,carbs_per_100g,'
-          'fat_per_100g,protein_per_100g,sugars_per_100g,'
-          'saturated_fat_per_100g,fiber_per_100g\n'
-          'Banana,,,89,22.8,0.3,1.1,12.2,0.1,2.6';
+    test(
+      'old CSV without serving_size column still parses (backward-compat)',
+      () {
+        // The header set predating issue #420. Importers in the wild that
+        // omit the new column must keep working.
+        const csv =
+            'name,brands,barcode,kcal_per_100g,carbs_per_100g,'
+            'fat_per_100g,protein_per_100g,sugars_per_100g,'
+            'saturated_fat_per_100g,fiber_per_100g\n'
+            'Banana,,,89,22.8,0.3,1.1,12.2,0.1,2.6';
 
-      final result = CsvMealImporter.parse(csv);
+        final result = CsvMealImporter.parse(csv);
 
-      expect(result.errors, isEmpty);
-      expect(result.meals.single.servingQuantity, isNull);
-    });
+        expect(result.errors, isEmpty);
+        expect(result.meals.single.servingQuantity, isNull);
+      },
+    );
   });
 }

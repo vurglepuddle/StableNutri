@@ -30,9 +30,11 @@ class ImportCustomFoodDataDialog extends StatefulWidget {
 class _ImportCustomFoodDataDialogState
     extends State<ImportCustomFoodDataDialog> {
   static final _offAndroidUrl = Uri.parse(
-      'https://play.google.com/store/apps/details?id=org.openfoodfacts.scanner');
+    'https://play.google.com/store/apps/details?id=org.openfoodfacts.scanner',
+  );
   static final _offIosUrl = Uri.parse(
-      'https://apps.apple.com/us/app/open-food-facts-product-scan/id588797948');
+    'https://apps.apple.com/us/app/open-food-facts-product-scan/id588797948',
+  );
 
   final _exportImportBloc = locator<ExportImportBloc>();
   final _homeBloc = locator<HomeBloc>();
@@ -58,10 +60,7 @@ class _ImportCustomFoodDataDialogState
                 identifier: 'import-format-toggle',
                 child: SegmentedButton<_ImportFormat>(
                   segments: const [
-                    ButtonSegment(
-                      value: _ImportFormat.csv,
-                      label: Text('CSV'),
-                    ),
+                    ButtonSegment(value: _ImportFormat.csv, label: Text('CSV')),
                     ButtonSegment(
                       value: _ImportFormat.json,
                       label: Text('JSON'),
@@ -119,15 +118,13 @@ class _ImportCustomFoodDataDialogState
                     refreshScreens();
                     locator<RecipesBloc>().add(const LoadRecipesEvent());
                     final summary = state.skipped == 0
-                        ? S
-                            .of(context)
-                            .csvImportSuccessLabel(state.imported)
+                        ? S.of(context).csvImportSuccessLabel(state.imported)
                         : S
-                            .of(context)
-                            .csvImportPartialLabel(
-                              state.imported,
-                              state.skipped,
-                            );
+                              .of(context)
+                              .csvImportPartialLabel(
+                                state.imported,
+                                state.skipped,
+                              );
                     return Row(
                       children: [
                         Icon(
@@ -140,15 +137,19 @@ class _ImportCustomFoodDataDialogState
                     );
                   } else if (state is CsvImportErrorState) {
                     return _errorRow(
-                        context, S.of(context).csvImportErrorLabel);
+                      context,
+                      S.of(context).csvImportErrorLabel,
+                    );
                   } else if (state is JsonImportResultState) {
                     refreshScreens();
                     final summary = state.errorMessages.isEmpty
                         ? S.of(context).csvImportSuccessLabel(state.imported)
-                        : S.of(context).csvImportPartialLabel(
-                              state.imported,
-                              state.errorMessages.length,
-                            );
+                        : S
+                              .of(context)
+                              .csvImportPartialLabel(
+                                state.imported,
+                                state.errorMessages.length,
+                              );
                     return _successColumnWithErrors(
                       context,
                       summary,
@@ -164,10 +165,12 @@ class _ImportCustomFoodDataDialogState
                     locator<RecipesBloc>().add(const LoadRecipesEvent());
                     final summary = state.skipped == 0
                         ? S.of(context).csvImportSuccessLabel(state.imported)
-                        : S.of(context).csvImportPartialLabel(
-                              state.imported,
-                              state.skipped,
-                            );
+                        : S
+                              .of(context)
+                              .csvImportPartialLabel(
+                                state.imported,
+                                state.skipped,
+                              );
                     return _successColumnWithErrors(
                       context,
                       summary,
@@ -203,8 +206,7 @@ class _ImportCustomFoodDataDialogState
         child: Text(S.of(context).importMealsCsvAction),
       ),
       TextButton(
-        onPressed: () =>
-            _exportImportBloc.add(DownloadSampleRecipesCsvEvent()),
+        onPressed: () => _exportImportBloc.add(DownloadSampleRecipesCsvEvent()),
         child: Text(S.of(context).downloadSampleRecipesCsvAction),
       ),
       TextButton(
@@ -239,9 +241,7 @@ class _ImportCustomFoodDataDialogState
   Widget _buildCsvResult(BuildContext context, CsvImportResultState state) {
     final summary = state.skipped == 0
         ? S.of(context).csvImportSuccessLabel(state.imported)
-        : S
-            .of(context)
-            .csvImportPartialLabel(state.imported, state.skipped);
+        : S.of(context).csvImportPartialLabel(state.imported, state.skipped);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -268,23 +268,27 @@ class _ImportCustomFoodDataDialogState
                 TextSpan(
                   text: S.of(context).csvImportContributeOffAndroidLink,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        decoration: TextDecoration.underline,
-                      ),
+                    color: Theme.of(context).colorScheme.primary,
+                    decoration: TextDecoration.underline,
+                  ),
                   recognizer: TapGestureRecognizer()
-                    ..onTap = () => launchUrl(_offAndroidUrl,
-                        mode: LaunchMode.externalApplication),
+                    ..onTap = () => launchUrl(
+                      _offAndroidUrl,
+                      mode: LaunchMode.externalApplication,
+                    ),
                 ),
                 const TextSpan(text: ' / '),
                 TextSpan(
                   text: S.of(context).csvImportContributeOffIosLink,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        decoration: TextDecoration.underline,
-                      ),
+                    color: Theme.of(context).colorScheme.primary,
+                    decoration: TextDecoration.underline,
+                  ),
                   recognizer: TapGestureRecognizer()
-                    ..onTap = () => launchUrl(_offIosUrl,
-                        mode: LaunchMode.externalApplication),
+                    ..onTap = () => launchUrl(
+                      _offIosUrl,
+                      mode: LaunchMode.externalApplication,
+                    ),
                 ),
               ],
             ),
@@ -335,8 +339,8 @@ class _ImportCustomFoodDataDialogState
               child: Text(
                 err,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
+                  color: Theme.of(context).colorScheme.error,
+                ),
               ),
             ),
         ],
@@ -347,10 +351,7 @@ class _ImportCustomFoodDataDialogState
   /// All entries failed — show the parse errors as a list rather than a
   /// single message, so the user can fix each one without guessing which
   /// row in the JSON tripped the importer.
-  Widget _errorColumnWithMessages(
-    BuildContext context,
-    List<String> errors,
-  ) {
+  Widget _errorColumnWithMessages(BuildContext context, List<String> errors) {
     if (errors.isEmpty) {
       return _errorRow(context, S.of(context).csvImportErrorLabel);
     }
@@ -373,8 +374,8 @@ class _ImportCustomFoodDataDialogState
                   child: Text(
                     err,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                 ),
               ],

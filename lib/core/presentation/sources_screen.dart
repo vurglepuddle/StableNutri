@@ -115,7 +115,10 @@ class SourcesScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsSourcesLabel)),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16, vertical: Dimens.spacing16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: Dimens.spacing16,
+          vertical: Dimens.spacing16,
+        ),
         children: [
           Text(
             l10n.sourcesScreenIntro,
@@ -162,9 +165,9 @@ class _SourceCard extends StatelessWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.errorOpeningBrowser)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.errorOpeningBrowser)));
     }
   }
 
@@ -178,15 +181,9 @@ class _SourceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              entry.title,
-              style: theme.textTheme.titleMedium,
-            ),
+            Text(entry.title, style: theme.textTheme.titleMedium),
             const SizedBox(height: Dimens.spacing8),
-            Text(
-              entry.description,
-              style: theme.textTheme.bodyMedium,
-            ),
+            Text(entry.description, style: theme.textTheme.bodyMedium),
             const SizedBox(height: Dimens.spacing12),
             ...entry.sources.map(
               (source) => Padding(
@@ -207,7 +204,9 @@ class _SourceCard extends StatelessWidget {
                         icon: const Icon(Icons.open_in_new_rounded, size: 18),
                         label: Text(S.of(context).sourcesOpenSourceLabel),
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: Dimens.spacing8,
+                          ),
                           minimumSize: const Size(0, 32),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),

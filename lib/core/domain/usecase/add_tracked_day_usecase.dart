@@ -156,8 +156,19 @@ class AddTrackedDayUsecase {
   }
 
   /// Overwrite cached tracked values with actual sums to fix stale data (#182)
-  Future<void> reconcileDayTracked(DateTime day,
-      double calories, double carbs, double fat, double protein) async {
-    await _trackedDayRepository.reconcileDayTracked(day, calories, carbs, fat, protein);
+  Future<void> reconcileDayTracked(
+    DateTime day,
+    double calories,
+    double carbs,
+    double fat,
+    double protein,
+  ) async {
+    await _trackedDayRepository.reconcileDayTracked(
+      day,
+      calories,
+      carbs,
+      fat,
+      protein,
+    );
   }
 }

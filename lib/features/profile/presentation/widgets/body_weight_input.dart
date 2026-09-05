@@ -161,8 +161,9 @@ class _BodyWeightInputState extends State<BodyWeightInput> {
             identifier: '${widget.identifierPrefix}-pounds-input',
             child: TextField(
               controller: _poundsController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(
                   RegExp(r'^\d+([.,]\d{0,1})?$'),

@@ -61,9 +61,9 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                       TextSpan(
                         text: ' ${S.of(context).privacyPolicyLabel}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                              decoration: TextDecoration.underline,
-                            ),
+                          color: Theme.of(context).colorScheme.primary,
+                          decoration: TextDecoration.underline,
+                        ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
                             _launchUrl();
@@ -129,9 +129,9 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   }
 
   void _openSources(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SourcesScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SourcesScreen()));
   }
 
   Future<void> _launchUrl() async {

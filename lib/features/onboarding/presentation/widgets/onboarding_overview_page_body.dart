@@ -64,16 +64,16 @@ class OnboardingOverviewPageBody extends StatelessWidget {
                 Text(
                   displayGoalString,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
                 Text(
                   perDayLabel,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
                 ),
               ],
             ),
@@ -99,47 +99,47 @@ class OnboardingOverviewPageBody extends StatelessWidget {
                 Text(
                   '$carbsGoalString g',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
                 const SizedBox(height: 8.0),
                 Text(
                   S.of(context).carbsLabel,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
                 ),
                 const SizedBox(height: 8.0),
                 Text(
                   '$fatGoalString g',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
                 Text(
                   S.of(context).fatLabel,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
                 ),
                 const SizedBox(height: 8.0),
                 Text(
                   '$proteinGoalString g',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
                 Text(
                   S.of(context).proteinLabel,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
                 ),
               ],
             ),
@@ -147,9 +147,9 @@ class OnboardingOverviewPageBody extends StatelessWidget {
           const SizedBox(height: 24.0),
           Center(
             child: TextButton.icon(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SourcesScreen()),
-              ),
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const SourcesScreen())),
               icon: const Icon(Icons.menu_book_outlined),
               label: Text(S.of(context).settingsSourcesLabel),
             ),

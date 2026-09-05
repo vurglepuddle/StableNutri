@@ -51,13 +51,20 @@ enum UserGenderEntity {
       case UserGenderEntity.male:
         return Icon(Icons.male_outlined, size: size, color: color ?? maleColor);
       case UserGenderEntity.female:
-        return Icon(Icons.female_outlined, size: size, color: color ?? femaleColor);
+        return Icon(
+          Icons.female_outlined,
+          size: size,
+          color: color ?? femaleColor,
+        );
       case UserGenderEntity.nonBinary:
         return SvgPicture.asset(
           nonBinaryIconAsset,
           width: size,
           height: size,
-          colorFilter: ColorFilter.mode(color ?? nonBinaryColor, BlendMode.srcIn),
+          colorFilter: ColorFilter.mode(
+            color ?? nonBinaryColor,
+            BlendMode.srcIn,
+          ),
         );
     }
   }

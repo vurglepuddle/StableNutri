@@ -55,18 +55,33 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
           headerStyle: HeaderStyle(
             titleCentered: true,
             formatButtonVisible: false,
-            titleTextStyle: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+            titleTextStyle:
+                textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                   color: palette.textStrong,
                 ) ??
                 const TextStyle(),
-            leftChevronIcon: Icon(Icons.chevron_left_rounded, color: palette.textMuted, size: 26),
-            rightChevronIcon: Icon(Icons.chevron_right_rounded, color: palette.textMuted, size: 26),
-            headerPadding: const EdgeInsets.symmetric(vertical: Dimens.spacing8),
+            leftChevronIcon: Icon(
+              Icons.chevron_left_rounded,
+              color: palette.textMuted,
+              size: 26,
+            ),
+            rightChevronIcon: Icon(
+              Icons.chevron_right_rounded,
+              color: palette.textMuted,
+              size: 26,
+            ),
+            headerPadding: const EdgeInsets.symmetric(
+              vertical: Dimens.spacing8,
+            ),
           ),
           daysOfWeekStyle: DaysOfWeekStyle(
-            weekdayStyle: textTheme.labelSmall?.copyWith(color: palette.textMuted) ?? const TextStyle(),
-            weekendStyle: textTheme.labelSmall?.copyWith(color: palette.textMuted) ?? const TextStyle(),
+            weekdayStyle:
+                textTheme.labelSmall?.copyWith(color: palette.textMuted) ??
+                const TextStyle(),
+            weekendStyle:
+                textTheme.labelSmall?.copyWith(color: palette.textMuted) ??
+                const TextStyle(),
           ),
           focusedDay: widget.focusedDate,
           firstDay: widget.currentDate.subtract(widget.calendarDurationDays),
@@ -77,11 +92,18 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
           },
           calendarStyle: CalendarStyle(
             markersMaxCount: 1,
-            defaultTextStyle: textTheme.bodyMedium?.copyWith(color: palette.textStrong) ?? const TextStyle(),
-            weekendTextStyle: textTheme.bodyMedium?.copyWith(color: palette.textStrong) ?? const TextStyle(),
-            outsideTextStyle: textTheme.bodyMedium?.copyWith(color: palette.textMuted) ?? const TextStyle(),
-            todayTextStyle: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+            defaultTextStyle:
+                textTheme.bodyMedium?.copyWith(color: palette.textStrong) ??
+                const TextStyle(),
+            weekendTextStyle:
+                textTheme.bodyMedium?.copyWith(color: palette.textStrong) ??
+                const TextStyle(),
+            outsideTextStyle:
+                textTheme.bodyMedium?.copyWith(color: palette.textMuted) ??
+                const TextStyle(),
+            todayTextStyle:
+                textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                   color: accent,
                 ) ??
                 const TextStyle(),
@@ -89,8 +111,9 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
               border: Border.all(color: accent, width: 2.0),
               shape: BoxShape.circle,
             ),
-            selectedTextStyle: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+            selectedTextStyle:
+                textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.onPrimary,
                 ) ??
                 const TextStyle(),

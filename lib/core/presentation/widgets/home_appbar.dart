@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/presentation/widgets/dynamic_ont_logo.dart';
+import 'package:opennutritracker/core/presentation/widgets/stable_wordmark.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -9,22 +9,10 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Row(
-        children: [
-          const SizedBox(width: 40, child: DynamicOntLogo()),
-          Expanded(
-            child: RichText(
-              text: TextSpan(
-                text: S.of(context).appTitle,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
+      // The lockup carries the name, so there is no separate title text.
+      title: const Align(
+        alignment: Alignment.centerLeft,
+        child: StableWordmark(),
       ),
       actions: [
         Semantics(

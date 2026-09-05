@@ -6,16 +6,15 @@ MealNutrimentsEntity _n({
   double? carbs,
   double? fat,
   double? protein,
-}) =>
-    MealNutrimentsEntity(
-      energyKcal100: energy,
-      carbohydrates100: carbs,
-      fat100: fat,
-      proteins100: protein,
-      sugars100: null,
-      saturatedFat100: null,
-      fiber100: null,
-    );
+}) => MealNutrimentsEntity(
+  energyKcal100: energy,
+  carbohydrates100: carbs,
+  fat100: fat,
+  proteins100: protein,
+  sugars100: null,
+  saturatedFat100: null,
+  fiber100: null,
+);
 
 void main() {
   group('Atwater energy consistency', () {

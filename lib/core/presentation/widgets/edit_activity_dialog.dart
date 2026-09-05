@@ -68,8 +68,8 @@ class _EditActivityDialogState extends State<EditActivityDialog> {
               decoration: InputDecoration(
                 labelText: _isCustom
                     ? (usesKj
-                        ? S.of(context).mealEnergyLabel
-                        : S.of(context).customActivityKcalLabel)
+                          ? S.of(context).mealEnergyLabel
+                          : S.of(context).customActivityKcalLabel)
                     : S.of(context).quantityLabel,
                 suffixText: suffix,
               ),

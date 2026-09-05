@@ -86,8 +86,9 @@ void main() {
         source: MealSourceEntity.custom,
         fullNutritionData: true,
       );
-      final payload =
-          SharedMealPayload.fromIntakeList([makeIntake(customMeal)]);
+      final payload = SharedMealPayload.fromIntakeList([
+        makeIntake(customMeal),
+      ]);
 
       expect(payload.offRefs.length, 0);
       expect(payload.items.length, 1);
@@ -137,9 +138,10 @@ void main() {
         5,
         (i) => makeIntake(
           createMeal(
-              code: '400172403914$i',
-              name: 'Product $i',
-              source: MealSourceEntity.off),
+            code: '400172403914$i',
+            name: 'Product $i',
+            source: MealSourceEntity.off,
+          ),
           index: i,
         ),
       );
@@ -222,15 +224,19 @@ void main() {
 
     test('totalCount sums OFF refs and custom items', () {
       final intakes = [
-        makeIntake(createMeal(
-            code: '4001', name: 'A', source: MealSourceEntity.off)),
-        makeIntake(createMeal(
-            code: '4002', name: 'B', source: MealSourceEntity.off)),
         makeIntake(
-            createMeal(
-                code: 'cust-1',
-                name: 'Custom',
-                source: MealSourceEntity.custom)),
+          createMeal(code: '4001', name: 'A', source: MealSourceEntity.off),
+        ),
+        makeIntake(
+          createMeal(code: '4002', name: 'B', source: MealSourceEntity.off),
+        ),
+        makeIntake(
+          createMeal(
+            code: 'cust-1',
+            name: 'Custom',
+            source: MealSourceEntity.custom,
+          ),
+        ),
       ];
       final payload = SharedMealPayload.fromIntakeList(intakes);
       expect(payload.totalCount, equals(3));
@@ -243,7 +249,10 @@ void main() {
       // it must be encoded as a full custom item so the recipient can still
       // see its data.
       final orphan = createMeal(
-          code: '', name: 'Lost Product', source: MealSourceEntity.off);
+        code: '',
+        name: 'Lost Product',
+        source: MealSourceEntity.off,
+      );
       // Override code to null via a fresh entity — our helper requires a code,
       // so build a minimal stand-in.
       final intake = IntakeEntity(
@@ -275,13 +284,14 @@ void main() {
       expect(payload.items.single.name, equals('Lost Product'));
     });
 
-    test('toMealEntities assigns a fresh unique code to each rebuilt item',
-        () {
+    test('toMealEntities assigns a fresh unique code to each rebuilt item', () {
       final intakes = [
-        makeIntake(createMeal(
-            code: 'c1', name: 'A', source: MealSourceEntity.custom)),
-        makeIntake(createMeal(
-            code: 'c2', name: 'B', source: MealSourceEntity.custom)),
+        makeIntake(
+          createMeal(code: 'c1', name: 'A', source: MealSourceEntity.custom),
+        ),
+        makeIntake(
+          createMeal(code: 'c2', name: 'B', source: MealSourceEntity.custom),
+        ),
       ];
       final payload = SharedMealPayload.fromIntakeList(intakes);
       final rebuilt = payload.toMealEntities();
@@ -328,8 +338,7 @@ void main() {
         dateTime: DateTime(2026, 4, 27),
         type: IntakeTypeEntity.breakfast,
       );
-      final encoded =
-          SharedMealPayload.fromIntakeList([intake]).toJsonString();
+      final encoded = SharedMealPayload.fromIntakeList([intake]).toJsonString();
       final decoded = SharedMealPayload.fromJsonString(encoded);
 
       expect(decoded.items.single.energyKcal100, equals(100));
@@ -361,8 +370,7 @@ void main() {
             ],
           ],
         ]);
-        final v1Encoded =
-            base64Url.encode(gzip.encode(utf8.encode(v1Json)));
+        final v1Encoded = base64Url.encode(gzip.encode(utf8.encode(v1Json)));
         final decoded = SharedMealPayload.fromJsonString(v1Encoded);
 
         expect(decoded.version, 1);
@@ -378,11 +386,13 @@ void main() {
 
     test('v2: fdc-source items keep their source on round-trip', () {
       final intakes = [
-        makeIntake(createMeal(
-          code: 'fdc-1234',
-          name: 'Banana',
-          source: MealSourceEntity.fdc,
-        )),
+        makeIntake(
+          createMeal(
+            code: 'fdc-1234',
+            name: 'Banana',
+            source: MealSourceEntity.fdc,
+          ),
+        ),
       ];
       final encoded = SharedMealPayload.fromIntakeList(intakes).toJsonString();
       final decoded = SharedMealPayload.fromJsonString(encoded);
@@ -398,11 +408,13 @@ void main() {
 
     test('v2: custom-source items get a fresh code on the receiver side', () {
       final intakes = [
-        makeIntake(createMeal(
-          code: 'sender-id-xyz',
-          name: 'Mom\'s Soup',
-          source: MealSourceEntity.custom,
-        )),
+        makeIntake(
+          createMeal(
+            code: 'sender-id-xyz',
+            name: 'Mom\'s Soup',
+            source: MealSourceEntity.custom,
+          ),
+        ),
       ];
       final encoded = SharedMealPayload.fromIntakeList(intakes).toJsonString();
       final decoded = SharedMealPayload.fromJsonString(encoded);

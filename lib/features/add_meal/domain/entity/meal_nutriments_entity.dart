@@ -94,14 +94,14 @@ class MealNutrimentsEntity extends Equatable {
   });
 
   factory MealNutrimentsEntity.empty() => const MealNutrimentsEntity(
-        energyKcal100: null,
-        carbohydrates100: null,
-        fat100: null,
-        proteins100: null,
-        sugars100: null,
-        saturatedFat100: null,
-        fiber100: null,
-      );
+    energyKcal100: null,
+    carbohydrates100: null,
+    fat100: null,
+    proteins100: null,
+    sugars100: null,
+    saturatedFat100: null,
+    fiber100: null,
+  );
 
   factory MealNutrimentsEntity.fromMealNutrimentsDBO(
     MealNutrimentsDBO nutriments,
@@ -143,24 +143,24 @@ class MealNutrimentsEntity extends Equatable {
     // 2. Extension function asDoubleOrNull does not work on a dynamic data
     // type, so cast to it Object?
     return MealNutrimentsEntity(
-      energyKcal100:
-          (offNutriments.energy_kcal_100g as Object?).asDoubleOrNull(),
-      carbohydrates100:
-          (offNutriments.carbohydrates_100g as Object?).asDoubleOrNull(),
+      energyKcal100: (offNutriments.energy_kcal_100g as Object?)
+          .asDoubleOrNull(),
+      carbohydrates100: (offNutriments.carbohydrates_100g as Object?)
+          .asDoubleOrNull(),
       fat100: (offNutriments.fat_100g as Object?).asDoubleOrNull(),
       proteins100: (offNutriments.proteins_100g as Object?).asDoubleOrNull(),
       sugars100: (offNutriments.sugars_100g as Object?).asDoubleOrNull(),
-      saturatedFat100:
-          (offNutriments.saturated_fat_100g as Object?).asDoubleOrNull(),
+      saturatedFat100: (offNutriments.saturated_fat_100g as Object?)
+          .asDoubleOrNull(),
       fiber100: (offNutriments.fiber_100g as Object?).asDoubleOrNull(),
       // #237: Extended lipid profile
-      monounsaturatedFat100:
-          (offNutriments.monounsaturated_fat_100g as Object?).asDoubleOrNull(),
-      polyunsaturatedFat100:
-          (offNutriments.polyunsaturated_fat_100g as Object?).asDoubleOrNull(),
+      monounsaturatedFat100: (offNutriments.monounsaturated_fat_100g as Object?)
+          .asDoubleOrNull(),
+      polyunsaturatedFat100: (offNutriments.polyunsaturated_fat_100g as Object?)
+          .asDoubleOrNull(),
       transFat100: (offNutriments.trans_fat_100g as Object?).asDoubleOrNull(),
-      cholesterol100:
-          (offNutriments.cholesterol_100g as Object?).asDoubleOrNull(),
+      cholesterol100: (offNutriments.cholesterol_100g as Object?)
+          .asDoubleOrNull(),
       // #237: Minerals
       sodium100: (offNutriments.sodium_100g as Object?).asDoubleOrNull(),
       potassium100: (offNutriments.potassium_100g as Object?).asDoubleOrNull(),
@@ -168,15 +168,15 @@ class MealNutrimentsEntity extends Equatable {
       calcium100: (offNutriments.calcium_100g as Object?).asDoubleOrNull(),
       iron100: (offNutriments.iron_100g as Object?).asDoubleOrNull(),
       zinc100: (offNutriments.zinc_100g as Object?).asDoubleOrNull(),
-      phosphorus100:
-          (offNutriments.phosphorus_100g as Object?).asDoubleOrNull(),
+      phosphorus100: (offNutriments.phosphorus_100g as Object?)
+          .asDoubleOrNull(),
       // #237: Vitamins
       vitaminA100: (offNutriments.vitamin_a_100g as Object?).asDoubleOrNull(),
       vitaminC100: (offNutriments.vitamin_c_100g as Object?).asDoubleOrNull(),
       vitaminD100: (offNutriments.vitamin_d_100g as Object?).asDoubleOrNull(),
       vitaminB6100: (offNutriments.vitamin_b6_100g as Object?).asDoubleOrNull(),
-      vitaminB12100:
-          (offNutriments.vitamin_b12_100g as Object?).asDoubleOrNull(),
+      vitaminB12100: (offNutriments.vitamin_b12_100g as Object?)
+          .asDoubleOrNull(),
       niacin100: (offNutriments.niacin_100g as Object?).asDoubleOrNull(),
     );
   }
@@ -223,7 +223,8 @@ class MealNutrimentsEntity extends Equatable {
     // FDC Food nutriments can have different values for Energy [Energy,
     // Energy (Atwater General Factors), Energy (Atwater Specific Factors)].
     // Prefer the most-precise Atwater value; fall back to raw total last.
-    final energyTotal = fdcAmount(FDCConst.fdcKcalAtwaterSpecificId) ??
+    final energyTotal =
+        fdcAmount(FDCConst.fdcKcalAtwaterSpecificId) ??
         fdcAmount(FDCConst.fdcKcalAtwaterGeneralId) ??
         fdcAmount(FDCConst.fdcTotalKcalId);
 
@@ -268,11 +269,11 @@ class MealNutrimentsEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        energyKcal100,
-        carbohydrates100,
-        fat100,
-        proteins100,
-      ];
+    energyKcal100,
+    carbohydrates100,
+    fat100,
+    proteins100,
+  ];
 }
 
 /// Outcome of running the three physical-plausibility checks against a
@@ -289,11 +290,11 @@ class NutrimentsValidationResult {
   final String? failureReason;
 
   const NutrimentsValidationResult.ok()
-      : isConsistent = true,
-        failureReason = null;
+    : isConsistent = true,
+      failureReason = null;
 
   const NutrimentsValidationResult.failed(this.failureReason)
-      : isConsistent = false;
+    : isConsistent = false;
 }
 
 /// Tolerance applied to weight-summation and subset-of comparisons. Source
@@ -324,14 +325,20 @@ bool isNutrimentsConsistent(MealNutrimentsEntity nutriments) =>
 NutrimentsValidationResult validateNutriments(MealNutrimentsEntity nutriments) {
   final sugars = nutriments.sugars100;
   final carbs = nutriments.carbohydrates100;
-  if (sugars != null && carbs != null && sugars > carbs + _nutrimentsValidationToleranceG) {
+  if (sugars != null &&
+      carbs != null &&
+      sugars > carbs + _nutrimentsValidationToleranceG) {
     return const NutrimentsValidationResult.failed('sugars_exceed_carbs');
   }
 
   final satFat = nutriments.saturatedFat100;
   final fat = nutriments.fat100;
-  if (satFat != null && fat != null && satFat > fat + _nutrimentsValidationToleranceG) {
-    return const NutrimentsValidationResult.failed('saturated_fat_exceeds_total_fat');
+  if (satFat != null &&
+      fat != null &&
+      satFat > fat + _nutrimentsValidationToleranceG) {
+    return const NutrimentsValidationResult.failed(
+      'saturated_fat_exceeds_total_fat',
+    );
   }
 
   // Per-100g basis: the weight-bearing macros (carbs + fat + protein) cannot

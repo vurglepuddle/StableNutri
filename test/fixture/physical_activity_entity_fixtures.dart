@@ -3,13 +3,13 @@ import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dar
 class PhysicalActivityFixtures {
   static const PhysicalActivityEntity moderateBicycling =
       PhysicalActivityEntity(
-    "01015",
-    "Bicycling, moderate speed",
-    "Bicycling at a moderate speed on flat terrain",
-    8.0,
-    [],
-    PhysicalActivityTypeEntity.bicycling,
-  );
+        "01015",
+        "Bicycling, moderate speed",
+        "Bicycling at a moderate speed on flat terrain",
+        8.0,
+        [],
+        PhysicalActivityTypeEntity.bicycling,
+      );
 
   static const PhysicalActivityEntity lightDancing = PhysicalActivityEntity(
     "03015",

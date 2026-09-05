@@ -48,8 +48,10 @@ Future<void> showProfileSwitcherSheet(BuildContext pageContext) async {
                         onTap: () {
                           Navigator.of(sheetContext).pop();
                           if (profile.id != activeId) {
-                            locator<ProfileSwitchCoordinator>()
-                                .switchTo(pageContext, profile);
+                            locator<ProfileSwitchCoordinator>().switchTo(
+                              pageContext,
+                              profile,
+                            );
                           }
                         },
                       ),
@@ -76,8 +78,9 @@ Future<void> showProfileSwitcherSheet(BuildContext pageContext) async {
                 title: Text(s.manageProfilesLabel),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
-                  Navigator.of(pageContext)
-                      .pushNamed(NavigationOptions.manageProfilesRoute);
+                  Navigator.of(
+                    pageContext,
+                  ).pushNamed(NavigationOptions.manageProfilesRoute);
                 },
               ),
             ),
@@ -130,8 +133,9 @@ Future<void> showAddProfileDialog(BuildContext pageContext) async {
 
   if (created != true) return;
 
-  final profile = await locator<CreateProfileUsecase>()
-      .createProfile(name: controller.text.trim());
+  final profile = await locator<CreateProfileUsecase>().createProfile(
+    name: controller.text.trim(),
+  );
   if (!pageContext.mounted) return;
   await locator<ProfileSwitchCoordinator>().switchTo(pageContext, profile);
 }

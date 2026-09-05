@@ -24,9 +24,7 @@ class TargetWeightDialogResult {
   final bool clear;
 
   const TargetWeightDialogResult.value(this.value) : clear = false;
-  const TargetWeightDialogResult.cleared()
-      : value = null,
-        clear = true;
+  const TargetWeightDialogResult.cleared() : value = null, clear = true;
 }
 
 class SetTargetWeightDialog extends StatefulWidget {
@@ -151,9 +149,9 @@ class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
       actions: <Widget>[
         if (widget.hasExistingTarget)
           TextButton(
-            onPressed: () => Navigator.of(context).pop(
-              const TargetWeightDialogResult.cleared(),
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).pop(const TargetWeightDialogResult.cleared()),
             child: Text(S.of(context).profileTargetWeightClearAction),
           ),
         TextButton(

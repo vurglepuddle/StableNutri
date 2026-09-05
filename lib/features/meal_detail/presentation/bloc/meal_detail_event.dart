@@ -23,13 +23,13 @@ class UpdateKcalEvent extends MealDetailEvent {
 
   @override
   List<Object?> get props => [
-        meal,
-        totalCarbs,
-        totalFat,
-        totalProtein,
-        totalQuantity,
-        selectedUnit,
-      ];
+    meal,
+    totalCarbs,
+    totalFat,
+    totalProtein,
+    totalQuantity,
+    selectedUnit,
+  ];
 }
 
 class LoadDailyTotalsEvent extends MealDetailEvent {

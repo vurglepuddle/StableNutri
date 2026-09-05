@@ -79,7 +79,10 @@ class SpFoodDataSource {
     String searchString,
     List<String>? enabledSources,
   ) async {
-    var query = client.from(SPConst.foodSummaryTable).select().textSearch(
+    var query = client
+        .from(SPConst.foodSummaryTable)
+        .select()
+        .textSearch(
           SPConst.foodName,
           searchString,
           config: SPConst.foodNameFtsConfig,
@@ -127,8 +130,7 @@ class SpFoodDataSource {
     };
     final machineTranslatedFoodIds = {
       for (final row in translationRows)
-        if (row[SPConst.translationSource] ==
-            SPConst.translationSourceMachine)
+        if (row[SPConst.translationSource] == SPConst.translationSourceMachine)
           row[SPConst.translationFoodId] as int,
     };
 
@@ -146,8 +148,9 @@ class SpFoodDataSource {
     return response.map((food) {
       final dto = SpFoodDTO.fromJson(food);
       dto.localizedName = nameByFoodId[dto.foodId];
-      dto.localizedNameIsMachineTranslated =
-          machineTranslatedFoodIds.contains(dto.foodId);
+      dto.localizedNameIsMachineTranslated = machineTranslatedFoodIds.contains(
+        dto.foodId,
+      );
       return dto;
     }).toList();
   }

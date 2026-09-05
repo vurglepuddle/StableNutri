@@ -106,10 +106,7 @@ class _ImportActivityScannerScreenState
           buildPortraitLockAction(context),
         ],
       ),
-      body: MobileScanner(
-        controller: _cameraController,
-        onDetect: _onDetect,
-      ),
+      body: MobileScanner(controller: _cameraController, onDetect: _onDetect),
     );
   }
 
@@ -139,7 +136,9 @@ class _ImportActivityScannerScreenState
           maxLines: 5,
           decoration: InputDecoration(
             hintText: S.of(ctx).pasteCodeHint,
-            border: const OutlineInputBorder(borderRadius: Dimens.borderRadiusS),
+            border: const OutlineInputBorder(
+              borderRadius: Dimens.borderRadiusS,
+            ),
           ),
           autofocus: true,
         ),
@@ -178,8 +177,7 @@ class _ImportActivityScannerScreenState
           Navigator.of(context).pop();
           didPop = true;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(S.of(context).importActivitySuccessLabel)),
+            SnackBar(content: Text(S.of(context).importActivitySuccessLabel)),
           );
         }
       }
@@ -209,9 +207,7 @@ class _ImportActivityScannerScreenState
       context: context,
       builder: (ctx) => AlertDialog(
         shape: Dimens.shapeL,
-        title: Text(
-          S.of(ctx).importActivityConfirmTitle(payload.totalCount),
-        ),
+        title: Text(S.of(ctx).importActivityConfirmTitle(payload.totalCount)),
         content: Text(S.of(ctx).importActivityConfirmContent),
         actions: [
           TextButton(
@@ -230,21 +226,25 @@ class _ImportActivityScannerScreenState
   Future<void> _importItems(SharedActivityPayload payload) async {
     final messenger = ScaffoldMessenger.of(context);
     final user = await _getUserUsecase.getUserData();
-    final allActivities =
-        await _getPhysicalActivityUsecase.getAllPhysicalActivities();
+    final allActivities = await _getPhysicalActivityUsecase
+        .getAllPhysicalActivities();
 
     var skipped = 0;
     final today = DateTime.now();
 
     for (final item in payload.items) {
-      final activity =
-          allActivities.firstWhereOrNull((a) => a.code == item.code);
+      final activity = allActivities.firstWhereOrNull(
+        (a) => a.code == item.code,
+      );
       if (activity == null) {
         skipped++;
         continue;
       }
-      final burnedKcal =
-          METCalc.getTotalBurnedKcal(user, activity, item.duration);
+      final burnedKcal = METCalc.getTotalBurnedKcal(
+        user,
+        activity,
+        item.duration,
+      );
       _activityDetailBloc.persistActivity(
         item.duration.toString(),
         burnedKcal,

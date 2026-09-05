@@ -80,26 +80,28 @@ void main() {
     });
 
     test(
-        'weekly weight goal in kg overrides the lose/gain default adjustment',
-        () {
-      // -0.5 kg/week → -550 kcal/day (vs -500 default for loseWeight)
-      final base = UserEntityFixtures.middleAgedActiveFemaleWantingToLoseWeight;
-      final user = UserEntity(
-        birthday: base.birthday,
-        heightCM: base.heightCM,
-        weightKG: base.weightKG,
-        gender: base.gender,
-        goal: base.goal,
-        pal: base.pal,
-        weeklyWeightGoalKg: -0.5,
-      );
+      'weekly weight goal in kg overrides the lose/gain default adjustment',
+      () {
+        // -0.5 kg/week → -550 kcal/day (vs -500 default for loseWeight)
+        final base =
+            UserEntityFixtures.middleAgedActiveFemaleWantingToLoseWeight;
+        final user = UserEntity(
+          birthday: base.birthday,
+          heightCM: base.heightCM,
+          weightKG: base.weightKG,
+          gender: base.gender,
+          goal: base.goal,
+          pal: base.pal,
+          weeklyWeightGoalKg: -0.5,
+        );
 
-      final adjustment = CalorieGoalCalc.getKcalGoalAdjustment(
-        user.goal,
-        weeklyWeightGoalKg: user.weeklyWeightGoalKg,
-      );
-      expect(adjustment, equals(-550));
-    });
+        final adjustment = CalorieGoalCalc.getKcalGoalAdjustment(
+          user.goal,
+          weeklyWeightGoalKg: user.weeklyWeightGoalKg,
+        );
+        expect(adjustment, equals(-550));
+      },
+    );
 
     test('positive weekly weight goal yields a positive adjustment', () {
       final adjustment = CalorieGoalCalc.getKcalGoalAdjustment(
@@ -116,7 +118,8 @@ void main() {
       );
       expect(
         CalorieGoalCalc.getKcalGoalAdjustment(
-            UserWeightGoalEntity.maintainWeight),
+          UserWeightGoalEntity.maintainWeight,
+        ),
         equals(0),
       );
       expect(

@@ -46,8 +46,11 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
   final CustomMealDataSource _customMealDataSource; // #267
   final ConfigRepository _configRepository;
 
-  EditMealBloc(this._getConfigUsecase, this._customMealDataSource, this._configRepository)
-      : super(EditMealInitial()) {
+  EditMealBloc(
+    this._getConfigUsecase,
+    this._customMealDataSource,
+    this._configRepository,
+  ) : super(EditMealInitial()) {
     on<InitializeEditMealEvent>((event, emit) async {
       emit(EditMealLoadingState());
 
@@ -55,10 +58,12 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       final mode = CustomMealFormMode.fromString(
         await _configRepository.getCustomMealFormMode(),
       );
-      emit(EditMealLoadedState(
-        usesImperialUnits: config.usesImperialFoodUnits,
-        formMode: mode,
-      ));
+      emit(
+        EditMealLoadedState(
+          usesImperialUnits: config.usesImperialFoodUnits,
+          formMode: mode,
+        ),
+      );
     });
   }
 
@@ -109,15 +114,33 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       fat100: multiplyIfNotNull(fatText.toDoubleOrNull()),
       proteins100: multiplyIfNotNull(proteinText.toDoubleOrNull()),
       sugars100: fromTextOrOld(sugarsText, oldMealEntity.nutriments.sugars100),
-      saturatedFat100: fromTextOrOld(saturatedFatText, oldMealEntity.nutriments.saturatedFat100),
+      saturatedFat100: fromTextOrOld(
+        saturatedFatText,
+        oldMealEntity.nutriments.saturatedFat100,
+      ),
       fiber100: fromTextOrOld(fiberText, oldMealEntity.nutriments.fiber100),
       sodium100: fromTextOrOld(sodiumText, oldMealEntity.nutriments.sodium100),
-      calcium100: fromTextOrOld(calciumText, oldMealEntity.nutriments.calcium100),
+      calcium100: fromTextOrOld(
+        calciumText,
+        oldMealEntity.nutriments.calcium100,
+      ),
       iron100: fromTextOrOld(ironText, oldMealEntity.nutriments.iron100),
-      potassium100: fromTextOrOld(potassiumText, oldMealEntity.nutriments.potassium100),
-      magnesium100: fromTextOrOld(magnesiumText, oldMealEntity.nutriments.magnesium100),
-      vitaminD100: fromTextOrOld(vitaminDText, oldMealEntity.nutriments.vitaminD100),
-      vitaminB12100: fromTextOrOld(vitaminB12Text, oldMealEntity.nutriments.vitaminB12100),
+      potassium100: fromTextOrOld(
+        potassiumText,
+        oldMealEntity.nutriments.potassium100,
+      ),
+      magnesium100: fromTextOrOld(
+        magnesiumText,
+        oldMealEntity.nutriments.magnesium100,
+      ),
+      vitaminD100: fromTextOrOld(
+        vitaminDText,
+        oldMealEntity.nutriments.vitaminD100,
+      ),
+      vitaminB12100: fromTextOrOld(
+        vitaminB12Text,
+        oldMealEntity.nutriments.vitaminB12100,
+      ),
     );
 
     return MealEntity(
@@ -154,6 +177,8 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
 
   /// Persist custom meal template so it appears in Recent Meals before first log (#267)
   Future<void> saveCustomMeal(MealEntity mealEntity) async {
-    await _customMealDataSource.saveCustomMeal(MealDBO.fromMealEntity(mealEntity));
+    await _customMealDataSource.saveCustomMeal(
+      MealDBO.fromMealEntity(mealEntity),
+    );
   }
 }

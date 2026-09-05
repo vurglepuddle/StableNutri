@@ -112,7 +112,7 @@ class _MacroRing extends StatelessWidget {
                   '${intake.toInt()}/${goal.toInt()} g',
                   style: textTheme.titleSmall?.copyWith(
                     color: palette.textStrong,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(

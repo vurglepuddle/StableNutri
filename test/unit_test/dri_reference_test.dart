@@ -115,18 +115,21 @@ void main() {
       expect(ref!.amount, 8);
     });
 
-    test('non-binary averaged at 25 — iron sits at the female / male midpoint', () {
-      final ref = getReferenceFor(
-        nutrient: NutrientPanelKeys.iron,
-        user: user(
-          age: 25,
-          gender: UserGenderEntity.nonBinary,
-          caloriesProfile: CaloriesProfileEntity.averaged,
-        ),
-      );
-      // female 18 mg + male 8 mg averaged = 13 mg.
-      expect(ref!.amount, 13);
-    });
+    test(
+      'non-binary averaged at 25 — iron sits at the female / male midpoint',
+      () {
+        final ref = getReferenceFor(
+          nutrient: NutrientPanelKeys.iron,
+          user: user(
+            age: 25,
+            gender: UserGenderEntity.nonBinary,
+            caloriesProfile: CaloriesProfileEntity.averaged,
+          ),
+        );
+        // female 18 mg + male 8 mg averaged = 13 mg.
+        expect(ref!.amount, 13);
+      },
+    );
 
     test('non-binary with no profile picked defaults to averaged', () {
       final ref = getReferenceFor(

@@ -79,22 +79,23 @@ void main() {
 
     group('CT4 - Conversão Serving - Com quantidade', () {
       test(
-          'deve converter quantidade baseada em serving quando servingQuantity não é nulo',
-          () {
-        // Arrange
-        final selectedUnit = 'serving';
-        final quantity = 2.0;
-        final servingQuantity = testMeal.servingQuantity; // 50.0
+        'deve converter quantidade baseada em serving quando servingQuantity não é nulo',
+        () {
+          // Arrange
+          final selectedUnit = 'serving';
+          final quantity = 2.0;
+          final servingQuantity = testMeal.servingQuantity; // 50.0
 
-        // Act
-        double convertedQuantity = quantity;
-        if (selectedUnit == 'serving' && servingQuantity != null) {
-          convertedQuantity = quantity * servingQuantity;
-        }
+          // Act
+          double convertedQuantity = quantity;
+          if (selectedUnit == 'serving' && servingQuantity != null) {
+            convertedQuantity = quantity * servingQuantity;
+          }
 
-        // Assert
-        expect(convertedQuantity, equals(100.0)); // 2 * 50.0
-      });
+          // Assert
+          expect(convertedQuantity, equals(100.0)); // 2 * 50.0
+        },
+      );
     });
 
     group('CT5 - Conversão Serving - Sem quantidade', () {
@@ -198,16 +199,18 @@ void main() {
     });
 
     group('CT10 - Erro de Parsing', () {
-      test('deve capturar exceção quando quantidade não é um número válido',
-          () {
-        // Arrange
-        final selectedTotalQuantity = 'abc';
+      test(
+        'deve capturar exceção quando quantidade não é um número válido',
+        () {
+          // Arrange
+          final selectedTotalQuantity = 'abc';
 
-        // Act & Assert
-        expect(() {
-          double.parse(selectedTotalQuantity.replaceAll(',', '.'));
-        }, throwsA(isA<FormatException>()));
-      });
+          // Act & Assert
+          expect(() {
+            double.parse(selectedTotalQuantity.replaceAll(',', '.'));
+          }, throwsA(isA<FormatException>()));
+        },
+      );
     });
 
     group('Casos de Teste Adicionais', () {
@@ -308,8 +311,9 @@ void main() {
         final selectedTotalQuantity = '100,5';
 
         // Act
-        final quantity =
-            double.parse(selectedTotalQuantity.replaceAll(',', '.'));
+        final quantity = double.parse(
+          selectedTotalQuantity.replaceAll(',', '.'),
+        );
         final convertedQuantity = quantity;
         final energyPerUnit = testMeal.nutriments.energyPerUnit ?? 0;
         final totalKcal = convertedQuantity * energyPerUnit;
@@ -376,7 +380,8 @@ void main() {
           nutriments: testNutriments,
           source: MealSourceEntity.custom,
         );
-        final servingResult2 = 'serving' == 'serving' &&
+        final servingResult2 =
+            'serving' == 'serving' &&
             mealWithoutServing.servingQuantity != null;
         expect(servingResult2, isFalse);
 

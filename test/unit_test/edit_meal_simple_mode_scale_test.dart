@@ -22,16 +22,22 @@ void main() {
       expect(factorTo100gFromBase('100'), 1.0);
     });
 
-    test('"1" returns a factor of 100 — silently multiplies the typed value', () {
-      // Pinned as documentation of the bug shape: any caller that
-      // passes "1" while expecting per-100g semantics will store 100x
-      // the typed value. Simple mode used to do exactly this.
-      expect(factorTo100gFromBase('1'), 100.0);
-    });
+    test(
+      '"1" returns a factor of 100 — silently multiplies the typed value',
+      () {
+        // Pinned as documentation of the bug shape: any caller that
+        // passes "1" while expecting per-100g semantics will store 100x
+        // the typed value. Simple mode used to do exactly this.
+        expect(factorTo100gFromBase('1'), 100.0);
+      },
+    );
 
-    test('a 200g base produces 0.5 — halves a per-200g total into per-100g', () {
-      expect(factorTo100gFromBase('200'), 0.5);
-    });
+    test(
+      'a 200g base produces 0.5 — halves a per-200g total into per-100g',
+      () {
+        expect(factorTo100gFromBase('200'), 0.5);
+      },
+    );
 
     test('a 50g base produces 2 — doubles a per-50g total into per-100g', () {
       expect(factorTo100gFromBase('50'), 2.0);

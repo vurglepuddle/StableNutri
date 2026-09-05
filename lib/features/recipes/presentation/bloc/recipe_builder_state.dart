@@ -1,11 +1,6 @@
 part of 'recipe_builder_bloc.dart';
 
-enum SaveError {
-  nameRequired,
-  needsIngredients,
-  invalidTotalWeight,
-  unknown,
-}
+enum SaveError { nameRequired, needsIngredients, invalidTotalWeight, unknown }
 
 class RecipeBuilderState extends Equatable {
   final String? id;
@@ -43,22 +38,22 @@ class RecipeBuilderState extends Equatable {
   });
 
   factory RecipeBuilderState.initial() => RecipeBuilderState(
-        id: null,
-        name: '',
-        description: null,
-        servingsCount: null,
-        ingredients: const [],
-        totalWeightG: 0,
-        totalWeightOverridden: false,
-        aggregatedNutrimentsPer100: MealNutrimentsEntity.empty(),
-        tags: const [],
-        imagePath: null,
-        isExistingRecipe: false,
-        isSaving: false,
-        didSave: false,
-        saveError: null,
-        errorMessage: null,
-      );
+    id: null,
+    name: '',
+    description: null,
+    servingsCount: null,
+    ingredients: const [],
+    totalWeightG: 0,
+    totalWeightOverridden: false,
+    aggregatedNutrimentsPer100: MealNutrimentsEntity.empty(),
+    tags: const [],
+    imagePath: null,
+    isExistingRecipe: false,
+    isSaving: false,
+    didSave: false,
+    saveError: null,
+    errorMessage: null,
+  );
 
   RecipeBuilderState copyWith({
     String? id,
@@ -84,8 +79,9 @@ class RecipeBuilderState extends Equatable {
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
-      servingsCount:
-          clearServingsCount ? null : (servingsCount ?? this.servingsCount),
+      servingsCount: clearServingsCount
+          ? null
+          : (servingsCount ?? this.servingsCount),
       ingredients: ingredients ?? this.ingredients,
       totalWeightG: totalWeightG ?? this.totalWeightG,
       totalWeightOverridden:
@@ -104,20 +100,20 @@ class RecipeBuilderState extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        description,
-        servingsCount,
-        ingredients,
-        totalWeightG,
-        totalWeightOverridden,
-        aggregatedNutrimentsPer100,
-        tags,
-        imagePath,
-        isExistingRecipe,
-        isSaving,
-        didSave,
-        saveError,
-        errorMessage,
-      ];
+    id,
+    name,
+    description,
+    servingsCount,
+    ingredients,
+    totalWeightG,
+    totalWeightOverridden,
+    aggregatedNutrimentsPer100,
+    tags,
+    imagePath,
+    isExistingRecipe,
+    isSaving,
+    didSave,
+    saveError,
+    errorMessage,
+  ];
 }

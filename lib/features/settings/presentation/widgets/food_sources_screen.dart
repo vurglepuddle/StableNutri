@@ -52,9 +52,9 @@ class _FoodSourcesScreenState extends State<FoodSourcesScreen> {
   }
 
   Widget _infoButton(String url) => IconButton(
-        icon: const Icon(Icons.info_outline_rounded),
-        onPressed: () => _openSourceInfo(url),
-      );
+    icon: const Icon(Icons.info_outline_rounded),
+    onPressed: () => _openSourceInfo(url),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +67,9 @@ class _FoodSourcesScreenState extends State<FoodSourcesScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
                   child: Text(
                     s.foodSourcesHelpText,
                     style: Theme.of(context).textTheme.bodySmall,

@@ -37,7 +37,10 @@ class IngredientListItem extends StatelessWidget {
         borderRadius: Dimens.borderRadiusM,
         onTap: onEdit,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing8, vertical: Dimens.spacing12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: Dimens.spacing8,
+            vertical: Dimens.spacing12,
+          ),
           child: Row(
             children: [
               Container(
@@ -58,7 +61,9 @@ class IngredientListItem extends StatelessWidget {
                       meal.name ?? '?',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -66,14 +71,20 @@ class IngredientListItem extends StatelessWidget {
                       '${EnergyDisplay.formatWithUnit(context, contributionKcal)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodySmall?.copyWith(color: palette.textMuted),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: palette.textMuted,
+                      ),
                     ),
                   ],
                 ),
               ),
               if (onRemove != null)
                 IconButton(
-                  icon: Icon(Icons.delete_outline_rounded, color: palette.textMuted, size: 22),
+                  icon: Icon(
+                    Icons.delete_outline_rounded,
+                    color: palette.textMuted,
+                    size: 22,
+                  ),
                   onPressed: onRemove,
                 ),
             ],

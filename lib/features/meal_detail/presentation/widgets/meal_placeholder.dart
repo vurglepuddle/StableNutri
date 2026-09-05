@@ -12,11 +12,7 @@ class MealPlaceholder extends StatelessWidget {
       height: 300,
       width: double.infinity,
       color: palette.surfaceMuted,
-      child: Icon(
-        Icons.restaurant_rounded,
-        size: 48,
-        color: palette.textMuted,
-      ),
+      child: Icon(Icons.restaurant_rounded, size: 48, color: palette.textMuted),
     );
   }
 }

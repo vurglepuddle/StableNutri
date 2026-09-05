@@ -24,7 +24,6 @@ import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc
 import 'package:opennutritracker/features/settings/presentation/bloc/custom_meals_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-
 class ImportMealScannerArguments {
   final IntakeTypeEntity intakeTypeEntity;
   final AddMealType addMealType;
@@ -99,8 +98,9 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
 
   @override
   void didChangeDependencies() {
-    final args = ModalRoute.of(context)?.settings.arguments
-        as ImportMealScannerArguments;
+    final args =
+        ModalRoute.of(context)?.settings.arguments
+            as ImportMealScannerArguments;
     _intakeTypeEntity = args.intakeTypeEntity;
     _addMealType = args.addMealType;
     _day = args.day;
@@ -131,10 +131,7 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
           buildPortraitLockAction(context),
         ],
       ),
-      body: MobileScanner(
-        controller: _cameraController,
-        onDetect: _onDetect,
-      ),
+      body: MobileScanner(controller: _cameraController, onDetect: _onDetect),
     );
   }
 
@@ -162,7 +159,9 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
           maxLines: 5,
           decoration: InputDecoration(
             hintText: S.of(ctx).pasteCodeHint,
-            border: const OutlineInputBorder(borderRadius: Dimens.borderRadiusS),
+            border: const OutlineInputBorder(
+              borderRadius: Dimens.borderRadiusS,
+            ),
           ),
           autofocus: true,
         ),
@@ -229,9 +228,7 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         shape: Dimens.shapeL,
-        title: Text(
-          S.of(ctx).importMealConfirmTitle(payload.totalCount),
-        ),
+        title: Text(S.of(ctx).importMealConfirmTitle(payload.totalCount)),
         content: Text(
           S.of(ctx).importMealConfirmContent(_addMealType.getTypeName(ctx)),
         ),
@@ -294,24 +291,34 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
 
     // OFF refs: barcode lookup already populates the cache via
     // SearchProductByBarcodeUseCase, so no extra cache write needed here.
-    final offResults = await Future.wait(payload.offRefs.map((ref) async {
-      try {
-        final meal = await withRetry(
-          () => _searchProductByBarcodeUseCase.searchProductByBarcode(ref.barcode),
-        );
-        return (ref: ref, meal: meal);
-      } catch (_) {
-        return null;
-      }
-    }));
+    final offResults = await Future.wait(
+      payload.offRefs.map((ref) async {
+        try {
+          final meal = await withRetry(
+            () => _searchProductByBarcodeUseCase.searchProductByBarcode(
+              ref.barcode,
+            ),
+          );
+          return (ref: ref, meal: meal);
+        } catch (_) {
+          return null;
+        }
+      }),
+    );
 
     if (!mounted) return;
 
     var skipped = 0;
     for (final r in offResults) {
       if (r != null) {
-        _mealDetailBloc.addIntake(context, r.ref.unit, r.ref.amount.toString(),
-            _intakeTypeEntity, r.meal, _day);
+        _mealDetailBloc.addIntake(
+          context,
+          r.ref.unit,
+          r.ref.amount.toString(),
+          _intakeTypeEntity,
+          r.meal,
+          _day,
+        );
       } else {
         skipped++;
       }
@@ -320,7 +327,8 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
     if (skipped > 0 && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(S.of(context).importOffFetchFailedLabel(skipped))),
+          content: Text(S.of(context).importOffFetchFailedLabel(skipped)),
+        ),
       );
     }
   }

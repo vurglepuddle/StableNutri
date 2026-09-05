@@ -18,14 +18,28 @@ abstract final class Dimens {
   static const double radiusL = 26;
   static const double radiusXL = 32;
 
-  static const BorderRadius borderRadiusS = BorderRadius.all(Radius.circular(radiusS));
-  static const BorderRadius borderRadiusM = BorderRadius.all(Radius.circular(radiusM));
-  static const BorderRadius borderRadiusL = BorderRadius.all(Radius.circular(radiusL));
-  static const BorderRadius borderRadiusXL = BorderRadius.all(Radius.circular(radiusXL));
+  static const BorderRadius borderRadiusS = BorderRadius.all(
+    Radius.circular(radiusS),
+  );
+  static const BorderRadius borderRadiusM = BorderRadius.all(
+    Radius.circular(radiusM),
+  );
+  static const BorderRadius borderRadiusL = BorderRadius.all(
+    Radius.circular(radiusL),
+  );
+  static const BorderRadius borderRadiusXL = BorderRadius.all(
+    Radius.circular(radiusXL),
+  );
 
-  static const RoundedRectangleBorder shapeM = RoundedRectangleBorder(borderRadius: borderRadiusM);
-  static const RoundedRectangleBorder shapeL = RoundedRectangleBorder(borderRadius: borderRadiusL);
-  static const RoundedRectangleBorder shapeXL = RoundedRectangleBorder(borderRadius: borderRadiusXL);
+  static const RoundedRectangleBorder shapeM = RoundedRectangleBorder(
+    borderRadius: borderRadiusM,
+  );
+  static const RoundedRectangleBorder shapeL = RoundedRectangleBorder(
+    borderRadius: borderRadiusL,
+  );
+  static const RoundedRectangleBorder shapeXL = RoundedRectangleBorder(
+    borderRadius: borderRadiusXL,
+  );
 
   static const double hairline = 1;
   static const double minTouchTarget = 52;

@@ -41,10 +41,7 @@ class _FakeGetConfigUsecase implements GetConfigUsecase {
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
-const _emptyResult = SearchProductsResult(
-  meals: [],
-  remoteSourceEmpty: true,
-);
+const _emptyResult = SearchProductsResult(meals: [], remoteSourceEmpty: true);
 
 /// Waits out the search debounce plus a small margin so the bloc's handler
 /// has started.
@@ -66,15 +63,17 @@ void main() {
 
     tearDown(() => bloc.close());
 
-    test(
-        'a duplicate debounced event while the first search is in flight '
+    test('a duplicate debounced event while the first search is in flight '
         'still produces results (regression: the duplicate cancelled the '
         'in-flight handler and then no-oped on the stale dedup guard, so no '
         'search ever completed)', () async {
       bloc.add(const SearchInputChangedEvent(searchString: 'apple'));
       await _settleDebounce();
-      expect(useCase.calls, hasLength(1),
-          reason: 'first search should be in flight');
+      expect(
+        useCase.calls,
+        hasLength(1),
+        reason: 'first search should be in flight',
+      );
 
       // Same final text arrives again (e.g. a char typed and deleted within
       // the debounce window) — restartable cancels the in-flight handler.
@@ -83,16 +82,18 @@ void main() {
 
       // The replacement handler must have started a new search rather than
       // dropping the query as "already searched".
-      expect(useCase.calls.length, greaterThanOrEqualTo(2),
-          reason: 'the duplicate event must restart the search');
+      expect(
+        useCase.calls.length,
+        greaterThanOrEqualTo(2),
+        reason: 'the duplicate event must restart the search',
+      );
       useCase.calls.last.complete(_emptyResult);
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       expect(bloc.state, isA<ProductsLoadedState>());
     });
 
-    test('retyping the same query after a failed search retries it',
-        () async {
+    test('retyping the same query after a failed search retries it', () async {
       bloc.add(const SearchInputChangedEvent(searchString: 'apple'));
       await _settleDebounce();
       useCase.calls.single.completeError(Exception('HTTP 500'));
@@ -102,15 +103,17 @@ void main() {
       bloc.add(const SearchInputChangedEvent(searchString: 'apple'));
       await _settleDebounce();
 
-      expect(useCase.calls, hasLength(2),
-          reason: 'a failed query must not be remembered as completed');
+      expect(
+        useCase.calls,
+        hasLength(2),
+        reason: 'a failed query must not be remembered as completed',
+      );
       useCase.calls.last.complete(_emptyResult);
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(bloc.state, isA<ProductsLoadedState>());
     });
 
-    test('a completed query is not searched again for the same text',
-        () async {
+    test('a completed query is not searched again for the same text', () async {
       bloc.add(const SearchInputChangedEvent(searchString: 'apple'));
       await _settleDebounce();
       useCase.calls.single.complete(_emptyResult);
@@ -120,12 +123,14 @@ void main() {
       bloc.add(const SearchInputChangedEvent(searchString: 'apple'));
       await _settleDebounce();
 
-      expect(useCase.calls, hasLength(1),
-          reason: 'results for this query are already on screen');
+      expect(
+        useCase.calls,
+        hasLength(1),
+        reason: 'results for this query are already on screen',
+      );
     });
 
-    test(
-        'a new search over an empty result list blanks to the loading state '
+    test('a new search over an empty result list blanks to the loading state '
         'instead of leaving "no results" on screen, and loaded states carry '
         'their query', () async {
       bloc.add(const SearchInputChangedEvent(searchString: 'xyzzy'));
@@ -141,40 +146,47 @@ void main() {
       // state must not linger (it renders as "no results").
       bloc.add(const SearchInputChangedEvent(searchString: 'banana'));
       await _settleDebounce();
-      expect(bloc.state, isA<ProductsLoadingState>(),
-          reason: 'empty results must blank to a spinner during the search');
+      expect(
+        bloc.state,
+        isA<ProductsLoadingState>(),
+        reason: 'empty results must blank to a spinner during the search',
+      );
 
       useCase.calls.last.complete(_emptyResult);
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect((bloc.state as ProductsLoadedState).query, 'banana');
     });
 
-    test('a blank query never queries any source and resets to Initial',
-        () async {
-      // Get some results on screen first.
-      bloc.add(const SearchInputChangedEvent(searchString: 'apple'));
-      await _settleDebounce();
-      useCase.calls.single.complete(_emptyResult);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(bloc.state, isA<ProductsLoadedState>());
-
-      // Chip taps and tab switches force-submit the current field text —
-      // with an empty field that must not become a remote query.
-      bloc.add(const LoadProductsEvent(searchString: ''));
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(useCase.calls, hasLength(1),
-          reason: 'an empty query must not hit the search use case');
-      expect(bloc.state, isA<ProductsInitial>());
-
-      // Whitespace-only input counts as empty too (debounced path).
-      bloc.add(const SearchInputChangedEvent(searchString: '   '));
-      await _settleDebounce();
-      expect(useCase.calls, hasLength(1));
-      expect(bloc.state, isA<ProductsInitial>());
-    });
-
     test(
-        'input below the minimum query length does not trigger a search; '
+      'a blank query never queries any source and resets to Initial',
+      () async {
+        // Get some results on screen first.
+        bloc.add(const SearchInputChangedEvent(searchString: 'apple'));
+        await _settleDebounce();
+        useCase.calls.single.complete(_emptyResult);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(bloc.state, isA<ProductsLoadedState>());
+
+        // Chip taps and tab switches force-submit the current field text —
+        // with an empty field that must not become a remote query.
+        bloc.add(const LoadProductsEvent(searchString: ''));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(
+          useCase.calls,
+          hasLength(1),
+          reason: 'an empty query must not hit the search use case',
+        );
+        expect(bloc.state, isA<ProductsInitial>());
+
+        // Whitespace-only input counts as empty too (debounced path).
+        bloc.add(const SearchInputChangedEvent(searchString: '   '));
+        await _settleDebounce();
+        expect(useCase.calls, hasLength(1));
+        expect(bloc.state, isA<ProductsInitial>());
+      },
+    );
+
+    test('input below the minimum query length does not trigger a search; '
         'reaching it does', () async {
       // One character — below minQueryLength: nothing may be queried, even
       // on the forced submit path.

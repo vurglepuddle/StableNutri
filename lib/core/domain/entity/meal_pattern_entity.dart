@@ -37,13 +37,7 @@ enum MealPatternEntity {
     dinnerPct: 50,
     snackPct: 10,
   ),
-  omad(
-    id: 'omad',
-    breakfastPct: 0,
-    lunchPct: 0,
-    dinnerPct: 100,
-    snackPct: 0,
-  ),
+  omad(id: 'omad', breakfastPct: 0, lunchPct: 0, dinnerPct: 100, snackPct: 0),
   fiveSmall(
     id: 'five_small',
     breakfastPct: 20,
@@ -69,9 +63,9 @@ enum MealPatternEntity {
   /// Returns the four meal-share percentages keyed by [ConfigEntity]'s meal
   /// keys, ready to drop into `setMealKcalSharesPct(...)`.
   Map<String, int> toSharesMap() => {
-        ConfigEntity.mealKeyBreakfast: breakfastPct,
-        ConfigEntity.mealKeyLunch: lunchPct,
-        ConfigEntity.mealKeyDinner: dinnerPct,
-        ConfigEntity.mealKeySnack: snackPct,
-      };
+    ConfigEntity.mealKeyBreakfast: breakfastPct,
+    ConfigEntity.mealKeyLunch: lunchPct,
+    ConfigEntity.mealKeyDinner: dinnerPct,
+    ConfigEntity.mealKeySnack: snackPct,
+  };
 }

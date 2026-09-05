@@ -8,7 +8,8 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 /// Stub for `getApplicationDocumentsDirectory` that points at a temp dir we
 /// create per-test. Keeps the round-trip honest about the filesystem layout
 /// without poisoning the developer's real documents directory.
-class _FakePathProvider extends PathProviderPlatform with MockPlatformInterfaceMixin {
+class _FakePathProvider extends PathProviderPlatform
+    with MockPlatformInterfaceMixin {
   _FakePathProvider(this.documentsPath);
 
   final String documentsPath;
@@ -34,8 +35,7 @@ void main() {
   });
 
   group('UserImageStorage', () {
-    test('relativePathFor builds a slug under the right subdir with .webp',
-        () {
+    test('relativePathFor builds a slug under the right subdir with .webp', () {
       expect(
         UserImageStorage.relativePathFor(UserImageKind.recipe, 'abc'),
         'recipe_images/abc.webp',
@@ -47,10 +47,14 @@ void main() {
     });
 
     test('sanitizeRelative accepts canonical forms for both kinds', () {
-      expect(UserImageStorage.sanitizeRelative('recipe_images/x.webp'),
-          'recipe_images/x.webp');
-      expect(UserImageStorage.sanitizeRelative('meal_images/x.webp'),
-          'meal_images/x.webp');
+      expect(
+        UserImageStorage.sanitizeRelative('recipe_images/x.webp'),
+        'recipe_images/x.webp',
+      );
+      expect(
+        UserImageStorage.sanitizeRelative('meal_images/x.webp'),
+        'meal_images/x.webp',
+      );
     });
 
     test('sanitizeRelative rejects malformed and out-of-tree paths', () {
@@ -58,8 +62,10 @@ void main() {
       // through — the entire point of the sanitiser is to keep
       // imported zips from escaping the images directory via `..` or
       // absolute prefixes.
-      expect(UserImageStorage.sanitizeRelative('recipe_images/../x.webp'),
-          isNull);
+      expect(
+        UserImageStorage.sanitizeRelative('recipe_images/../x.webp'),
+        isNull,
+      );
       expect(UserImageStorage.sanitizeRelative('elsewhere/x.webp'), isNull);
       expect(UserImageStorage.sanitizeRelative('x.webp'), isNull);
       expect(UserImageStorage.sanitizeRelative('recipe_images/'), isNull);
@@ -67,16 +73,15 @@ void main() {
     });
 
     test('absolutePath composes against the documents directory', () async {
-      final abs =
-          await UserImageStorage.absolutePath('recipe_images/r1.webp');
+      final abs = await UserImageStorage.absolutePath('recipe_images/r1.webp');
       expect(abs, '${tempRoot.path}/recipe_images/r1.webp');
-      final absMeal =
-          await UserImageStorage.absolutePath('meal_images/m1.webp');
+      final absMeal = await UserImageStorage.absolutePath(
+        'meal_images/m1.webp',
+      );
       expect(absMeal, '${tempRoot.path}/meal_images/m1.webp');
     });
 
-    test(
-        'importFrom writes a .webp file into the right images dir and '
+    test('importFrom writes a .webp file into the right images dir and '
         'returns the persisted relative slug', () async {
       // Use a non-image payload — the WebP encoder will reject it and
       // the storage layer falls back to copying the bytes verbatim,
@@ -105,8 +110,7 @@ void main() {
       expect(mealRelative, 'meal_images/meal-1.webp');
     });
 
-    test(
-        'delete removes the file at the relative slug and tolerates a '
+    test('delete removes the file at the relative slug and tolerates a '
         'missing file', () async {
       final source = File('${tempRoot.path}/incoming.bin');
       await source.writeAsBytes([9, 9, 9]);

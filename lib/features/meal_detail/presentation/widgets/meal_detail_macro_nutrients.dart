@@ -34,7 +34,7 @@ class MealDetailMacroNutrients extends StatelessWidget {
         ],
         Text(
           '${value?.roundToPrecision(1) ?? "?"} g',
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: Dimens.spacing4),
         Text(

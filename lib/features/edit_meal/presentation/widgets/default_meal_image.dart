@@ -12,11 +12,7 @@ class DefaultMealImage extends StatelessWidget {
       height: 120,
       width: 120,
       color: palette.surfaceMuted,
-      child: Icon(
-        Icons.restaurant_rounded,
-        size: 48,
-        color: palette.textMuted,
-      ),
+      child: Icon(Icons.restaurant_rounded, size: 48, color: palette.textMuted),
     );
   }
 }

@@ -22,7 +22,7 @@ import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart'
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/fasting_home_chip.dart';
-import 'package:opennutritracker/features/home/presentation/widgets/quick_water_widget.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/water_card.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class HomePage extends StatefulWidget {
@@ -163,21 +163,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       children: [
         ListView(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                Dimens.spacing16,
-                Dimens.spacing16,
-                Dimens.spacing16,
-                Dimens.spacing4,
-              ),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: QuickWaterWidget(
-                  waterMlToday: waterMlToday,
-                  waterGoalMl: waterGoalMl,
-                  amountMl: waterQuickAddMl,
-                ),
-              ),
+            WaterCard(
+              waterMlToday: waterMlToday,
+              waterGoalMl: waterGoalMl,
+              amountMl: waterQuickAddMl,
             ),
             const FastingHomeChip(),
             const SizedBox(height: Dimens.spacing8),

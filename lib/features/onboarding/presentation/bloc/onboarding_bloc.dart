@@ -20,7 +20,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   final AddConfigUsecase _addConfigUsecase;
 
   OnboardingBloc(this._addUserUsecase, this._addConfigUsecase)
-      : super(OnboardingInitialState()) {
+    : super(OnboardingInitialState()) {
     on<LoadOnboardingEvent>((event, emit) async {
       emit(OnboardingLoadingState());
 

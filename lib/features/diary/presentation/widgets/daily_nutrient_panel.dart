@@ -98,8 +98,7 @@ class DailyNutrientPanel extends StatefulWidget {
   static double resolveIronReference(
     TrackedDayEntity? trackedDay,
     double genderDefault,
-  ) =>
-      trackedDay?.ironGoal ?? genderDefault;
+  ) => trackedDay?.ironGoal ?? genderDefault;
 
   static double resolvePotassiumReference(TrackedDayEntity? trackedDay) =>
       trackedDay?.potassiumGoal ?? defaultPotassiumRefMg;
@@ -195,8 +194,11 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
     final getIntakeUsecase = locator<GetIntakeUsecase>();
     final all = <IntakeEntity>[];
     for (int dayOffset = 0; dayOffset < 7; dayOffset++) {
-      final day = DateTime(anchor.year, anchor.month, anchor.day)
-          .subtract(Duration(days: dayOffset));
+      final day = DateTime(
+        anchor.year,
+        anchor.month,
+        anchor.day,
+      ).subtract(Duration(days: dayOffset));
       all
         ..addAll(await getIntakeUsecase.getBreakfastIntakeByDay(day))
         ..addAll(await getIntakeUsecase.getLunchIntakeByDay(day))
@@ -213,7 +215,9 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
     // weekly view sums the seven-day window and then divides each total by
     // seven to get an average daily intake.
     final isWeekly = _view == _NutrientView.week;
-    final source = isWeekly ? (data?.weekIntakes ?? widget.intakes) : widget.intakes;
+    final source = isWeekly
+        ? (data?.weekIntakes ?? widget.intakes)
+        : widget.intakes;
     final totals = NutrientPanelTotals.fromIntakes(source, weekly: isWeekly);
     final fiberG = totals.fiberG;
     final sodiumMg = totals.sodiumMg;
@@ -420,9 +424,15 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
           // now sits inside.
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
-            shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusL),
-            collapsedShape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusL),
-            tilePadding: const EdgeInsets.symmetric(horizontal: Dimens.spacing12),
+            shape: const RoundedRectangleBorder(
+              borderRadius: Dimens.borderRadiusL,
+            ),
+            collapsedShape: const RoundedRectangleBorder(
+              borderRadius: Dimens.borderRadiusL,
+            ),
+            tilePadding: const EdgeInsets.symmetric(
+              horizontal: Dimens.spacing12,
+            ),
             childrenPadding: const EdgeInsets.fromLTRB(
               Dimens.spacing12,
               0.0,
@@ -434,7 +444,9 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
                 Expanded(
                   child: Text(
                     s.diaryNutrientPanelTitle,
-                    style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 // Inline info icon. Tapping it pops the data-disclaimer
@@ -452,7 +464,9 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
                     ),
                     visualDensity: VisualDensity.compact,
                     constraints: const BoxConstraints(),
-                    padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Dimens.spacing8,
+                    ),
                     onPressed: () => _showDataDisclaimer(context, s),
                   ),
                 ),
@@ -488,10 +502,14 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
               const SizedBox(height: Dimens.spacing8),
               if (visibleRows.isEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: Dimens.spacing4),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: Dimens.spacing4,
+                  ),
                   child: Text(
                     s.nutrientPanelAllHiddenLabel,
-                    style: textTheme.bodySmall?.copyWith(color: palette.textMuted),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: palette.textMuted,
+                    ),
                   ),
                 )
               else
@@ -528,21 +546,23 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
                       // platform reports it cannot handle the URL, which is
                       // friendlier than throwing in front of the user.
                       if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri,
-                            mode: LaunchMode.externalApplication);
+                        await launchUrl(
+                          uri,
+                          mode: LaunchMode.externalApplication,
+                        );
                       }
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: Text(
                         s.driPanelInfoLinkLabel,
-                        style:
-                            Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(dialogContext)
-                                      .colorScheme
-                                      .primary,
-                                  decoration: TextDecoration.underline,
-                                ),
+                        style: Theme.of(dialogContext).textTheme.bodyMedium
+                            ?.copyWith(
+                              color: Theme.of(
+                                dialogContext,
+                              ).colorScheme.primary,
+                              decoration: TextDecoration.underline,
+                            ),
                       ),
                     ),
                   ),
@@ -769,7 +789,8 @@ class _NutrientRow extends StatelessWidget {
     final ratio = reference > 0 ? value / reference : 0.0;
     final clamped = ratio.clamp(0.0, 1.0).toDouble();
     final color = _colorForRatio(context, ratio);
-    final valueLabel = '${value.toStringAsFixed(value >= 10 ? 0 : 1)}'
+    final valueLabel =
+        '${value.toStringAsFixed(value >= 10 ? 0 : 1)}'
         ' / ${reference.toStringAsFixed(reference >= 10 ? 0 : 1)}$unit';
 
     return Padding(
@@ -783,7 +804,9 @@ class _NutrientRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: textTheme.bodyMedium?.copyWith(color: palette.textStrong),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: palette.textStrong,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -808,7 +831,7 @@ class _NutrientRow extends StatelessWidget {
                     valueLabel,
                     style: textTheme.bodySmall?.copyWith(
                       color: palette.textStrong,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],

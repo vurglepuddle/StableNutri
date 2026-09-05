@@ -35,17 +35,17 @@ abstract class MealDetailState extends Equatable {
 
   @override
   List<Object?> get props => [
-        totalQuantityConverted,
-        totalKcal,
-        totalCarbs,
-        totalFat,
-        totalProtein,
-        selectedUnit,
-        dayKcalConsumed,
-        dayKcalGoal,
-        hydratedMeal,
-        isHydrating,
-      ];
+    totalQuantityConverted,
+    totalKcal,
+    totalCarbs,
+    totalFat,
+    totalProtein,
+    selectedUnit,
+    dayKcalConsumed,
+    dayKcalGoal,
+    hydratedMeal,
+    isHydrating,
+  ];
 
   MealDetailInitial copyWith({
     String? totalQuantityConverted,

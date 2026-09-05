@@ -37,13 +37,12 @@ void main() {
 
     test('USDA comma-separated description: first token is the head', () {
       expect(
-        resolveFoodEmoji('Milk, fluid, nonfat, calcium fortified (fat free or skim)'),
+        resolveFoodEmoji(
+          'Milk, fluid, nonfat, calcium fortified (fat free or skim)',
+        ),
         '🥛',
       );
-      expect(
-        resolveFoodEmoji('Apples, raw, fuji, with skin'),
-        '🍎',
-      );
+      expect(resolveFoodEmoji('Apples, raw, fuji, with skin'), '🍎');
     });
 
     test('leading/trailing whitespace is trimmed', () {

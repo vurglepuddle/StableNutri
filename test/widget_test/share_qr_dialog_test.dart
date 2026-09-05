@@ -29,8 +29,9 @@ Future<void> _pumpDialog(WidgetTester tester) async {
 
 void main() {
   group('ShareQrDialog', () {
-    testWidgets('renders the title, QR image, and both action buttons',
-        (tester) async {
+    testWidgets('renders the title, QR image, and both action buttons', (
+      tester,
+    ) async {
       await _pumpDialog(tester);
 
       expect(find.text('Share meal'), findsOneWidget);
@@ -40,10 +41,10 @@ void main() {
       expect(find.byType(OutlinedButton), findsNWidgets(2));
     });
 
-    testWidgets(
-        'share button reports a bounded, on-screen render rect '
-        '(guards iPad popover anchor + iPhone presentation fix)',
-        (tester) async {
+    testWidgets('share button reports a bounded, on-screen render rect '
+        '(guards iPad popover anchor + iPhone presentation fix)', (
+      tester,
+    ) async {
       await _pumpDialog(tester);
 
       // Locate the share button by its icon — the dialog has only one

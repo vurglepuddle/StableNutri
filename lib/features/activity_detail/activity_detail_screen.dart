@@ -187,7 +187,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                               ? EnergyDisplay.formatWithUnit(context, totalKcal)
                               : '~${EnergyDisplay.formatWithUnit(context, totalKcal)}',
                           style: text.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
                             color: palette.textStrong,
                           ),
                         ),
@@ -226,8 +226,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   /// later just re-renders the same underlying energy.
   double _convertTypedToKcal(double typed) {
     if (!activityEntity.isCustom) return typed;
-    final usesKj =
-        Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
+    final usesKj = Provider.of<EnergyUnitProvider>(
+      context,
+      listen: false,
+    ).usesKilojoules;
     return usesKj ? UnitCalc.kjToKcal(typed) : typed;
   }
 

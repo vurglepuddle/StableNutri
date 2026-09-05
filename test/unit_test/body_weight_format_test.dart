@@ -13,24 +13,45 @@ void main() {
   group('formatBodyWeight — kg unit', () {
     test('whole-number weight trims trailing .0 (72.0 -> "72 kg")', () {
       expect(
-        formatBodyWeight(72.0, BodyWeightUnit.kg, kgLabel: kgLabel, lbLabel: lbLabel, stLabel: stLabel),
+        formatBodyWeight(
+          72.0,
+          BodyWeightUnit.kg,
+          kgLabel: kgLabel,
+          lbLabel: lbLabel,
+          stLabel: stLabel,
+        ),
         equals('72 kg'),
       );
     });
 
     test('fractional weight keeps one decimal (72.5 -> "72.5 kg")', () {
       expect(
-        formatBodyWeight(72.5, BodyWeightUnit.kg, kgLabel: kgLabel, lbLabel: lbLabel, stLabel: stLabel),
+        formatBodyWeight(
+          72.5,
+          BodyWeightUnit.kg,
+          kgLabel: kgLabel,
+          lbLabel: lbLabel,
+          stLabel: stLabel,
+        ),
         equals('72.5 kg'),
       );
     });
 
-    test('rounding noise around a whole number is trimmed (80.0000001 -> "80 kg")', () {
-      expect(
-        formatBodyWeight(80.0000001, BodyWeightUnit.kg, kgLabel: kgLabel, lbLabel: lbLabel, stLabel: stLabel),
-        equals('80 kg'),
-      );
-    });
+    test(
+      'rounding noise around a whole number is trimmed (80.0000001 -> "80 kg")',
+      () {
+        expect(
+          formatBodyWeight(
+            80.0000001,
+            BodyWeightUnit.kg,
+            kgLabel: kgLabel,
+            lbLabel: lbLabel,
+            stLabel: stLabel,
+          ),
+          equals('80 kg'),
+        );
+      },
+    );
   });
 
   group('formatBodyWeight — lb unit', () {
@@ -38,26 +59,35 @@ void main() {
       const kg = 70.0;
       final expectedLbs = formatProfileWeight(UnitCalc.kgToLbs(kg));
       expect(
-        formatBodyWeight(kg, BodyWeightUnit.lb, kgLabel: kgLabel, lbLabel: lbLabel, stLabel: stLabel),
+        formatBodyWeight(
+          kg,
+          BodyWeightUnit.lb,
+          kgLabel: kgLabel,
+          lbLabel: lbLabel,
+          stLabel: stLabel,
+        ),
         equals('$expectedLbs lbs'),
       );
     });
 
-    test('whole-pound result trims decimal (68.04 kg rounds to a whole number of lbs)', () {
-      // 150 lbs = 68.04 kg. kgToLbs(68.04) should give exactly 150.0, and
-      // formatProfileWeight trims the .0.
-      const kg = 68.04;
-      final label = formatBodyWeight(
-        kg,
-        BodyWeightUnit.lb,
-        kgLabel: kgLabel,
-        lbLabel: lbLabel,
-        stLabel: stLabel,
-      );
-      // The formatted string should not end with '.0 lbs'.
-      expect(label, isNot(contains('.0 lbs')));
-      expect(label, endsWith(lbLabel));
-    });
+    test(
+      'whole-pound result trims decimal (68.04 kg rounds to a whole number of lbs)',
+      () {
+        // 150 lbs = 68.04 kg. kgToLbs(68.04) should give exactly 150.0, and
+        // formatProfileWeight trims the .0.
+        const kg = 68.04;
+        final label = formatBodyWeight(
+          kg,
+          BodyWeightUnit.lb,
+          kgLabel: kgLabel,
+          lbLabel: lbLabel,
+          stLabel: stLabel,
+        );
+        // The formatted string should not end with '.0 lbs'.
+        expect(label, isNot(contains('.0 lbs')));
+        expect(label, endsWith(lbLabel));
+      },
+    );
   });
 
   group('formatBodyWeight — st unit', () {
@@ -66,7 +96,13 @@ void main() {
       // formatProfileWeight that trims the .0 to '0'.
       const oneStoneKg = 6.35029;
       expect(
-        formatBodyWeight(oneStoneKg, BodyWeightUnit.st, kgLabel: kgLabel, lbLabel: lbLabel, stLabel: stLabel),
+        formatBodyWeight(
+          oneStoneKg,
+          BodyWeightUnit.st,
+          kgLabel: kgLabel,
+          lbLabel: lbLabel,
+          stLabel: stLabel,
+        ),
         equals('1 st 0 lbs'),
       );
     });
@@ -96,8 +132,12 @@ void main() {
       // a separate display concern and not tested here.
       for (final kg in const [50.0, 63.5, 70.0, 80.0, 100.0]) {
         final (_, pounds) = UnitCalc.kgToStLb(kg);
-        expect(pounds, lessThan(14.0),
-            reason: 'raw pounds from kgToStLb($kg) should be less than 14, got $pounds');
+        expect(
+          pounds,
+          lessThan(14.0),
+          reason:
+              'raw pounds from kgToStLb($kg) should be less than 14, got $pounds',
+        );
       }
     });
   });

@@ -19,8 +19,9 @@ class FDCDataSource {
         Env.fdcApiKey,
       );
 
-      final response =
-          await http.get(searchUrlString).timeout(_timeoutDuration);
+      final response = await http
+          .get(searchUrlString)
+          .timeout(_timeoutDuration);
       log.fine('Fetching FDC results from: $searchUrlString');
 
       final wordResponse = FDCWordResponseDTO.fromJson(

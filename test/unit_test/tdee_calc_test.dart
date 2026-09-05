@@ -75,46 +75,60 @@ void main() {
     }
 
     test('non-binary defaults to the mean of male and female outputs', () {
-      final maleTdee =
-          TDEECalc.getTDEEKcalIOM2005(baseUser(gender: UserGenderEntity.male));
-      final femaleTdee =
-          TDEECalc.getTDEEKcalIOM2005(baseUser(gender: UserGenderEntity.female));
-      final nonBinaryDefault =
-          TDEECalc.getTDEEKcalIOM2005(baseUser(gender: UserGenderEntity.nonBinary));
+      final maleTdee = TDEECalc.getTDEEKcalIOM2005(
+        baseUser(gender: UserGenderEntity.male),
+      );
+      final femaleTdee = TDEECalc.getTDEEKcalIOM2005(
+        baseUser(gender: UserGenderEntity.female),
+      );
+      final nonBinaryDefault = TDEECalc.getTDEEKcalIOM2005(
+        baseUser(gender: UserGenderEntity.nonBinary),
+      );
 
       expect(nonBinaryDefault, closeTo((maleTdee + femaleTdee) / 2, 0.001));
     });
 
     test('non-binary with averaged profile equals the default', () {
-      final averaged = TDEECalc.getTDEEKcalIOM2005(baseUser(
-        gender: UserGenderEntity.nonBinary,
-        profile: CaloriesProfileEntity.averaged,
-      ));
+      final averaged = TDEECalc.getTDEEKcalIOM2005(
+        baseUser(
+          gender: UserGenderEntity.nonBinary,
+          profile: CaloriesProfileEntity.averaged,
+        ),
+      );
       final defaulted = TDEECalc.getTDEEKcalIOM2005(
-          baseUser(gender: UserGenderEntity.nonBinary));
+        baseUser(gender: UserGenderEntity.nonBinary),
+      );
       expect(averaged, closeTo(defaulted, 0.001));
     });
 
     test('non-binary with estrogen-typical profile matches female formula', () {
-      final estrogen = TDEECalc.getTDEEKcalIOM2005(baseUser(
-        gender: UserGenderEntity.nonBinary,
-        profile: CaloriesProfileEntity.estrogenTypical,
-      ));
-      final female =
-          TDEECalc.getTDEEKcalIOM2005(baseUser(gender: UserGenderEntity.female));
+      final estrogen = TDEECalc.getTDEEKcalIOM2005(
+        baseUser(
+          gender: UserGenderEntity.nonBinary,
+          profile: CaloriesProfileEntity.estrogenTypical,
+        ),
+      );
+      final female = TDEECalc.getTDEEKcalIOM2005(
+        baseUser(gender: UserGenderEntity.female),
+      );
       expect(estrogen, closeTo(female, 0.001));
     });
 
-    test('non-binary with testosterone-typical profile matches male formula',
-        () {
-      final testosterone = TDEECalc.getTDEEKcalIOM2005(baseUser(
-        gender: UserGenderEntity.nonBinary,
-        profile: CaloriesProfileEntity.testosteroneTypical,
-      ));
-      final male =
-          TDEECalc.getTDEEKcalIOM2005(baseUser(gender: UserGenderEntity.male));
-      expect(testosterone, closeTo(male, 0.001));
-    });
+    test(
+      'non-binary with testosterone-typical profile matches male formula',
+      () {
+        final testosterone = TDEECalc.getTDEEKcalIOM2005(
+          baseUser(
+            gender: UserGenderEntity.nonBinary,
+            profile: CaloriesProfileEntity.testosteroneTypical,
+          ),
+        );
+        final male = TDEECalc.getTDEEKcalIOM2005(
+          baseUser(gender: UserGenderEntity.male),
+        );
+        expect(testosterone, closeTo(male, 0.001));
+      },
+    );
   });
 
   group('IOM TDEE non-binary at non-sedentary PALs (PA gender regression)', () {
@@ -124,8 +138,11 @@ void main() {
     // routes each half through getPAValueForFormula with an explicit flag,
     // so the male half uses 1.12 / 1.54 and the female half uses 1.14 / 1.45
     // regardless of the user's stored gender enum.
-    UserEntity buildUser(UserPALEntity pal,
-        {CaloriesProfileEntity? profile, UserGenderEntity? gender}) {
+    UserEntity buildUser(
+      UserPALEntity pal, {
+      CaloriesProfileEntity? profile,
+      UserGenderEntity? gender,
+    }) {
       return UserEntity(
         birthday: DateTime(
           DateTime.now().year - 25,
@@ -142,30 +159,34 @@ void main() {
     }
 
     test('lowActive averaged equals (binary male + binary female) / 2', () {
-      final maleTdee =
-          TDEECalc.getTDEEKcalIOM2005(buildUser(UserPALEntity.lowActive,
-              gender: UserGenderEntity.male));
-      final femaleTdee =
-          TDEECalc.getTDEEKcalIOM2005(buildUser(UserPALEntity.lowActive,
-              gender: UserGenderEntity.female));
-      final averaged = TDEECalc.getTDEEKcalIOM2005(buildUser(
-        UserPALEntity.lowActive,
-        profile: CaloriesProfileEntity.averaged,
-      ));
+      final maleTdee = TDEECalc.getTDEEKcalIOM2005(
+        buildUser(UserPALEntity.lowActive, gender: UserGenderEntity.male),
+      );
+      final femaleTdee = TDEECalc.getTDEEKcalIOM2005(
+        buildUser(UserPALEntity.lowActive, gender: UserGenderEntity.female),
+      );
+      final averaged = TDEECalc.getTDEEKcalIOM2005(
+        buildUser(
+          UserPALEntity.lowActive,
+          profile: CaloriesProfileEntity.averaged,
+        ),
+      );
       expect(averaged, closeTo((maleTdee + femaleTdee) / 2, 0.001));
     });
 
     test('veryActive averaged equals (binary male + binary female) / 2', () {
-      final maleTdee =
-          TDEECalc.getTDEEKcalIOM2005(buildUser(UserPALEntity.veryActive,
-              gender: UserGenderEntity.male));
-      final femaleTdee =
-          TDEECalc.getTDEEKcalIOM2005(buildUser(UserPALEntity.veryActive,
-              gender: UserGenderEntity.female));
-      final averaged = TDEECalc.getTDEEKcalIOM2005(buildUser(
-        UserPALEntity.veryActive,
-        profile: CaloriesProfileEntity.averaged,
-      ));
+      final maleTdee = TDEECalc.getTDEEKcalIOM2005(
+        buildUser(UserPALEntity.veryActive, gender: UserGenderEntity.male),
+      );
+      final femaleTdee = TDEECalc.getTDEEKcalIOM2005(
+        buildUser(UserPALEntity.veryActive, gender: UserGenderEntity.female),
+      );
+      final averaged = TDEECalc.getTDEEKcalIOM2005(
+        buildUser(
+          UserPALEntity.veryActive,
+          profile: CaloriesProfileEntity.averaged,
+        ),
+      );
       expect(averaged, closeTo((maleTdee + femaleTdee) / 2, 0.001));
     });
 
@@ -183,27 +204,33 @@ void main() {
       //   buggy male = 864 - 243 + 1.14*14.2*80 + 905.4 = 2821.45
       //   buggy avg  = (2821.45 + 2387.36) / 2 ≈ 2604.4
       // 11 kcal/day delta — small but always upward and systematic.
-      final averaged = TDEECalc.getTDEEKcalIOM2005(buildUser(
-        UserPALEntity.lowActive,
-        profile: CaloriesProfileEntity.averaged,
-      ));
+      final averaged = TDEECalc.getTDEEKcalIOM2005(
+        buildUser(
+          UserPALEntity.lowActive,
+          profile: CaloriesProfileEntity.averaged,
+        ),
+      );
       expect(averaged, closeTo(2593.04, 0.5));
     });
 
     test('estrogenTypical at lowActive uses female PA (1.14)', () {
-      final estrogen = TDEECalc.getTDEEKcalIOM2005(buildUser(
-        UserPALEntity.lowActive,
-        profile: CaloriesProfileEntity.estrogenTypical,
-      ));
+      final estrogen = TDEECalc.getTDEEKcalIOM2005(
+        buildUser(
+          UserPALEntity.lowActive,
+          profile: CaloriesProfileEntity.estrogenTypical,
+        ),
+      );
       // 387 - 7.31*25 + 1.14*10.9*80 + 660.7*1.80 ≈ 2387.36
       expect(estrogen, closeTo(2387.36, 0.5));
     });
 
     test('testosteroneTypical at veryActive uses male PA (1.54)', () {
-      final testosterone = TDEECalc.getTDEEKcalIOM2005(buildUser(
-        UserPALEntity.veryActive,
-        profile: CaloriesProfileEntity.testosteroneTypical,
-      ));
+      final testosterone = TDEECalc.getTDEEKcalIOM2005(
+        buildUser(
+          UserPALEntity.veryActive,
+          profile: CaloriesProfileEntity.testosteroneTypical,
+        ),
+      );
       // 864 - 9.72*25 + 1.54*14.2*80 + 503*1.80
       //   = 864 - 243 + 1749.44 + 905.4 = 3275.84
       expect(testosterone, closeTo(3275.84, 0.5));

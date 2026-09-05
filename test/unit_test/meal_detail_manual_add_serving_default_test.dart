@@ -39,14 +39,14 @@ class _FakeRemoteSearchCacheDataSource extends Fake
     implements RemoteSearchCacheDataSource {}
 
 MealDetailBloc _buildBloc() => MealDetailBloc(
-      _FakeAddIntakeUsecase(),
-      _FakeAddTrackedDayUsecase(),
-      _FakeGetKcalGoalUsecase(),
-      _FakeGetMacroGoalUsecase(),
-      _FakeGetTrackedDayUsecase(),
-      _FakeProductsRepository(),
-      _FakeRemoteSearchCacheDataSource(),
-    );
+  _FakeAddIntakeUsecase(),
+  _FakeAddTrackedDayUsecase(),
+  _FakeGetKcalGoalUsecase(),
+  _FakeGetMacroGoalUsecase(),
+  _FakeGetTrackedDayUsecase(),
+  _FakeProductsRepository(),
+  _FakeRemoteSearchCacheDataSource(),
+);
 
 MealEntity _meal({
   double? servingQuantity,

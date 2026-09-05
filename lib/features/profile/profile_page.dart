@@ -638,7 +638,7 @@ class _SectionHeader extends StatelessWidget {
         label,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
           color: palette.textMuted,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           letterSpacing: 0.3,
         ),
       ),
@@ -710,7 +710,7 @@ class _ProfileTile extends StatelessWidget {
         ),
         title: Text(
           title,
-          style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          style: text.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle:
             subtitleWidget ??
@@ -758,7 +758,7 @@ class _ProfileSwitchTile extends StatelessWidget {
         secondary: _IconChip(palette: palette, icon: icon),
         title: Text(
           title,
-          style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          style: text.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           subtitle,

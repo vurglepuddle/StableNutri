@@ -16,8 +16,11 @@ String localizeServingLabel(S s, String label) {
   final amountText = match.group(1)!;
   final amount = num.tryParse(amountText.replaceAll(',', '.'));
   if (amount == null) return label;
-  final localizedUnit =
-      _localizedUnit(s, match.group(2)!.trim().toLowerCase(), amount);
+  final localizedUnit = _localizedUnit(
+    s,
+    match.group(2)!.trim().toLowerCase(),
+    amount,
+  );
   if (localizedUnit == null) return label;
   final weightSuffix = match.group(3);
   return weightSuffix != null
@@ -27,8 +30,9 @@ String localizeServingLabel(S s, String label) {
 
 /// "`<amount> <unit words> (weight)`" — the unit part deliberately excludes
 /// commas so descriptive modifiers ("cup, sliced") don't match.
-final _servingLabelPattern =
-    RegExp(r'^(\d+(?:[.,]\d+)?)\s+([A-Za-z ]+?)\s*(\(.*\))?$');
+final _servingLabelPattern = RegExp(
+  r'^(\d+(?:[.,]\d+)?)\s+([A-Za-z ]+?)\s*(\(.*\))?$',
+);
 
 String? _localizedUnit(S s, String unit, num count) {
   switch (unit) {

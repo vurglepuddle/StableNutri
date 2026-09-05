@@ -4,7 +4,8 @@ import 'package:opennutritracker/core/utils/csv_recipe_importer.dart';
 void main() {
   group('CsvRecipeImporter', () {
     test('groups multiple rows by recipe_name into one RecipeEntity', () {
-      const csv = 'recipe_name,recipe_description,recipe_servings,'
+      const csv =
+          'recipe_name,recipe_description,recipe_servings,'
           'recipe_total_weight_g,recipe_tags,ingredient_name,'
           'ingredient_brands,ingredient_amount,ingredient_unit,'
           'ingredient_kcal_100,ingredient_carbs_100,ingredient_fat_100,'
@@ -32,7 +33,8 @@ void main() {
     });
 
     test('multiple recipes parsed independently', () {
-      const csv = 'recipe_name,recipe_description,recipe_servings,'
+      const csv =
+          'recipe_name,recipe_description,recipe_servings,'
           'recipe_total_weight_g,recipe_tags,ingredient_name,'
           'ingredient_brands,ingredient_amount,ingredient_unit,'
           'ingredient_kcal_100,ingredient_carbs_100,ingredient_fat_100,'
@@ -45,12 +47,12 @@ void main() {
 
       expect(result.errors, isEmpty);
       expect(result.recipes, hasLength(2));
-      expect(result.recipes.map((r) => r.name).toSet(),
-          {'Cake', 'Smoothie'});
+      expect(result.recipes.map((r) => r.name).toSet(), {'Cake', 'Smoothie'});
     });
 
     test('rows with missing required fields are skipped with errors', () {
-      const csv = 'recipe_name,ingredient_name,ingredient_amount,'
+      const csv =
+          'recipe_name,ingredient_name,ingredient_amount,'
           'ingredient_unit,ingredient_kcal_100\n'
           ',Flour,200,g,340\n' // missing recipe_name
           'Cake,,200,g,340\n' // missing ingredient_name
@@ -62,8 +64,10 @@ void main() {
       expect(result.errors, hasLength(3));
       expect(result.recipes, hasLength(1));
       expect(result.recipes.single.ingredients, hasLength(1));
-      expect(result.recipes.single.ingredients.single.snapshotMeal.name,
-          'Sugar');
+      expect(
+        result.recipes.single.ingredients.single.snapshotMeal.name,
+        'Sugar',
+      );
     });
 
     test('header missing required column reports a clear error', () {
@@ -77,7 +81,8 @@ void main() {
     });
 
     test('aggregated nutrition is computed from ingredients', () {
-      const csv = 'recipe_name,ingredient_name,ingredient_amount,'
+      const csv =
+          'recipe_name,ingredient_name,ingredient_amount,'
           'ingredient_unit,ingredient_kcal_100\n'
           'Mix,A,100,g,200\n'
           'Mix,B,100,g,300\n';
@@ -95,7 +100,8 @@ void main() {
     test('quoted decimal-comma in ingredient quantities is supported', () {
       // The documented happy path: wrap decimal-comma values in
       // double quotes so the splitter doesn't see the comma.
-      const csv = 'recipe_name,ingredient_name,ingredient_amount,'
+      const csv =
+          'recipe_name,ingredient_name,ingredient_amount,'
           'ingredient_unit,ingredient_kcal_100,ingredient_fat_100\n'
           'Cookie,Vanilla,"1,5",g,288,"12,5"\n'
           'Cookie,Flour,200,g,340,1\n';
@@ -115,7 +121,8 @@ void main() {
     test('unquoted decimal-comma surfaces a too-many-columns hint', () {
       // 16 expected columns; the unquoted `1,5` in the ingredient_amount
       // cell over-splits the row.
-      const csv = 'recipe_name,recipe_description,recipe_servings,'
+      const csv =
+          'recipe_name,recipe_description,recipe_servings,'
           'recipe_total_weight_g,recipe_tags,ingredient_name,'
           'ingredient_brands,ingredient_amount,ingredient_unit,'
           'ingredient_kcal_100,ingredient_carbs_100,ingredient_fat_100,'

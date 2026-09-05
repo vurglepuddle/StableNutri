@@ -21,16 +21,16 @@ class ActivityTitleExpanded extends StatelessWidget {
               TextSpan(
                 text: activity.getName(context),
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
                 children: [
                   TextSpan(
                     text: ' ${activity.getDescription(context)} ',
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.7),
-                        ),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
                   ),
                 ],
               ),

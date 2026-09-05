@@ -76,7 +76,9 @@ class PhysicalActivityEntity extends Equatable {
   String getName(BuildContext context) {
     // A named Custom activity (e.g. from Quick Add) carries its label in
     // specificActivity; show that instead of the generic "Custom activity".
-    if (isCustom && specificActivity.isNotEmpty && specificActivity != 'custom') {
+    if (isCustom &&
+        specificActivity.isNotEmpty &&
+        specificActivity != 'custom') {
       return specificActivity;
     }
     final physicalActivityMap = {
@@ -302,8 +304,10 @@ class PhysicalActivityEntity extends Equatable {
   /// so when the user reads in kJ (#177) we swap in the kJ-phrased
   /// variant. Everywhere else the description is unit-agnostic.
   String _customActivityDescription(BuildContext context) {
-    final usesKj =
-        Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
+    final usesKj = Provider.of<EnergyUnitProvider>(
+      context,
+      listen: false,
+    ).usesKilojoules;
     return usesKj
         ? S.of(context).customActivityDescriptionKj
         : S.of(context).customActivityDescription;
@@ -602,16 +606,14 @@ class PhysicalActivityEntity extends Equatable {
 
   factory PhysicalActivityEntity.fromPhysicalActivityDBO(
     PhysicalActivityDBO activityDBO,
-  ) =>
-      PhysicalActivityEntity(
-        activityDBO.code,
-        activityDBO.specificActivity,
-        activityDBO.description,
-        activityDBO.mets,
-        activityDBO.tags,
-        PhysicalActivityTypeEntity.fromPhysicalActivityTypeDBO(
-            activityDBO.type),
-      );
+  ) => PhysicalActivityEntity(
+    activityDBO.code,
+    activityDBO.specificActivity,
+    activityDBO.description,
+    activityDBO.mets,
+    activityDBO.tags,
+    PhysicalActivityTypeEntity.fromPhysicalActivityTypeDBO(activityDBO.type),
+  );
 }
 
 extension ActivityIcon on PhysicalActivityTypeEntity {

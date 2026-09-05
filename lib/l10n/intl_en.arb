@@ -165,6 +165,23 @@
       }
     }
   },
+  "@logWaterRemoveAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "@waterTotalLabel": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
   "@settingsNotificationsTimeLabel": {
     "placeholders": {
       "time": {
@@ -1021,7 +1038,7 @@
   "logWaterNothingToUndoLabel": "Nothing to undo",
   "logWaterUndoLabel": "Undo last",
   "mlLabel": "ml",
-  "settingsWaterGoalDescription": "Used by the water chip on the home screen.",
+  "settingsWaterGoalDescription": "Used by the water card on the home screen.",
   "settingsWaterGoalLabel": "Daily water goal",
   "waterChipLabel": "{current} / {goal} ml",
   "zincLabel": "zinc",
@@ -1217,5 +1234,9 @@
   "lifesumImportFailedTitle": "The import could not finish",
   "lifesumImportFailedDetail": "Stable stopped safely. Choose the export again to resume or review the import.",
   "lifesumImportSupportedHistoryFound": "Supported history found in this local export.",
-  "lifesumImportSupportedHistoryRange": "Supported history from {start} to {end}. Existing Stable days will be kept."
+  "lifesumImportSupportedHistoryRange": "Supported history from {start} to {end}. Existing Stable days will be kept.",
+  "litreLabel": "l",
+  "logWaterRemoveAmountLabel": "Remove {amount} ml",
+  "waterTotalLabel": "{current} / {goal} l",
+  "waterGoalReachedLabel": "Daily goal reached"
 }

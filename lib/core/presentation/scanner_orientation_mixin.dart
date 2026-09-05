@@ -23,8 +23,8 @@ mixin ScannerOrientationMixin<T extends StatefulWidget> on State<T> {
   /// screen. When it's absent the scanner simply follows the device default.
   ConfigRepository? get _configRepository =>
       locator.isRegistered<ConfigRepository>()
-          ? locator<ConfigRepository>()
-          : null;
+      ? locator<ConfigRepository>()
+      : null;
 
   /// Persisted user override. Null until the user taps the toggle, at which
   /// point the scanner stops following the device default and obeys this.
@@ -89,9 +89,7 @@ mixin ScannerOrientationMixin<T extends StatefulWidget> on State<T> {
     return Semantics(
       identifier: 'scanner-orientation-lock',
       child: IconButton(
-        icon: Icon(
-          locked ? Icons.screen_lock_rotation : Icons.screen_rotation,
-        ),
+        icon: Icon(locked ? Icons.screen_lock_rotation : Icons.screen_rotation),
         tooltip: locked
             ? S.of(context).scannerUnlockOrientationTooltip
             : S.of(context).scannerLockOrientationTooltip,

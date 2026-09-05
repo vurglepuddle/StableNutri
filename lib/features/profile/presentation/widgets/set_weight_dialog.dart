@@ -98,7 +98,10 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
     } else {
       final display = clampWeightSelection(
         _pickerDisplayWeight,
-        minSelectableWeight(_pickerDisplayWeight, widget.unit == BodyWeightUnit.lb),
+        minSelectableWeight(
+          _pickerDisplayWeight,
+          widget.unit == BodyWeightUnit.lb,
+        ),
       );
       kg = _pickerWeightToKg(display);
     }
@@ -153,8 +156,11 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
                   identifier: 'weight-date-picker',
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.calendar_today_rounded, size: 18),
-                    label: Text(MaterialLocalizations.of(context)
-                        .formatMediumDate(_selectedDate)),
+                    label: Text(
+                      MaterialLocalizations.of(
+                        context,
+                      ).formatMediumDate(_selectedDate),
+                    ),
                     onPressed: _pickDate,
                   ),
                 ),

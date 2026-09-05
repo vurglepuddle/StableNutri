@@ -319,7 +319,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       ? Text(
                           meal.name ?? '',
                           style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w800),
+                              ?.copyWith(fontWeight: FontWeight.w700),
                           overflow: TextOverflow.ellipsis,
                         )
                       : const SizedBox(),
@@ -415,7 +415,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       Text(
                         EnergyDisplay.formatWithUnit(context, totalKcal),
                         style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.w800),
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       MealValueUnitText(
                         value: double.parse(totalQuantity),

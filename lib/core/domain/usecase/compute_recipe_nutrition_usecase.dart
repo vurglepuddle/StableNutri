@@ -63,11 +63,9 @@ class ComputeRecipeNutritionUseCase {
       );
     }
 
-    final totalWeightG = totalWeightOverride ??
-        ingredients.fold<double>(
-          0,
-          (sum, i) => sum + i.convertedAmountG,
-        );
+    final totalWeightG =
+        totalWeightOverride ??
+        ingredients.fold<double>(0, (sum, i) => sum + i.convertedAmountG);
 
     if (totalWeightG <= 0) {
       return ComputeRecipeNutritionResult(
@@ -87,7 +85,10 @@ class ComputeRecipeNutritionUseCase {
     // while collapsing 48 traversals into 1.
     final acc = _NutrientAccumulator();
     for (final ingredient in ingredients) {
-      acc.addFrom(ingredient.snapshotMeal.nutriments, ingredient.convertedAmountG);
+      acc.addFrom(
+        ingredient.snapshotMeal.nutriments,
+        ingredient.convertedAmountG,
+      );
     }
 
     final per = acc.toEntityPerHundredG(totalWeightG);
@@ -113,10 +114,19 @@ class _NutrientAccumulator {
   double _iron = 0, _zinc = 0, _phosphorus = 0;
   double _vitA = 0, _vitC = 0, _vitD = 0, _vitB6 = 0, _vitB12 = 0, _niacin = 0;
 
-  bool _hasEnergy = false, _hasCarbs = false, _hasFat = false, _hasProtein = false;
+  bool _hasEnergy = false,
+      _hasCarbs = false,
+      _hasFat = false,
+      _hasProtein = false;
   bool _hasSugars = false, _hasSatFat = false, _hasFiber = false;
-  bool _hasMonoFat = false, _hasPolyFat = false, _hasTransFat = false, _hasCholesterol = false;
-  bool _hasSodium = false, _hasPotassium = false, _hasMagnesium = false, _hasCalcium = false;
+  bool _hasMonoFat = false,
+      _hasPolyFat = false,
+      _hasTransFat = false,
+      _hasCholesterol = false;
+  bool _hasSodium = false,
+      _hasPotassium = false,
+      _hasMagnesium = false,
+      _hasCalcium = false;
   bool _hasIron = false, _hasZinc = false, _hasPhosphorus = false;
   bool _hasVitA = false, _hasVitC = false, _hasVitD = false;
   bool _hasVitB6 = false, _hasVitB12 = false, _hasNiacin = false;

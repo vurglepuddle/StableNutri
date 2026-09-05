@@ -6,17 +6,17 @@ import 'package:opennutritracker/features/recipes/presentation/widgets/ingredien
 import 'package:opennutritracker/generated/l10n.dart';
 
 MealEntity _solidMeal() => MealEntity(
-      code: 'flour',
-      name: 'Flour',
-      url: null,
-      mealQuantity: null,
-      mealUnit: 'g',
-      servingQuantity: null,
-      servingUnit: null,
-      servingSize: null,
-      nutriments: MealNutrimentsEntity.empty(),
-      source: MealSourceEntity.off,
-    );
+  code: 'flour',
+  name: 'Flour',
+  url: null,
+  mealQuantity: null,
+  mealUnit: 'g',
+  servingQuantity: null,
+  servingUnit: null,
+  servingSize: null,
+  nutriments: MealNutrimentsEntity.empty(),
+  source: MealSourceEntity.off,
+);
 
 Widget _wrap({required Widget child}) {
   return MaterialApp(
@@ -30,23 +30,25 @@ void main() {
   testWidgets('returns selection on confirm', (tester) async {
     IngredientQuantitySelection? captured;
 
-    await tester.pumpWidget(_wrap(
-      child: Builder(
-        builder: (context) => Scaffold(
-          body: Center(
-            child: ElevatedButton(
-              onPressed: () async {
-                captured = await showIngredientQuantityDialog(
-                  context,
-                  meal: _solidMeal(),
-                );
-              },
-              child: const Text('Open'),
+    await tester.pumpWidget(
+      _wrap(
+        child: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  captured = await showIngredientQuantityDialog(
+                    context,
+                    meal: _solidMeal(),
+                  );
+                },
+                child: const Text('Open'),
+              ),
             ),
           ),
         ),
       ),
-    ));
+    );
 
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
@@ -69,23 +71,25 @@ void main() {
       unit: 'sentinel',
     );
 
-    await tester.pumpWidget(_wrap(
-      child: Builder(
-        builder: (context) => Scaffold(
-          body: Center(
-            child: ElevatedButton(
-              onPressed: () async {
-                captured = await showIngredientQuantityDialog(
-                  context,
-                  meal: _solidMeal(),
-                );
-              },
-              child: const Text('Open'),
+    await tester.pumpWidget(
+      _wrap(
+        child: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  captured = await showIngredientQuantityDialog(
+                    context,
+                    meal: _solidMeal(),
+                  );
+                },
+                child: const Text('Open'),
+              ),
             ),
           ),
         ),
       ),
-    ));
+    );
 
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();

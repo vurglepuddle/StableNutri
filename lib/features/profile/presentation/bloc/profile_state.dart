@@ -38,10 +38,10 @@ class ProfileLoadedState extends ProfileState {
 
   @override
   List<Object?> get props => [
-        userBMI,
-        userEntity,
-        bodyWeightUnit,
-        usesImperialHeightUnits,
-        effectiveWaterGoalMl,
-      ];
+    userBMI,
+    userEntity,
+    bodyWeightUnit,
+    usesImperialHeightUnits,
+    effectiveWaterGoalMl,
+  ];
 }

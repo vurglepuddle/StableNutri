@@ -121,8 +121,7 @@ void main() {
       );
 
       final csv = CsvDataExporter.userActivitiesToCsv([activity]);
-      final parsed =
-          CsvDataExporter.parseUserActivitiesFromCsv(csv).single;
+      final parsed = CsvDataExporter.parseUserActivitiesFromCsv(csv).single;
 
       expect(parsed.id, 'act-1');
       expect(parsed.duration, 45);
@@ -134,10 +133,7 @@ void main() {
       expect(parsed.physicalActivityDBO.specificActivity, 'Running, 8 km/h');
       expect(parsed.physicalActivityDBO.mets, 8.3);
       expect(parsed.physicalActivityDBO.tags, ['cardio', 'outdoor']);
-      expect(
-        parsed.physicalActivityDBO.type,
-        PhysicalActivityTypeDBO.running,
-      );
+      expect(parsed.physicalActivityDBO.type, PhysicalActivityTypeDBO.running);
     });
 
     test('an activity with no tags round-trips to an empty list', () {
@@ -157,8 +153,7 @@ void main() {
       );
 
       final csv = CsvDataExporter.userActivitiesToCsv([activity]);
-      final parsed =
-          CsvDataExporter.parseUserActivitiesFromCsv(csv).single;
+      final parsed = CsvDataExporter.parseUserActivitiesFromCsv(csv).single;
 
       expect(parsed.physicalActivityDBO.tags, isEmpty);
     });
@@ -293,11 +288,17 @@ void _expectIntakeEqual(IntakeDBO actual, IntakeDBO expected) {
   expect(actual.meal.servingQuantity, expected.meal.servingQuantity);
   expect(actual.meal.servingUnit, expected.meal.servingUnit);
   expect(actual.meal.servingSize, expected.meal.servingSize);
-  expect(actual.meal.nutriments.energyKcal100,
-      expected.meal.nutriments.energyKcal100);
-  expect(actual.meal.nutriments.carbohydrates100,
-      expected.meal.nutriments.carbohydrates100);
+  expect(
+    actual.meal.nutriments.energyKcal100,
+    expected.meal.nutriments.energyKcal100,
+  );
+  expect(
+    actual.meal.nutriments.carbohydrates100,
+    expected.meal.nutriments.carbohydrates100,
+  );
   expect(actual.meal.nutriments.fat100, expected.meal.nutriments.fat100);
-  expect(actual.meal.nutriments.proteins100,
-      expected.meal.nutriments.proteins100);
+  expect(
+    actual.meal.nutriments.proteins100,
+    expected.meal.nutriments.proteins100,
+  );
 }

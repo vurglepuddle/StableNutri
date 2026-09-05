@@ -25,17 +25,19 @@ void main() {
       expect(maxSelectableWeight(140, true), 240);
     });
 
-    test('extreme negative persisted values still produce a valid metric range',
-        () {
-      expect(
-        maxSelectableHeight(-200, false) >= minSelectableHeight(-200, false),
-        isTrue,
-      );
-      expect(
-        maxSelectableWeight(-200, false) >= minSelectableWeight(-200, false),
-        isTrue,
-      );
-    });
+    test(
+      'extreme negative persisted values still produce a valid metric range',
+      () {
+        expect(
+          maxSelectableHeight(-200, false) >= minSelectableHeight(-200, false),
+          isTrue,
+        );
+        expect(
+          maxSelectableWeight(-200, false) >= minSelectableWeight(-200, false),
+          isTrue,
+        );
+      },
+    );
 
     test('selected values are clamped to computed minimum', () {
       expect(clampHeightSelection(0.5, 1), 1);

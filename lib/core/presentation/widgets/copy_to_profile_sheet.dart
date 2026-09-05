@@ -17,8 +17,10 @@ Future<void> showCopyToProfileSheet(
 ) async {
   final getProfiles = locator<GetProfilesUsecase>();
   final activeId = getProfiles.activeProfileId;
-  final otherProfiles =
-      getProfiles.getProfiles().where((p) => p.id != activeId).toList();
+  final otherProfiles = getProfiles
+      .getProfiles()
+      .where((p) => p.id != activeId)
+      .toList();
   if (otherProfiles.isEmpty) return;
 
   final messenger = ScaffoldMessenger.of(context);
@@ -80,12 +82,12 @@ class _CopyToProfileSheetState extends State<_CopyToProfileSheet> {
                       onChanged: _copying
                           ? null
                           : (checked) => setState(() {
-                                if (checked == true) {
-                                  _selectedIds.add(profile.id);
-                                } else {
-                                  _selectedIds.remove(profile.id);
-                                }
-                              }),
+                              if (checked == true) {
+                                _selectedIds.add(profile.id);
+                              } else {
+                                _selectedIds.remove(profile.id);
+                              }
+                            }),
                       secondary: ProfileAvatar(profile: profile),
                       title: Text(profileDisplayName(context, profile)),
                     ),
@@ -98,8 +100,7 @@ class _CopyToProfileSheetState extends State<_CopyToProfileSheet> {
             child: Semantics(
               identifier: 'copy-to-profile-confirm',
               child: FilledButton(
-                onPressed:
-                    _selectedIds.isEmpty || _copying ? null : _onConfirm,
+                onPressed: _selectedIds.isEmpty || _copying ? null : _onConfirm,
                 child: _copying
                     ? const SizedBox(
                         height: 20,
@@ -120,8 +121,10 @@ class _CopyToProfileSheetState extends State<_CopyToProfileSheet> {
     final targets = widget.otherProfiles
         .where((p) => _selectedIds.contains(p.id))
         .toList();
-    await locator<SendIntakeToProfilesUsecase>()
-        .copyToProfiles(widget.intakes, targets);
+    await locator<SendIntakeToProfilesUsecase>().copyToProfiles(
+      widget.intakes,
+      targets,
+    );
     if (!mounted) return;
     Navigator.of(context).pop(true);
   }

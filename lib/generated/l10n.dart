@@ -7393,10 +7393,10 @@ class S {
     return Intl.message('ml', name: 'mlLabel', desc: '', args: []);
   }
 
-  /// `Used by the water chip on the home screen.`
+  /// `Used by the water card on the home screen.`
   String get settingsWaterGoalDescription {
     return Intl.message(
-      'Used by the water chip on the home screen.',
+      'Used by the water card on the home screen.',
       name: 'settingsWaterGoalDescription',
       desc: '',
       args: [],
@@ -8647,6 +8647,41 @@ class S {
     desc: '',
     args: [start, end],
   );
+
+  /// `l`
+  String get litreLabel {
+    return Intl.message('l', name: 'litreLabel', desc: '', args: []);
+  }
+
+  /// `Remove {amount} ml`
+  String logWaterRemoveAmountLabel(int amount) {
+    return Intl.message(
+      'Remove $amount ml',
+      name: 'logWaterRemoveAmountLabel',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `{current} / {goal} l`
+  String waterTotalLabel(String current, String goal) {
+    return Intl.message(
+      '$current / $goal l',
+      name: 'waterTotalLabel',
+      desc: '',
+      args: [current, goal],
+    );
+  }
+
+  /// `Daily goal reached`
+  String get waterGoalReachedLabel {
+    return Intl.message(
+      'Daily goal reached',
+      name: 'waterGoalReachedLabel',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

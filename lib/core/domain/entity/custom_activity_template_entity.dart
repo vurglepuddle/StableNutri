@@ -17,9 +17,7 @@ class CustomActivityTemplateEntity extends Equatable {
     this.notes,
   });
 
-  factory CustomActivityTemplateEntity.fromDBO(
-    CustomActivityTemplateDBO dbo,
-  ) {
+  factory CustomActivityTemplateEntity.fromDBO(CustomActivityTemplateDBO dbo) {
     return CustomActivityTemplateEntity(
       name: dbo.name,
       typicalKcal: dbo.typicalKcal,

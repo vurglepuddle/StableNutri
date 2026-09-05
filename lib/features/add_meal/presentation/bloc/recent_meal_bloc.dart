@@ -17,7 +17,7 @@ class RecentMealBloc extends Bloc<RecentMealEvent, RecentMealState> {
   final GetConfigUsecase _getConfigUsecase;
 
   RecentMealBloc(this._getIntakeUsecase, this._getConfigUsecase)
-      : super(RecentMealInitial()) {
+    : super(RecentMealInitial()) {
     on<LoadRecentMealEvent>((event, emit) async {
       emit(RecentMealLoadingState());
       try {

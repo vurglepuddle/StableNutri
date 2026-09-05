@@ -275,7 +275,7 @@ class _FastingScreenState extends State<FastingScreen> {
                           Text(
                             elapsed,
                             style: textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w700,
                               color: palette.textStrong,
                             ),
                           ),
@@ -302,7 +302,7 @@ class _FastingScreenState extends State<FastingScreen> {
                 Text(
                   l10n.fastingRemainingValue(remaining),
                   style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: Dimens.spacing4),
@@ -357,7 +357,7 @@ class _FastingScreenState extends State<FastingScreen> {
           Text(
             l10n.fastingComplete,
             style: textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               color: palette.textStrong,
             ),
             textAlign: TextAlign.center,

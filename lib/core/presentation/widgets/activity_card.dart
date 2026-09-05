@@ -72,14 +72,18 @@ class ActivityCard extends StatelessWidget {
                     children: [
                       Text(
                         activityEntity.physicalActivityEntity.getName(context),
-                        style: textTheme.titleSmall?.copyWith(color: palette.textStrong),
+                        style: textTheme.titleSmall?.copyWith(
+                          color: palette.textStrong,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Text(
                         '${activityEntity.duration.toInt()} min',
-                        style: textTheme.bodySmall?.copyWith(color: palette.textMuted),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: palette.textMuted,
+                        ),
                       ),
                     ],
                   ),
@@ -89,7 +93,7 @@ class ActivityCard extends StatelessWidget {
                   "🔥${EnergyDisplay.formatWithUnit(context, activityEntity.burnedKcal)}",
                   style: textTheme.labelMedium?.copyWith(
                     color: palette.textStrong,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -105,7 +109,8 @@ class ActivityCard extends StatelessWidget {
       data: activityEntity,
       onDragStarted: () => onItemDragCallback!.call(true),
       onDragEnd: (_) => onItemDragCallback!.call(false),
-      onDraggableCanceled: (velocity, offset) => onItemDragCallback!.call(false),
+      onDraggableCanceled: (velocity, offset) =>
+          onItemDragCallback!.call(false),
       feedback: Material(
         color: Colors.transparent,
         child: SizedBox(

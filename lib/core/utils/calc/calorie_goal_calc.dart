@@ -21,8 +21,7 @@ class CalorieGoalCalc {
   static double getDailyKcalLeft(
     double totalKcalGoal,
     double totalKcalIntake,
-  ) =>
-      totalKcalGoal - totalKcalIntake;
+  ) => totalKcalGoal - totalKcalIntake;
 
   static double getTdee(UserEntity userEntity) =>
       TDEECalc.getTDEEKcalIOM2005(userEntity);
@@ -53,8 +52,10 @@ class CalorieGoalCalc {
         totalKcalActivities;
   }
 
-  static double getKcalGoalAdjustment(UserWeightGoalEntity goal,
-      {double? weeklyWeightGoalKg}) {
+  static double getKcalGoalAdjustment(
+    UserWeightGoalEntity goal, {
+    double? weeklyWeightGoalKg,
+  }) {
     if (weeklyWeightGoalKg != null) {
       return weeklyWeightGoalKg * _kcalPerKgPerWeekDaily;
     }
@@ -145,7 +146,8 @@ class CalorieGoalCalc {
     required UserGenderEntity gender,
     CaloriesProfileEntity? caloriesProfile,
   }) {
-    final usesMaleFloor = gender == UserGenderEntity.male ||
+    final usesMaleFloor =
+        gender == UserGenderEntity.male ||
         caloriesProfile == CaloriesProfileEntity.testosteroneTypical;
     return usesMaleFloor
         ? Ranges.minRecommendedDailyKcalMale

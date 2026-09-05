@@ -32,12 +32,12 @@ class ScopedHiveDBProvider extends HiveDBProvider {
     required Box<ConfigDBO> configBox,
     required Box<UserActivityDBO> userActivityBox,
     required Box<ConfigDBO> appConfigBox,
-  })  : _intake = intakeBox,
-        _trackedDay = trackedDayBox,
-        _user = userBox,
-        _config = configBox,
-        _userActivity = userActivityBox,
-        _appConfig = appConfigBox;
+  }) : _intake = intakeBox,
+       _trackedDay = trackedDayBox,
+       _user = userBox,
+       _config = configBox,
+       _userActivity = userActivityBox,
+       _appConfig = appConfigBox;
 
   @override
   Box<IntakeDBO> get intakeBox => _intake;

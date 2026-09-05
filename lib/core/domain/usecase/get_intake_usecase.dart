@@ -29,69 +29,81 @@ class GetIntakeUsecase {
     DateTime day, {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
-  }) async =>
-      await _getIntakeByDay(IntakeTypeEntity.breakfast, day,
-          dayStartOffsetHours: dayStartOffsetHours,
-          dayStartOffsetMinutes: dayStartOffsetMinutes);
+  }) async => await _getIntakeByDay(
+    IntakeTypeEntity.breakfast,
+    day,
+    dayStartOffsetHours: dayStartOffsetHours,
+    dayStartOffsetMinutes: dayStartOffsetMinutes,
+  );
 
   Future<List<IntakeEntity>> getTodayBreakfastIntake({
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
-  }) async =>
-      getBreakfastIntakeByDay(DateTime.now(),
-          dayStartOffsetHours: dayStartOffsetHours,
-          dayStartOffsetMinutes: dayStartOffsetMinutes);
+  }) async => getBreakfastIntakeByDay(
+    DateTime.now(),
+    dayStartOffsetHours: dayStartOffsetHours,
+    dayStartOffsetMinutes: dayStartOffsetMinutes,
+  );
 
   Future<List<IntakeEntity>> getLunchIntakeByDay(
     DateTime day, {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
-  }) async =>
-      await _getIntakeByDay(IntakeTypeEntity.lunch, day,
-          dayStartOffsetHours: dayStartOffsetHours,
-          dayStartOffsetMinutes: dayStartOffsetMinutes);
+  }) async => await _getIntakeByDay(
+    IntakeTypeEntity.lunch,
+    day,
+    dayStartOffsetHours: dayStartOffsetHours,
+    dayStartOffsetMinutes: dayStartOffsetMinutes,
+  );
 
   Future<List<IntakeEntity>> getTodayLunchIntake({
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
-  }) async =>
-      await getLunchIntakeByDay(DateTime.now(),
-          dayStartOffsetHours: dayStartOffsetHours,
-          dayStartOffsetMinutes: dayStartOffsetMinutes);
+  }) async => await getLunchIntakeByDay(
+    DateTime.now(),
+    dayStartOffsetHours: dayStartOffsetHours,
+    dayStartOffsetMinutes: dayStartOffsetMinutes,
+  );
 
   Future<List<IntakeEntity>> getDinnerIntakeByDay(
     DateTime day, {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
-  }) async =>
-      await _getIntakeByDay(IntakeTypeEntity.dinner, day,
-          dayStartOffsetHours: dayStartOffsetHours,
-          dayStartOffsetMinutes: dayStartOffsetMinutes);
+  }) async => await _getIntakeByDay(
+    IntakeTypeEntity.dinner,
+    day,
+    dayStartOffsetHours: dayStartOffsetHours,
+    dayStartOffsetMinutes: dayStartOffsetMinutes,
+  );
 
   Future<List<IntakeEntity>> getTodayDinnerIntake({
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
-  }) async =>
-      await getDinnerIntakeByDay(DateTime.now(),
-          dayStartOffsetHours: dayStartOffsetHours,
-          dayStartOffsetMinutes: dayStartOffsetMinutes);
+  }) async => await getDinnerIntakeByDay(
+    DateTime.now(),
+    dayStartOffsetHours: dayStartOffsetHours,
+    dayStartOffsetMinutes: dayStartOffsetMinutes,
+  );
 
   Future<List<IntakeEntity>> getSnackIntakeByDay(
     DateTime day, {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
-  }) async =>
-      await _getIntakeByDay(IntakeTypeEntity.snack, day,
-          dayStartOffsetHours: dayStartOffsetHours,
-          dayStartOffsetMinutes: dayStartOffsetMinutes);
+  }) async => await _getIntakeByDay(
+    IntakeTypeEntity.snack,
+    day,
+    dayStartOffsetHours: dayStartOffsetHours,
+    dayStartOffsetMinutes: dayStartOffsetMinutes,
+  );
 
   Future<List<IntakeEntity>> getTodaySnackIntake({
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
-  }) async =>
-      await getSnackIntakeByDay(DateTime.now(),
-          dayStartOffsetHours: dayStartOffsetHours,
-          dayStartOffsetMinutes: dayStartOffsetMinutes);
+  }) async => await getSnackIntakeByDay(
+    DateTime.now(),
+    dayStartOffsetHours: dayStartOffsetHours,
+    dayStartOffsetMinutes: dayStartOffsetMinutes,
+  );
 
   Future<List<IntakeEntity>> getRecentIntake() async {
     return _intakeRepository.getRecentIntake();

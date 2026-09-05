@@ -25,7 +25,9 @@ void main() {
     test('returns last added first', () async {
       final box = await Hive.openBox<IntakeDBO>('intake_test');
 
-      final repo = IntakeRepository(IntakeDataSource(FakeHiveDBProvider(intakeBox: box)));
+      final repo = IntakeRepository(
+        IntakeDataSource(FakeHiveDBProvider(intakeBox: box)),
+      );
 
       await repo.addIntake(
         IntakeEntity(

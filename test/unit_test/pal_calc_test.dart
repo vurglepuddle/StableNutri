@@ -21,22 +21,26 @@ void main() {
     test('maps each category to its IOM PAL band', () {
       expect(
         PalCalc.getPALValueFromActivityCategory(
-            _user(UserGenderEntity.male, UserPALEntity.sedentary)),
+          _user(UserGenderEntity.male, UserPALEntity.sedentary),
+        ),
         1.25,
       );
       expect(
         PalCalc.getPALValueFromActivityCategory(
-            _user(UserGenderEntity.male, UserPALEntity.lowActive)),
+          _user(UserGenderEntity.male, UserPALEntity.lowActive),
+        ),
         1.5,
       );
       expect(
         PalCalc.getPALValueFromActivityCategory(
-            _user(UserGenderEntity.male, UserPALEntity.active)),
+          _user(UserGenderEntity.male, UserPALEntity.active),
+        ),
         1.75,
       );
       expect(
         PalCalc.getPALValueFromActivityCategory(
-            _user(UserGenderEntity.male, UserPALEntity.veryActive)),
+          _user(UserGenderEntity.male, UserPALEntity.veryActive),
+        ),
         2.2,
       );
     });

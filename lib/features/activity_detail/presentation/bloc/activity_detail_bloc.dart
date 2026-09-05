@@ -49,11 +49,7 @@ class ActivityDetailBloc
       final user = await _getUserUsecase.getUserData();
       final totalBurnedKcal = isCustom
           ? 0.0
-          : getTotalKcalBurned(
-              user,
-              event.physicalActivity,
-              quantityDefault,
-            );
+          : getTotalKcalBurned(user, event.physicalActivity, quantityDefault);
 
       emit(
         ActivityDetailLoadedState(

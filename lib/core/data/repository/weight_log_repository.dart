@@ -8,7 +8,9 @@ class WeightLogRepository {
   WeightLogRepository(this._weightLogDataSource);
 
   Future<void> addEntry(WeightLogEntity entry) async {
-    await _weightLogDataSource.addEntry(WeightLogDBO.fromWeightLogEntity(entry));
+    await _weightLogDataSource.addEntry(
+      WeightLogDBO.fromWeightLogEntity(entry),
+    );
   }
 
   Future<void> addAllEntries(List<WeightLogDBO> entries) async {

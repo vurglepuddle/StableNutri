@@ -98,7 +98,7 @@ class QuickWeightWidget extends StatelessWidget {
                         displayStr,
                         style: textTheme.labelLarge?.copyWith(
                           color: palette.textStrong,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       if (corridorRange != null && corridorStatus != null)

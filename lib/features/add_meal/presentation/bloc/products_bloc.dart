@@ -26,7 +26,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   String? _completedQuery;
 
   ProductsBloc(this._searchProductUseCase, this._getConfigUsecase)
-      : super(ProductsInitial()) {
+    : super(ProductsInitial()) {
     on<LoadProductsEvent>(
       (event, emit) => _loadProducts(event.searchString, emit, force: true),
     );
@@ -46,11 +46,13 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
           _searchString,
         );
         if (emit.isDone) return;
-        emit(ProductsLoadedState(
-          products: result.meals,
-          remoteSourceEmpty: result.remoteSourceEmpty,
-          query: _searchString,
-        ));
+        emit(
+          ProductsLoadedState(
+            products: result.meals,
+            remoteSourceEmpty: result.remoteSourceEmpty,
+            query: _searchString,
+          ),
+        );
         _completedQuery = _searchString;
       } catch (error) {
         log.severe(error);

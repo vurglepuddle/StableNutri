@@ -66,10 +66,7 @@ void main() {
       }
       // At offset 15 or higher, 14:00 has not yet reached today's
       // boundary, so it still belongs to yesterday.
-      expect(
-        DayBoundaryCalc.logicalDayOf(moment, 15),
-        DateTime(2024, 1, 14),
-      );
+      expect(DayBoundaryCalc.logicalDayOf(moment, 15), DateTime(2024, 1, 14));
     });
 
     test('offset 23: only the 23:00-23:59 window stays in today', () {
@@ -89,10 +86,7 @@ void main() {
       // Fresh installs and existing users have no stored offset; null
       // should keep them on wall-clock midnight.
       final moment = DateTime(2024, 1, 15, 2, 0);
-      expect(
-        DayBoundaryCalc.logicalDayOf(moment, null),
-        DateTime(2024, 1, 15),
-      );
+      expect(DayBoundaryCalc.logicalDayOf(moment, null), DateTime(2024, 1, 15));
     });
 
     test('out-of-range offsets clamp to 0', () {
@@ -100,18 +94,9 @@ void main() {
       // the diary into an impossible state. Anything outside 0-23 is
       // treated as the default.
       final moment = DateTime(2024, 1, 15, 2, 0);
-      expect(
-        DayBoundaryCalc.logicalDayOf(moment, -1),
-        DateTime(2024, 1, 15),
-      );
-      expect(
-        DayBoundaryCalc.logicalDayOf(moment, 24),
-        DateTime(2024, 1, 15),
-      );
-      expect(
-        DayBoundaryCalc.logicalDayOf(moment, 999),
-        DateTime(2024, 1, 15),
-      );
+      expect(DayBoundaryCalc.logicalDayOf(moment, -1), DateTime(2024, 1, 15));
+      expect(DayBoundaryCalc.logicalDayOf(moment, 24), DateTime(2024, 1, 15));
+      expect(DayBoundaryCalc.logicalDayOf(moment, 999), DateTime(2024, 1, 15));
     });
   });
 

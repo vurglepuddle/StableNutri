@@ -95,7 +95,7 @@ class ConfigEntity extends Equatable {
   final double? weightCorridorLowerKg;
   final double? weightCorridorUpperKg;
 
-  /// Default daily water goal in millilitres for the home chip when the
+  /// Default daily water goal in millilitres for the home water card when the
   /// user has not picked one yet.
   ///
   /// The popular "8 × 8 oz = 2 L of plain water" target has no
@@ -172,7 +172,7 @@ class ConfigEntity extends Equatable {
     this.weightCorridorUpperKg,
   });
 
-  /// Resolves the daily water goal for the home chip. Returns the user's
+  /// Resolves the daily water goal for the home water card. Returns the user's
   /// stored override if one exists, otherwise the gendered seed default
   /// derived from EFSA 2010 (see [defaultDailyWaterGoalMl] for the full
   /// reasoning and citations). Non-binary users fall back to the same

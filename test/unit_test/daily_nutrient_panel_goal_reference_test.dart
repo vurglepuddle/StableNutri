@@ -182,14 +182,8 @@ void main() {
     test('falls back to gender-aware iron default when goal is null', () {
       // The caller supplies the gender-based default so the helper
       // stays pure — passing 18 here simulates the female fallback.
-      expect(
-        DailyNutrientPanel.resolveIronReference(null, 18.0),
-        18.0,
-      );
-      expect(
-        DailyNutrientPanel.resolveIronReference(trackedDay(), 8.0),
-        8.0,
-      );
+      expect(DailyNutrientPanel.resolveIronReference(null, 18.0), 18.0);
+      expect(DailyNutrientPanel.resolveIronReference(trackedDay(), 8.0), 8.0);
     });
 
     test('uses user iron goal when set on the tracked day', () {

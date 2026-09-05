@@ -19,8 +19,10 @@ class EnergyDisplay {
   /// safe to call from event handlers that don't need to rebuild on
   /// change.
   static String unitLabelStatic(BuildContext context) {
-    final useKj =
-        Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
+    final useKj = Provider.of<EnergyUnitProvider>(
+      context,
+      listen: false,
+    ).usesKilojoules;
     return useKj ? S.of(context).kjLabel : S.of(context).kcalLabel;
   }
 

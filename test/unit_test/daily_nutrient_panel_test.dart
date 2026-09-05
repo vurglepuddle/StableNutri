@@ -197,8 +197,10 @@ void main() {
     });
 
     test('empty week window yields zeros, not NaN', () {
-      final totals = NutrientPanelTotals.fromIntakes(<IntakeEntity>[],
-          weekly: true);
+      final totals = NutrientPanelTotals.fromIntakes(
+        <IntakeEntity>[],
+        weekly: true,
+      );
       expect(totals.fiberG, 0.0);
       expect(totals.ironMg, 0.0);
       expect(totals.vitaminB12Mcg, 0.0);
@@ -208,12 +210,12 @@ void main() {
   group('ConfigEntity.isNutrientVisible', () {
     /// A minimal config — most fields don't matter for visibility behaviour.
     ConfigEntity withVisibility(Map<String, bool> v) => ConfigEntity(
-          false,
-          false,
-          false,
-          AppThemeEntity.system,
-          nutrientPanelVisibility: v,
-        );
+      false,
+      false,
+      false,
+      AppThemeEntity.system,
+      nutrientPanelVisibility: v,
+    );
 
     test('defaults to visible when the map is empty', () {
       final config = withVisibility(const {});
@@ -235,9 +237,7 @@ void main() {
     });
 
     test('honours explicit true overrides as a no-op', () {
-      final config = withVisibility(const {
-        NutrientPanelKeys.iron: true,
-      });
+      final config = withVisibility(const {NutrientPanelKeys.iron: true});
       expect(config.isNutrientVisible(NutrientPanelKeys.iron), isTrue);
     });
   });

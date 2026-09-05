@@ -20,6 +20,7 @@ class AppPalette {
   final Color carbsColor;
   final Color fatColor;
   final Color proteinColor;
+  final Color waterColor; // hydration blue — fixed, like the macro trio
   final Color textStrong;
   final Color textMuted;
 
@@ -35,6 +36,7 @@ class AppPalette {
     required this.carbsColor,
     required this.fatColor,
     required this.proteinColor,
+    required this.waterColor,
     required this.textStrong,
     required this.textMuted,
   });
@@ -42,6 +44,7 @@ class AppPalette {
   Color get carbs => carbsColor;
   Color get fat => fatColor;
   Color get protein => proteinColor;
+  Color get water => waterColor;
 
   static const light = AppPalette(
     brightness: Brightness.light,
@@ -57,6 +60,7 @@ class AppPalette {
     carbsColor: Color(0xFFB87410),
     fatColor: Color(0xFFD05536),
     proteinColor: Color(0xFF1F8E80),
+    waterColor: Color(0xFF2E74B5),
     textStrong: Color(0xFF2B2A27),
     // Darkened from #8A857C (~3.5:1) to ~4.6:1 so secondary text passes AA.
     textMuted: Color(0xFF6E685E),
@@ -74,6 +78,7 @@ class AppPalette {
     carbsColor: Color(0xFFF2B45A),
     fatColor: Color(0xFFFF937B),
     proteinColor: Color(0xFF49C9B8),
+    waterColor: Color(0xFF6BB4EC),
     textStrong: Color(0xFFECE8E1),
     textMuted: Color(0xFFA39E94),
   );
@@ -82,7 +87,8 @@ class AppPalette {
   /// harmonized Material You primary). The neutral canvas, surfaces and macro
   /// colours are untouched, so only the one vivid role follows the user.
   AppPalette withAccent(Color newAccent) {
-    final onNew = ThemeData.estimateBrightnessForColor(newAccent) == Brightness.dark
+    final onNew =
+        ThemeData.estimateBrightnessForColor(newAccent) == Brightness.dark
         ? Colors.white
         : const Color(0xFF20201C);
     return AppPalette(
@@ -97,38 +103,43 @@ class AppPalette {
       carbsColor: carbsColor,
       fatColor: fatColor,
       proteinColor: proteinColor,
+      waterColor: waterColor,
       textStrong: textStrong,
       textMuted: textMuted,
     );
   }
 
   ColorScheme get colorScheme => ColorScheme(
-        brightness: brightness,
-        primary: accent,
-        onPrimary: onAccent,
-        primaryContainer: accent,
-        onPrimaryContainer: onAccent,
-        secondary: proteinColor,
-        onSecondary: onAccent,
-        secondaryContainer: surfaceMuted,
-        onSecondaryContainer: textStrong,
-        tertiary: carbsColor,
-        onTertiary: onAccent,
-        tertiaryContainer: surfaceMuted,
-        onTertiaryContainer: textStrong,
-        error: brightness == Brightness.light ? const Color(0xFFC4453A) : const Color(0xFFFFB4AB),
-        onError: brightness == Brightness.light ? Colors.white : const Color(0xFF690005),
-        surface: surface,
-        onSurface: textStrong,
-        surfaceContainerLowest: canvas,
-        surfaceContainerLow: canvas,
-        surfaceContainer: surfaceMuted,
-        surfaceContainerHigh: surfaceMuted,
-        surfaceContainerHighest: surfaceMuted,
-        onSurfaceVariant: textMuted,
-        outline: border,
-        outlineVariant: border,
-        surfaceTint: Colors.transparent,
-        shadow: shadow,
-      );
+    brightness: brightness,
+    primary: accent,
+    onPrimary: onAccent,
+    primaryContainer: accent,
+    onPrimaryContainer: onAccent,
+    secondary: proteinColor,
+    onSecondary: onAccent,
+    secondaryContainer: surfaceMuted,
+    onSecondaryContainer: textStrong,
+    tertiary: carbsColor,
+    onTertiary: onAccent,
+    tertiaryContainer: surfaceMuted,
+    onTertiaryContainer: textStrong,
+    error: brightness == Brightness.light
+        ? const Color(0xFFC4453A)
+        : const Color(0xFFFFB4AB),
+    onError: brightness == Brightness.light
+        ? Colors.white
+        : const Color(0xFF690005),
+    surface: surface,
+    onSurface: textStrong,
+    surfaceContainerLowest: canvas,
+    surfaceContainerLow: canvas,
+    surfaceContainer: surfaceMuted,
+    surfaceContainerHigh: surfaceMuted,
+    surfaceContainerHighest: surfaceMuted,
+    onSurfaceVariant: textMuted,
+    outline: border,
+    outlineVariant: border,
+    surfaceTint: Colors.transparent,
+    shadow: shadow,
+  );
 }

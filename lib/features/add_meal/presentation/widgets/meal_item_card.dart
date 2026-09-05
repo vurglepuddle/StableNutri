@@ -40,7 +40,9 @@ class MealItemCard extends StatelessWidget {
     // noun reliably identifies the food ("Milk, fluid, nonfat..." → milk).
     // OFF products are branded, so a head-noun match would often be
     // misleading; they keep the outline icon as a placeholder.
-    final emoji = (mealEntity.thumbnailImageUrl == null && mealEntity.source == MealSourceEntity.fdc)
+    final emoji =
+        (mealEntity.thumbnailImageUrl == null &&
+            mealEntity.source == MealSourceEntity.fdc)
         ? resolveFoodEmoji(mealEntity.name)
         : null;
     return Padding(
@@ -61,15 +63,14 @@ class MealItemCard extends StatelessWidget {
                     TextSpan(
                       text: mealEntity.name ?? "?",
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: palette.textStrong,
-                          ),
+                        fontWeight: FontWeight.w600,
+                        color: palette.textStrong,
+                      ),
                       children: [
                         TextSpan(
                           text: ' ${mealEntity.brands ?? ""}',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: palette.textMuted,
-                              ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: palette.textMuted),
                         ),
                       ],
                     ),
@@ -88,7 +89,9 @@ class MealItemCard extends StatelessWidget {
                 style: IconButton.styleFrom(
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   backgroundColor: accent,
-                  shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: Dimens.borderRadiusM,
+                  ),
                 ),
                 icon: const Icon(Icons.add_rounded, size: 24),
                 onPressed: () => _onItemPressed(context),
@@ -140,7 +143,12 @@ class MealItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSubtitle(BuildContext context, AppPalette palette, Color accent, bool isRecipe) {
+  Widget _buildSubtitle(
+    BuildContext context,
+    AppPalette palette,
+    Color accent,
+    bool isRecipe,
+  ) {
     if (isRecipe) {
       return _labelChip(
         context,
@@ -203,7 +211,10 @@ class MealItemCard extends StatelessWidget {
     required Color foreground,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing8, vertical: Dimens.spacing4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: Dimens.spacing8,
+        vertical: Dimens.spacing4,
+      ),
       decoration: BoxDecoration(
         color: background,
         borderRadius: Dimens.borderRadiusS,
@@ -211,9 +222,9 @@ class MealItemCard extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: foreground,
-              fontWeight: FontWeight.w700,
-            ),
+          color: foreground,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

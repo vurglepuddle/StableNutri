@@ -21,8 +21,9 @@ class CustomActivityTemplateDataSource {
 
   Future<void> addTemplate(CustomActivityTemplateDBO template) async {
     log.fine('Saving custom activity template "${template.name}"');
-    final existing =
-        _box.values.firstWhereOrNull((dbo) => dbo.name == template.name);
+    final existing = _box.values.firstWhereOrNull(
+      (dbo) => dbo.name == template.name,
+    );
     if (existing != null) {
       await existing.delete();
     }

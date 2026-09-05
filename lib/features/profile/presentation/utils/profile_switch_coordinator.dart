@@ -42,10 +42,9 @@ class ProfileSwitchCoordinator {
 
     if (hasUserData) {
       reloadTabBlocs();
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        NavigationOptions.mainRoute,
-        (route) => false,
-      );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(NavigationOptions.mainRoute, (route) => false);
     } else {
       Navigator.of(context).pushNamedAndRemoveUntil(
         NavigationOptions.onboardingRoute,

@@ -33,8 +33,9 @@ class UserActivityDataSource {
     double? userKcal,
   }) async {
     log.fine('Updating user activity in db');
-    final existing =
-        _userActivityBox.values.firstWhereOrNull((dbo) => dbo.id == id);
+    final existing = _userActivityBox.values.firstWhereOrNull(
+      (dbo) => dbo.id == id,
+    );
     if (existing == null) return null;
     final updated = UserActivityDBO(
       existing.id,
@@ -71,8 +72,8 @@ class UserActivityDataSource {
     // #139: see IntakeDataSource for the rationale — a zero total offset
     // preserves the original wall-clock day behaviour. The follow-up to
     // #139 adds the minutes companion which composes additively here.
-    final totalMinutes = dayStartOffsetHours * 60 +
-        dayStartOffsetMinutes.clamp(0, 59);
+    final totalMinutes =
+        dayStartOffsetHours * 60 + dayStartOffsetMinutes.clamp(0, 59);
     if (totalMinutes == 0) {
       return _userActivityBox.values
           .where((activity) => DateUtils.isSameDay(dateTime, activity.date))
@@ -89,14 +90,13 @@ class UserActivityDataSource {
         .toList();
   }
 
-  Future<List<UserActivityDBO>> getRecentlyAddedUserActivity(
-      {int number = 100}) async {
+  Future<List<UserActivityDBO>> getRecentlyAddedUserActivity({
+    int number = 100,
+  }) async {
     final userActivities = _userActivityBox.values.toList();
 
     //  sort list by date descending and filter unique activities
-    userActivities.sort(
-      (a, b) => b.date.compareTo(a.date),
-    );
+    userActivities.sort((a, b) => b.date.compareTo(a.date));
 
     final filterActivityCodes = <String>{};
     final uniqueUserActivities = userActivities

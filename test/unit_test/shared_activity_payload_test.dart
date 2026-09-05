@@ -50,24 +50,26 @@ void main() {
       );
     });
 
-    test('oversized decompressed payload throws SharedActivityParseException',
-        () {
-      // 1 MiB of repeated bytes compresses to ~1 KiB but expands well
-      // past the 64 KiB cap on decode. A malicious QR could in
-      // principle ship something like this.
-      final blob = List<int>.filled(1024 * 1024, 0x43);
-      final compressed = gzip.encode(blob);
-      final raw = base64Url.encode(compressed);
-      expect(
-        () => SharedActivityPayload.fromJsonString(raw),
-        throwsA(
-          isA<SharedActivityParseException>().having(
-            (e) => e.message,
-            'message',
-            contains('too large'),
+    test(
+      'oversized decompressed payload throws SharedActivityParseException',
+      () {
+        // 1 MiB of repeated bytes compresses to ~1 KiB but expands well
+        // past the 64 KiB cap on decode. A malicious QR could in
+        // principle ship something like this.
+        final blob = List<int>.filled(1024 * 1024, 0x43);
+        final compressed = gzip.encode(blob);
+        final raw = base64Url.encode(compressed);
+        expect(
+          () => SharedActivityPayload.fromJsonString(raw),
+          throwsA(
+            isA<SharedActivityParseException>().having(
+              (e) => e.message,
+              'message',
+              contains('too large'),
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   });
 }

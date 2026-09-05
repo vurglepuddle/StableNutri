@@ -1,5 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:opennutritracker/core/presentation/widgets/chart_value_axis.dart';
 import 'package:opennutritracker/core/domain/entity/body_measurement_log_entity.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
@@ -33,7 +35,9 @@ class BodyMeasurementTrendChart extends StatelessWidget {
     final start = today.subtract(Duration(days: windowDays - 1));
     final points = [
       for (final entry in entries)
-        if (!entry.date.isBefore(start) && entry.valueFor(type) != null)
+        if (!entry.date.isBefore(start) &&
+            !entry.date.isAfter(today) &&
+            entry.valueFor(type) != null)
           (
             date: DateTime(entry.date.year, entry.date.month, entry.date.day),
             value: _display(entry.valueFor(type)!),
@@ -70,100 +74,136 @@ class BodyMeasurementTrendChart extends StatelessWidget {
       label: S.of(context).measurementsChartSemantics(points.length),
       child: SizedBox(
         height: 156,
-        child: LineChart(
-          LineChartData(
-            minX: 0,
-            maxX: (windowDays - 1).toDouble(),
-            minY: minValue - padding,
-            maxY: maxValue + padding,
-            clipData: const FlClipData.all(),
-            gridData: FlGridData(
-              show: true,
-              drawVerticalLine: false,
-              getDrawingHorizontalLine: (_) =>
-                  FlLine(color: palette.border, strokeWidth: 1),
-            ),
-            borderData: FlBorderData(show: false),
-            lineTouchData: LineTouchData(
-              touchTooltipData: LineTouchTooltipData(
-                getTooltipItems: (spots) => [
-                  for (final spot in spots)
-                    LineTooltipItem(
-                      spot.y.toStringAsFixed(1),
-                      TextStyle(
-                        color: Theme.of(context).colorScheme.onInverseSurface,
-                        fontWeight: FontWeight.w700,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final style = Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: palette.textMuted);
+            final locale = Localizations.localeOf(context).toLanguageTag();
+            var dateFormat = windowDays > 365
+                ? DateFormat.yMMM(locale)
+                : DateFormat.MMMd(locale);
+            Size measureDates() {
+              var size = Size.zero;
+              for (final date in [start, today]) {
+                final painter = TextPainter(
+                  text: TextSpan(
+                    text: dateFormat.format(date),
+                    style: DefaultTextStyle.of(context).style.merge(style),
+                  ),
+                  textDirection: Directionality.of(context),
+                  textScaler: MediaQuery.textScalerOf(context),
+                  maxLines: 1,
+                )..layout();
+                size = Size(
+                  size.width > painter.width ? size.width : painter.width,
+                  size.height > painter.height ? size.height : painter.height,
+                );
+                painter.dispose();
+              }
+              return size;
+            }
+
+            var dateSize = measureDates();
+            if (dateSize.width * 2 + 16 > constraints.maxWidth) {
+              dateFormat = windowDays > 365
+                  ? DateFormat.y(locale)
+                  : DateFormat.Md(locale);
+              dateSize = measureDates();
+            }
+            final valueAxis = ChartValueAxis(
+              context: context,
+              min: minValue - padding,
+              max: maxValue + padding,
+              height: constraints.maxHeight - dateSize.height - 12,
+              style: style,
+              keyPrefix: 'measurement-chart-value-',
+            );
+            return Column(
+              children: [
+                Expanded(
+                  child: LineChart(
+                    LineChartData(
+                      minX: 0,
+                      maxX: (windowDays - 1).toDouble(),
+                      minY: minValue - padding,
+                      maxY: maxValue + padding,
+                      clipData: const FlClipData.all(),
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: false,
+                        getDrawingHorizontalLine: (_) =>
+                            FlLine(color: palette.border, strokeWidth: 1),
                       ),
-                    ),
-                ],
-              ),
-            ),
-            titlesData: FlTitlesData(
-              topTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false),
-              ),
-              rightTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false),
-              ),
-              leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 38,
-                  getTitlesWidget: (value, meta) => SideTitleWidget(
-                    meta: meta,
-                    child: Text(
-                      value.toStringAsFixed(0),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: palette.textMuted,
+                      borderData: FlBorderData(show: false),
+                      lineTouchData: LineTouchData(
+                        touchTooltipData: LineTouchTooltipData(
+                          getTooltipItems: (spots) => [
+                            for (final spot in spots)
+                              LineTooltipItem(
+                                spot.y.toStringAsFixed(1),
+                                TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onInverseSurface,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
+                      titlesData: FlTitlesData(
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        leftTitles: AxisTitles(sideTitles: valueAxis.titles),
+                        bottomTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                      ),
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: [
+                            for (final point in points)
+                              FlSpot(
+                                point.date.difference(start).inDays.toDouble(),
+                                point.value,
+                              ),
+                          ],
+                          isCurved: true,
+                          preventCurveOverShooting: true,
+                          color: primary,
+                          barWidth: 3,
+                          dotData: FlDotData(show: points.length <= 10),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            color: primary.withValues(alpha: 0.1),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  interval: (windowDays - 1).toDouble(),
-                  reservedSize: 28,
-                  getTitlesWidget: (value, meta) {
-                    if (value != 0 && value.round() != windowDays - 1) {
-                      return const SizedBox.shrink();
-                    }
-                    final date = start.add(Duration(days: value.round()));
-                    return SideTitleWidget(
-                      meta: meta,
-                      child: Text(
-                        MaterialLocalizations.of(context).formatShortDate(date),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: palette.textMuted,
-                        ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    for (final day in [0, windowDays - 1])
+                      Text(
+                        dateFormat.format(start.add(Duration(days: day))),
+                        key: ValueKey('measurement-chart-date-$day'),
+                        maxLines: 1,
+                        softWrap: false,
+                        style: style,
                       ),
-                    );
-                  },
+                  ],
                 ),
-              ),
-            ),
-            lineBarsData: [
-              LineChartBarData(
-                spots: [
-                  for (final point in points)
-                    FlSpot(
-                      point.date.difference(start).inDays.toDouble(),
-                      point.value,
-                    ),
-                ],
-                isCurved: true,
-                preventCurveOverShooting: true,
-                color: primary,
-                barWidth: 3,
-                dotData: FlDotData(show: points.length <= 10),
-                belowBarData: BarAreaData(
-                  show: true,
-                  color: primary.withValues(alpha: 0.1),
-                ),
-              ),
-            ],
-          ),
+              ],
+            );
+          },
         ),
       ),
     );

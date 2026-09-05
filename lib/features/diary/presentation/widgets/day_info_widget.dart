@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/day_water_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
@@ -25,6 +27,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
 class DayInfoWidget extends StatefulWidget {
+  final List<WaterIntakeEntity> waterEntries;
   final DateTime selectedDay;
   final TrackedDayEntity? trackedDayEntity;
   final List<UserActivityEntity> userActivities;
@@ -79,6 +82,7 @@ class DayInfoWidget extends StatefulWidget {
 
   const DayInfoWidget({
     super.key,
+    this.waterEntries = const [],
     required this.selectedDay,
     required this.trackedDayEntity,
     required this.userActivities,
@@ -207,6 +211,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 ? Padding(
                     padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16),
                     child: AppCard(
+                      width: double.infinity,
                       padding: const EdgeInsets.fromLTRB(
                         Dimens.spacing20,
                         Dimens.spacing20,
@@ -214,7 +219,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                         Dimens.spacing20,
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -229,6 +234,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                             child: Text(
                               _getCaloriesTrackedDisplayString(
                                   context, trackedDay),
+                              textAlign: TextAlign.center,
                               style: textTheme.titleLarge?.copyWith(
                                 color: widget.trackedDayEntity
                                     ?.getRatingDayTextColor(context),
@@ -378,6 +384,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onSortTypeChanged: (sort) =>
                     _setSortFor(IntakeTypeEntity.snack, sort),
               ),
+            DayWaterWidget(entries: widget.waterEntries),
             const SizedBox(height: Dimens.spacing16),
           ],
         ),

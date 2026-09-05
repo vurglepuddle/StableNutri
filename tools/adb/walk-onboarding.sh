@@ -23,9 +23,9 @@ walk_onboarding() {
   echo "  walk_onboarding: waiting for intro page..."
   wait_for_id 'onboarding-checkbox-privacy' 20 || return 1
 
-  echo "  page 0 — privacy + data collection"
+  # The data-collection checkbox is gone: Stable collects nothing.
+  echo "  page 0 — privacy"
   tap_id 'onboarding-checkbox-privacy' || return 1; sleep 0.3
-  tap_id 'onboarding-checkbox-data'    || return 1; sleep 0.3
   tap_id 'onboarding-button'           || return 1; sleep 1
 
   echo "  page 1 — gender + birthday"

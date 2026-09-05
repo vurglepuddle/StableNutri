@@ -21,6 +21,7 @@ class AppPalette {
   final Color fatColor;
   final Color proteinColor;
   final Color waterColor; // hydration blue — fixed, like the macro trio
+  final Color overRangeColor; // gentle peach for intake past the range
   final Color textStrong;
   final Color textMuted;
 
@@ -37,6 +38,7 @@ class AppPalette {
     required this.fatColor,
     required this.proteinColor,
     required this.waterColor,
+    required this.overRangeColor,
     required this.textStrong,
     required this.textMuted,
   });
@@ -45,6 +47,7 @@ class AppPalette {
   Color get fat => fatColor;
   Color get protein => proteinColor;
   Color get water => waterColor;
+  Color get overRange => overRangeColor;
 
   static const light = AppPalette(
     brightness: Brightness.light,
@@ -61,6 +64,7 @@ class AppPalette {
     fatColor: Color(0xFFD05536),
     proteinColor: Color(0xFF1F8E80),
     waterColor: Color(0xFF2E74B5),
+    overRangeColor: Color(0xFFE0906F),
     textStrong: Color(0xFF2B2A27),
     // Darkened from #8A857C (~3.5:1) to ~4.6:1 so secondary text passes AA.
     textMuted: Color(0xFF6E685E),
@@ -79,6 +83,7 @@ class AppPalette {
     fatColor: Color(0xFFFF937B),
     proteinColor: Color(0xFF49C9B8),
     waterColor: Color(0xFF6BB4EC),
+    overRangeColor: Color(0xFFF0A98A),
     textStrong: Color(0xFFECE8E1),
     textMuted: Color(0xFFA39E94),
   );
@@ -104,6 +109,7 @@ class AppPalette {
       fatColor: fatColor,
       proteinColor: proteinColor,
       waterColor: waterColor,
+      overRangeColor: overRangeColor,
       textStrong: textStrong,
       textMuted: textMuted,
     );

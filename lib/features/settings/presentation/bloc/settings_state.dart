@@ -24,6 +24,7 @@ class SettingsLoadedState extends SettingsState {
   final BodyWeightUnit bodyWeightUnit;
   final bool showActivityTracking;
   final bool showMealMacros;
+  final bool usesRangeGauge;
   final bool notificationsEnabled;
   final int notificationHour;
   final int notificationMinute;
@@ -51,6 +52,7 @@ class SettingsLoadedState extends SettingsState {
     this.bodyWeightUnit = BodyWeightUnit.kg,
     this.showActivityTracking = true,
     this.showMealMacros = true,
+    this.usesRangeGauge = true,
     this.notificationsEnabled = false,
     this.notificationHour = 8,
     this.notificationMinute = 0,
@@ -80,6 +82,7 @@ class SettingsLoadedState extends SettingsState {
     bodyWeightUnit,
     showActivityTracking,
     showMealMacros,
+    usesRangeGauge,
     notificationsEnabled,
     notificationHour,
     notificationMinute,

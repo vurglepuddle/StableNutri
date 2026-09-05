@@ -80,6 +80,10 @@ class ConfigRepository {
     await _configDataSource.setConfigShowActivityTracking(show);
   }
 
+  Future<void> setConfigUsesRangeGauge(bool usesRangeGauge) async {
+    await _configDataSource.setConfigUsesRangeGauge(usesRangeGauge);
+  }
+
   Future<void> setConfigShowMealMacros(bool show) async {
     await _configDataSource.setConfigShowMealMacros(show);
   }

@@ -64,6 +64,10 @@ class AddConfigUsecase {
     _configRepository.setConfigShowActivityTracking(show);
   }
 
+  Future<void> setConfigUsesRangeGauge(bool usesRangeGauge) async {
+    _configRepository.setConfigUsesRangeGauge(usesRangeGauge);
+  }
+
   Future<void> setConfigShowMealMacros(bool show) async {
     _configRepository.setConfigShowMealMacros(show);
   }

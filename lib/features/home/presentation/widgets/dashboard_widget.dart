@@ -5,7 +5,9 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/stable_range_calc.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/core/utils/calorie_gauge_provider.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/calorie_range_bar.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -44,6 +46,9 @@ class _DashboardWidgetState extends State<DashboardWidget> {
   @override
   Widget build(BuildContext context) {
     final usesKilojoules = context.watch<EnergyUnitProvider>().usesKilojoules;
+    // Both gauges read the same numbers; only the shape differs, so the
+    // choice lives in a provider rather than in HomeBloc's state.
+    final usesRangeGauge = context.watch<CalorieGaugeProvider>().usesRangeGauge;
     final s = S.of(context);
     final rangeResult = StableRangeCalc.classify(
       value: widget.totalKcalSupplied,
@@ -101,74 +106,83 @@ class _DashboardWidgetState extends State<DashboardWidget> {
               Dimens.spacing24,
               Dimens.spacing24,
             ),
-            child: Column(
-              children: [
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: Dimens.spacing16,
-                  runSpacing: Dimens.spacing4,
-                  children: [
-                    Text(rangeLabel, style: textTheme.labelMedium),
-                    Text(
-                      '${s.burnedLabel} ${displayBurned.round()} $unitLabel',
-                      style: textTheme.labelMedium,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: Dimens.spacing12),
-                Semantics(
-                  label:
-                      '${displayValue.toInt()} $unitLabel. $rangeLabel. $statusLabel',
-                  excludeSemantics: true,
-                  child: CircularPercentIndicator(
-                    radius: 90,
-                    lineWidth: 16,
-                    percent: gaugeValue.clamp(0.0, 1.0),
-                    animation: true,
-                    animationDuration: 800,
-                    curve: AppMotion.emphasized,
-                    circularStrokeCap: CircularStrokeCap.round,
-                    backgroundColor: palette.surfaceMuted,
-                    progressColor: Theme.of(context).colorScheme.primary,
-                    center: SizedBox(
-                      width: 136,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AnimatedFlipCounter(
-                              duration: const Duration(milliseconds: 800),
-                              curve: AppMotion.emphasized,
-                              value: displayValue.toInt(),
-                              textStyle: textTheme.displaySmall?.copyWith(
-                                height: 1,
+            child: usesRangeGauge
+                ? CalorieRangeBar(
+                    value: displayValue,
+                    lower: displayLower,
+                    upper: displayUpper,
+                    burned: displayBurned,
+                    unitLabel: unitLabel,
+                    statusLabel: statusLabel,
+                  )
+                : Column(
+                    children: [
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: Dimens.spacing16,
+                        runSpacing: Dimens.spacing4,
+                        children: [
+                          Text(rangeLabel, style: textTheme.labelMedium),
+                          Text(
+                            '${s.burnedLabel} ${displayBurned.round()} $unitLabel',
+                            style: textTheme.labelMedium,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: Dimens.spacing12),
+                      Semantics(
+                        label:
+                            '${displayValue.toInt()} $unitLabel. $rangeLabel. $statusLabel',
+                        excludeSemantics: true,
+                        child: CircularPercentIndicator(
+                          radius: 90,
+                          lineWidth: 16,
+                          percent: gaugeValue.clamp(0.0, 1.0),
+                          animation: true,
+                          animationDuration: 800,
+                          curve: AppMotion.emphasized,
+                          circularStrokeCap: CircularStrokeCap.round,
+                          backgroundColor: palette.surfaceMuted,
+                          progressColor: Theme.of(context).colorScheme.primary,
+                          center: SizedBox(
+                            width: 136,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AnimatedFlipCounter(
+                                    duration: const Duration(milliseconds: 800),
+                                    curve: AppMotion.emphasized,
+                                    value: displayValue.toInt(),
+                                    textStyle: textTheme.displaySmall?.copyWith(
+                                      height: 1,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    unitLabel,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: palette.textMuted,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              unitLabel,
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: palette.textMuted,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(height: Dimens.spacing12),
+                      Text(
+                        statusLabel,
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: palette.textMuted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: Dimens.spacing12),
-                Text(
-                  statusLabel,
-                  textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: palette.textMuted,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
           ),
           const SizedBox(height: Dimens.spacing12),
           Row(

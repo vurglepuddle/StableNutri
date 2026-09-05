@@ -7,7 +7,6 @@ import 'package:opennutritracker/core/utils/retry_util.dart';
 import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Searches the Supabase multi-source food backend (`food_summary` view,
@@ -55,8 +54,11 @@ class SpFoodDataSource {
         return results;
       });
     } catch (exception, stacktrace) {
-      log.severe('Exception while getting Supabase food search $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
+      log.severe(
+        'Exception while getting Supabase food search',
+        exception,
+        stacktrace,
+      );
       return Future.error(exception);
     }
   }

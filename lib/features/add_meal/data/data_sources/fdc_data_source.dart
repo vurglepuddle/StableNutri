@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_word_response_dto.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class FDCDataSource {
   static const _timeoutDuration = Duration(seconds: 10);
@@ -30,8 +29,11 @@ class FDCDataSource {
       log.fine('Successful response from FDC');
       return wordResponse;
     } catch (exception, stacktrace) {
-      log.severe('Exception while getting FDC word search $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
+      log.severe(
+        'Exception while getting FDC word search',
+        exception,
+        stacktrace,
+      );
       return Future.error(exception);
     }
   }

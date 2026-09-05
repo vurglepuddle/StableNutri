@@ -61,6 +61,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           bodyWeightUnit: userConfig.bodyWeightUnit,
           showActivityTracking: userConfig.showActivityTracking,
           showMealMacros: userConfig.showMealMacros,
+          usesRangeGauge: userConfig.usesRangeGauge,
           notificationsEnabled: userConfig.notificationsEnabled,
           notificationHour: userConfig.notificationHour,
           notificationMinute: userConfig.notificationMinute,
@@ -115,6 +116,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   void setShowActivityTracking(bool showActivityTracking) {
     _addConfigUsecase.setConfigShowActivityTracking(showActivityTracking);
+  }
+
+  void setUsesRangeGauge(bool usesRangeGauge) {
+    _addConfigUsecase.setConfigUsesRangeGauge(usesRangeGauge);
   }
 
   void setShowMealMacros(bool showMealMacros) {

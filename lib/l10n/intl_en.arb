@@ -172,6 +172,16 @@
       }
     }
   },
+  "@calorieGaugeRangeLabel": {
+    "placeholders": {
+      "lower": {
+        "type": "String"
+      },
+      "upper": {
+        "type": "String"
+      }
+    }
+  },
   "@waterTotalLabel": {
     "placeholders": {
       "current": {
@@ -1238,5 +1248,11 @@
   "litreLabel": "l",
   "logWaterRemoveAmountLabel": "Remove {amount} ml",
   "waterTotalLabel": "{current} / {goal} l",
-  "waterGoalReachedLabel": "Daily goal reached"
+  "waterGoalReachedLabel": "Daily goal reached",
+  "calorieGaugeTowardRangeLabel": "toward daily range",
+  "calorieGaugeActiveLabel": "active",
+  "calorieGaugeRangeLabel": "goal range {lower}–{upper}",
+  "settingsRangeGaugeLabel": "Calories as a range bar",
+  "calorieGaugeOverRangeNote": "Some days run higher. That's normal.",
+  "privacyNoTelemetryBody": "Stable collects nothing. There is no analytics, no crash reporting and no account. Everything you log stays on this device, encrypted, and is only sent anywhere when you ask for it \u2014 looking up a food, or exporting your data yourself."
 }

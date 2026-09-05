@@ -35,23 +35,21 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('renders both checkboxes unchecked initially', (tester) async {
+  testWidgets('offers only the policy checkbox, unchecked', (tester) async {
     await pumpIntroPage(tester, onSetPageContent: (_, _) {});
 
     final checkboxes = tester
         .widgetList<Checkbox>(find.byType(Checkbox))
         .toList();
-    expect(checkboxes, hasLength(2));
+    // Stable collects nothing, so there is no data-collection consent to ask
+    // for. The policy checkbox is a legal acceptance and stays.
+    expect(checkboxes, hasLength(1));
     expect(
-      checkboxes[0].value,
+      checkboxes.single.value,
       isFalse,
       reason: 'policy checkbox starts unchecked',
     );
-    expect(
-      checkboxes[1].value,
-      isFalse,
-      reason: 'data-collection checkbox starts unchecked',
-    );
+    expect(find.bySemanticsLabel('onboarding-checkbox-data'), findsNothing);
   });
 
   testWidgets(
@@ -79,45 +77,21 @@ void main() {
     },
   );
 
-  testWidgets('tapping the data-collection checkbox reports (false, true)', (
+  testWidgets('the data-collection flag is never reported as accepted', (
     tester,
   ) async {
-    bool? lastPolicy;
-    bool? lastData;
+    final reportedData = <bool>[];
     await pumpIntroPage(
       tester,
-      onSetPageContent: (policy, data) {
-        lastPolicy = policy;
-        lastData = data;
-      },
-    );
-
-    await tester.tap(find.byType(Checkbox).last);
-    await tester.pump();
-
-    expect(lastPolicy, isFalse);
-    expect(lastData, isTrue);
-    expect(tester.widget<Checkbox>(find.byType(Checkbox).last).value, isTrue);
-  });
-
-  testWidgets('tapping both checkboxes reports (true, true)', (tester) async {
-    bool? lastPolicy;
-    bool? lastData;
-    await pumpIntroPage(
-      tester,
-      onSetPageContent: (policy, data) {
-        lastPolicy = policy;
-        lastData = data;
-      },
+      onSetPageContent: (policy, data) => reportedData.add(data),
     );
 
     await tester.tap(find.byType(Checkbox).first);
     await tester.pump();
-    await tester.tap(find.byType(Checkbox).last);
-    await tester.pump();
 
-    expect(lastPolicy, isTrue);
-    expect(lastData, isTrue);
+    // Nothing in the UI can turn it on any more.
+    expect(reportedData, isNotEmpty);
+    expect(reportedData, everyElement(isFalse));
   });
 
   testWidgets('tapping the policy checkbox twice toggles it back off', (

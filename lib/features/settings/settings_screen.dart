@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecas
 import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/calorie_gauge_provider.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
@@ -32,7 +33,6 @@ import 'package:opennutritracker/features/settings/presentation/widgets/nutrient
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/diary_day_boundary_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/daily_intake_range_dialog.dart';
@@ -306,6 +306,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _SettingsGroup(
                 palette: palette,
                 tiles: [
+                  _SettingsSwitchTile(
+                    palette: palette,
+                    icon: Icons.linear_scale_rounded,
+                    title: S.of(context).settingsRangeGaugeLabel,
+                    value: state.usesRangeGauge,
+                    onChanged: (bool value) {
+                      _settingsBloc.setUsesRangeGauge(value);
+                      context.read<CalorieGaugeProvider>().updateUsesRangeGauge(
+                        value,
+                      );
+                      _settingsBloc.add(LoadSettingsEvent());
+                    },
+                  ),
                   _SettingsTile(
                     palette: palette,
                     icon: Icons.brightness_medium_rounded,
@@ -467,8 +480,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     palette: palette,
                     icon: Icons.policy_rounded,
                     title: S.of(context).settingsPrivacySettings,
-                    onTap: () =>
-                        _showPrivacyDialog(context, state.sendAnonymousData),
+                    onTap: () => _showPrivacyDialog(context),
                   ),
                   _SettingsTile(
                     palette: palette,
@@ -1300,47 +1312,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showPrivacyDialog(
-    BuildContext context,
-    bool hasAcceptedAnonymousData,
-  ) async {
-    bool switchActive = hasAcceptedAnonymousData;
+  void _showPrivacyDialog(BuildContext context) async {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
+          shape: Dimens.shapeL,
           title: Text(S.of(context).settingsPrivacySettings),
-          content: StatefulBuilder(
-            builder:
-                (
-                  BuildContext context,
-                  void Function(void Function()) setState,
-                ) {
-                  return SwitchListTile(
-                    title: Text(S.of(context).sendAnonymousUserData),
-                    value: switchActive,
-                    onChanged: (bool value) {
-                      setState(() {
-                        switchActive = value;
-                      });
-                    },
-                  );
-                },
-          ),
+          content: Text(S.of(context).privacyNoTelemetryBody),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(S.of(context).dialogCancelLabel),
-            ),
-            TextButton(
-              onPressed: () async {
-                _settingsBloc.setHasAcceptedAnonymousData(switchActive);
-                if (!switchActive) Sentry.close();
-                _settingsBloc.add(LoadSettingsEvent());
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: Text(S.of(context).dialogOKLabel),
             ),
           ],

@@ -248,8 +248,13 @@ Reusable ADB scripts live in `tools/adb/`:
 | `adb-driver.sh` | Core driver library: `tap_id`, `wait_for_id`, `enter_text_at`, `_tap_text`, `screenshot`, `list_ids`, plus the form-field helpers above. Source from any test script. |
 | `walk-onboarding.sh` | Walks the onboarding flow and lands the app on the main screen. Exports `walk_onboarding()`. |
 | `run-branch-tests.sh` | Sequential smoke-test runner: builds a debug APK, installs it, walks onboarding, runs a branch-specific probe. |
+| `quiet-logs.sh` | Silences third-party log tags (CameraX presence, Firebase transport) that flood `flutter run`. `--restore` undoes it. Device-side and reset by a reboot. |
 
 `DEVICE` defaults to the first device from `adb devices` when not set.
+
+Note that `flutter run` prints every logcat line from the app's *process*, which includes Google Play Services
+libraries linked into the app — those tags are not Stable's code. If the output is drowning in them, run
+`quiet-logs.sh` rather than assuming the app is misbehaving.
 
 ### Enforcement
 

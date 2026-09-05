@@ -8682,6 +8682,69 @@ class S {
       args: [],
     );
   }
+
+  /// `toward daily range`
+  String get calorieGaugeTowardRangeLabel {
+    return Intl.message(
+      'toward daily range',
+      name: 'calorieGaugeTowardRangeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `active`
+  String get calorieGaugeActiveLabel {
+    return Intl.message(
+      'active',
+      name: 'calorieGaugeActiveLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `goal range {lower}–{upper}`
+  String calorieGaugeRangeLabel(String lower, String upper) {
+    return Intl.message(
+      'goal range $lower–$upper',
+      name: 'calorieGaugeRangeLabel',
+      desc: '',
+      args: [lower, upper],
+    );
+  }
+
+  /// `Some days run higher. That's normal.`
+  String get calorieGaugeOverRangeNote {
+    return Intl.message(
+      "Some days run higher. That's normal.",
+      name: 'calorieGaugeOverRangeNote',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stable collects nothing.`
+  String get privacyNoTelemetryBody {
+    return Intl.message(
+      'Stable collects nothing. There is no analytics, no crash reporting '
+      'and no account. Everything you log stays on this device, encrypted, '
+      'and is only sent anywhere when you ask for it \u2014 looking up a food, '
+      'or exporting your data yourself.',
+      name: 'privacyNoTelemetryBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Calories as a range bar`
+  String get settingsRangeGaugeLabel {
+    return Intl.message(
+      'Calories as a range bar',
+      name: 'settingsRangeGaugeLabel',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

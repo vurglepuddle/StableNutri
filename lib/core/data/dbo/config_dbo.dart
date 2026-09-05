@@ -131,6 +131,11 @@ class ConfigDBO extends HiveObject {
   double? weightCorridorLowerKg;
   @HiveField(35)
   double? weightCorridorUpperKg;
+  // Which shape the Today calorie gauge takes: the linear range bar
+  // (true, the default) or the original ring (false). Presentation only —
+  // both read exactly the same numbers.
+  @HiveField(36)
+  bool? usesRangeGauge;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -166,6 +171,7 @@ class ConfigDBO extends HiveObject {
     this.dailyIntakeUpperKcal,
     this.weightCorridorLowerKg,
     this.weightCorridorUpperKg,
+    this.usesRangeGauge,
   });
 
   factory ConfigDBO.empty() =>

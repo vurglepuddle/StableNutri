@@ -50,6 +50,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         dailyIntakeUpperKcal: (fields[33] as num?)?.toDouble(),
         weightCorridorLowerKg: (fields[34] as num?)?.toDouble(),
         weightCorridorUpperKg: (fields[35] as num?)?.toDouble(),
+        usesRangeGauge: fields[36] as bool?,
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -59,7 +60,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(36)
+      ..writeByte(37)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -131,7 +132,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(34)
       ..write(obj.weightCorridorLowerKg)
       ..writeByte(35)
-      ..write(obj.weightCorridorUpperKg);
+      ..write(obj.weightCorridorUpperKg)
+      ..writeByte(36)
+      ..write(obj.usesRangeGauge);
   }
 
   @override
@@ -196,6 +199,7 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
             ?.toDouble(),
         weightCorridorUpperKg: (json['weightCorridorUpperKg'] as num?)
             ?.toDouble(),
+        usesRangeGauge: json['usesRangeGauge'] as bool?,
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -238,6 +242,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'dailyIntakeUpperKcal': instance.dailyIntakeUpperKcal,
   'weightCorridorLowerKg': instance.weightCorridorLowerKg,
   'weightCorridorUpperKg': instance.weightCorridorUpperKg,
+  'usesRangeGauge': instance.usesRangeGauge,
 };
 
 const _$AppThemeDBOEnumMap = {

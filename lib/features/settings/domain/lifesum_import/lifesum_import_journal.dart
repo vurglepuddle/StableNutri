@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_import_manifest.dart';
 
 enum LifesumImportJournalPhase {
@@ -49,11 +51,13 @@ class LifesumImportJournal {
     required this.phase,
     required Map<String, LifesumImportOperationProgress> operationProgress,
     required this.failure,
-  }) : operationProgress =
-           Map<String, LifesumImportOperationProgress>.unmodifiable(
-             operationProgress,
-           ) {
-    _validateCoherence();
+    this.previousRevision,
+    this.changedOperationId,
+    bool validate = true,
+  }) : operationProgress = operationProgress is _ProgressMap
+           ? operationProgress
+           : _ProgressMap.fromMap(operationProgress) {
+    if (validate) _validateCoherence();
   }
 
   factory LifesumImportJournal.prepare(LifesumImportManifest manifest) {
@@ -149,6 +153,12 @@ class LifesumImportJournal {
   final LifesumImportJournalPhase phase;
   final Map<String, LifesumImportOperationProgress> operationProgress;
   final LifesumImportJournalFailure? failure;
+
+  /// Opaque lineage lets storage persist a single transition without diffing
+  /// the entire manifest. Tokens do not retain earlier journal snapshots.
+  final Object revision = Object();
+  final Object? previousRevision;
+  final String? changedOperationId;
 
   int get operationCount => operationProgress.length;
   bool get isTerminal =>
@@ -349,21 +359,28 @@ class LifesumImportJournal {
     String operationId,
     LifesumImportOperationProgress progress,
   ) {
-    final next = Map<String, LifesumImportOperationProgress>.of(
-      operationProgress,
-    )..[operationId] = progress;
-    return _copyWith(operationProgress: next);
+    final next = (operationProgress as _ProgressMap).updated(
+      operationId,
+      progress,
+    );
+    return _copyWith(operationProgress: next, changedOperationId: operationId);
   }
 
   LifesumImportJournal _copyWith({
     LifesumImportJournalPhase? phase,
     Map<String, LifesumImportOperationProgress>? operationProgress,
     LifesumImportJournalFailure? failure,
+    String? changedOperationId,
   }) => LifesumImportJournal._(
     manifestId: manifestId,
     phase: phase ?? this.phase,
     operationProgress: operationProgress ?? this.operationProgress,
     failure: failure ?? this.failure,
+    previousRevision: revision,
+    changedOperationId: changedOperationId,
+    // Public transitions already enforce their phase/progress preconditions.
+    // Full coherence validation is reserved for untrusted restored snapshots.
+    validate: false,
   );
 
   void _validateCoherence() {
@@ -424,6 +441,94 @@ class LifesumImportJournal {
         LifesumImportJournalError.invalidSnapshot,
       );
     }
+  }
+}
+
+/// An immutable indexed vector. Updating one operation copies only the path
+/// through a balanced tree, while all snapshots share the fixed ID index.
+class _ProgressMap extends MapBase<String, LifesumImportOperationProgress> {
+  _ProgressMap(this._indices, this._root);
+
+  factory _ProgressMap.fromMap(
+    Map<String, LifesumImportOperationProgress> values,
+  ) {
+    final indices = <String, int>{};
+    for (final id in values.keys) {
+      indices[id] = indices.length;
+    }
+    return _ProgressMap(
+      indices,
+      _ProgressNode.build(values.values.toList(), 0, values.length),
+    );
+  }
+
+  final Map<String, int> _indices;
+  final _ProgressNode? _root;
+
+  _ProgressMap updated(String id, LifesumImportOperationProgress value) =>
+      _ProgressMap(_indices, _root!.updated(_indices[id]!, value, 0, length));
+
+  @override
+  LifesumImportOperationProgress? operator [](Object? key) {
+    final index = _indices[key];
+    return index == null ? null : _root!.at(index, 0, length);
+  }
+
+  @override
+  Iterable<String> get keys => _indices.keys;
+  @override
+  int get length => _indices.length;
+  @override
+  void operator []=(String key, LifesumImportOperationProgress value) =>
+      throw UnsupportedError('Immutable journal');
+  @override
+  void clear() => throw UnsupportedError('Immutable journal');
+  @override
+  LifesumImportOperationProgress? remove(Object? key) =>
+      throw UnsupportedError('Immutable journal');
+}
+
+class _ProgressNode {
+  const _ProgressNode(this.left, this.right, this.value);
+
+  final _ProgressNode? left;
+  final _ProgressNode? right;
+  final LifesumImportOperationProgress? value;
+
+  static _ProgressNode? build(
+    List<LifesumImportOperationProgress> values,
+    int start,
+    int end,
+  ) {
+    if (start == end) return null;
+    if (end - start == 1) return _ProgressNode(null, null, values[start]);
+    final middle = (start + end) ~/ 2;
+    return _ProgressNode(
+      build(values, start, middle),
+      build(values, middle, end),
+      null,
+    );
+  }
+
+  LifesumImportOperationProgress at(int index, int start, int end) {
+    if (end - start == 1) return value!;
+    final middle = (start + end) ~/ 2;
+    return index < middle
+        ? left!.at(index, start, middle)
+        : right!.at(index, middle, end);
+  }
+
+  _ProgressNode updated(
+    int index,
+    LifesumImportOperationProgress next,
+    int start,
+    int end,
+  ) {
+    if (end - start == 1) return _ProgressNode(null, null, next);
+    final middle = (start + end) ~/ 2;
+    return index < middle
+        ? _ProgressNode(left!.updated(index, next, start, middle), right, null)
+        : _ProgressNode(left, right!.updated(index, next, middle, end), null);
   }
 }
 

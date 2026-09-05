@@ -78,7 +78,7 @@ void main() {
     await pumpScreen(tester);
 
     expect(find.text('Bring your history'), findsOneWidget);
-    expect(find.textContaining('not uploaded'), findsOneWidget);
+    expect(find.textContaining('never uploaded'), findsOneWidget);
     expect(harness.targets.values, isEmpty);
     await loadReview(tester);
 

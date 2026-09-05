@@ -162,6 +162,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final totalWaterMl = waterIntakes
           .map((entry) => entry.amountMl)
           .fold<int>(0, (sum, ml) => sum + ml);
+      final waterQuickAddMl = await _getWaterIntakeUsecase
+          .getQuickAddAmountMl();
 
       final user = await _getUserUsecase.getUserData();
       final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
@@ -252,6 +254,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           userGender: user.gender,
           userCaloriesProfile: user.caloriesProfile,
           waterMlToday: totalWaterMl,
+          waterQuickAddMl: waterQuickAddMl,
           waterGoalMl: configData.effectiveDailyWaterGoalMl(
             user.gender,
             caloriesProfile: user.caloriesProfile,

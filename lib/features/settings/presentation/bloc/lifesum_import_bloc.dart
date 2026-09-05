@@ -12,20 +12,35 @@ class LifesumImportBloc extends Bloc<LifesumImportEvent, LifesumImportState> {
     on<ChooseLifesumArchiveEvent>(_onChooseArchive);
     on<SetLifesumImportCategoryEvent>(_onSetCategory);
     on<ConfirmLifesumImportEvent>(_onConfirm);
-    on<ResetLifesumImportEvent>(
-      (event, emit) => emit(const LifesumImportInitial()),
-    );
+    on<ResetLifesumImportEvent>((event, emit) async {
+      if (state is LifesumImportApplying || state is LifesumImportLoading) {
+        return;
+      }
+      await _coordinator.discardArchive();
+      emit(const LifesumImportInitial());
+    });
   }
 
   final LifesumImportCoordinator _coordinator;
+
+  @override
+  Future<void> close() async {
+    await super.close();
+    await _coordinator.discardArchive();
+  }
 
   Future<void> _onChooseArchive(
     ChooseLifesumArchiveEvent event,
     Emitter<LifesumImportState> emit,
   ) async {
+    if (state is LifesumImportApplying || state is LifesumImportLoading) return;
     emit(const LifesumImportLoading());
     try {
       final preparation = await _coordinator.chooseArchive();
+      if (emit.isDone) {
+        await _coordinator.discardArchive();
+        return;
+      }
       if (preparation == null) {
         emit(const LifesumImportInitial());
         return;
@@ -37,6 +52,7 @@ class LifesumImportBloc extends Bloc<LifesumImportEvent, LifesumImportState> {
         ),
       );
     } on Object catch (error) {
+      if (emit.isDone) return;
       emit(
         LifesumImportError(
           _classifyError(

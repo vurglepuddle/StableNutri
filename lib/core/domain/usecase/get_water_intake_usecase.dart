@@ -36,4 +36,23 @@ class GetWaterIntakeUsecase {
   Future<List<WaterIntakeEntity>> getAllEntries() async {
     return _waterIntakeRepository.getAllEntries();
   }
+
+  /// Repeat the most recent manually logged drink across app restarts and
+  /// day changes. Estimated historical daily totals are not glass sizes.
+  Future<int> getQuickAddAmountMl() async {
+    final now = DateTime.now();
+    WaterIntakeEntity? latest;
+    for (final entry in await getAllEntries()) {
+      if (entry.id.startsWith('lifesum-estimated-water-') ||
+          entry.dateTime.isAfter(now) ||
+          entry.amountMl <= 0 ||
+          entry.amountMl > 1000) {
+        continue;
+      }
+      if (latest == null || entry.dateTime.isAfter(latest.dateTime)) {
+        latest = entry;
+      }
+    }
+    return latest?.amountMl ?? 250;
+  }
 }

@@ -32,13 +32,19 @@ class LifesumImportJournalDataSource implements LifesumImportJournalStore {
   final String _profileId;
   final int _profileGeneration;
   final Box<String> _box;
+  LifesumImportJournal? _lastSaved;
+  int _nextSequence = 0;
+
+  String _stepPrefix(String manifestId) => '$manifestId:step:';
 
   @override
   Future<LifesumImportJournal?> load(LifesumImportManifest manifest) async {
     _requireProfile();
     final encoded = _box.get(manifest.manifestId);
     if (encoded == null) return null;
-    return _decode(encoded, expectedManifest: manifest);
+    final journal = _restore(manifest.manifestId, encoded);
+    journal.requireManifest(manifest);
+    return journal;
   }
 
   Future<LifesumImportJournal?> loadLatest() async {
@@ -51,7 +57,7 @@ class LifesumImportJournalDataSource implements LifesumImportJournalStore {
         LifesumImportJournalError.invalidSnapshot,
       );
     }
-    return _decode(encoded);
+    return _restore(manifestId, encoded);
   }
 
   @override
@@ -66,22 +72,109 @@ class LifesumImportJournalDataSource implements LifesumImportJournalStore {
         );
       }
     }
-    final encoded = jsonEncode(journal.toJson());
-    await _box.putAll(<String, String>{
-      journal.manifestId: encoded,
-      _latestManifestKey: journal.manifestId,
-    });
+    final encoded = _box.get(journal.manifestId);
+    if (encoded == null) {
+      await _box.putAll(<String, String>{
+        journal.manifestId: jsonEncode(journal.toJson()),
+        _latestManifestKey: journal.manifestId,
+      });
+      _nextSequence = 0;
+    } else {
+      if (_lastSaved?.manifestId != journal.manifestId) {
+        _restore(journal.manifestId, encoded);
+      }
+      if (identical(_lastSaved?.revision, journal.revision)) return;
+      final incremental = identical(
+        _lastSaved?.revision,
+        journal.previousRevision,
+      );
+      final changedId = journal.changedOperationId;
+      final step = incremental
+          ? <String, dynamic>{
+              'phase': journal.phase.name,
+              'failure': journal.failure?.name,
+              'id': ?changedId,
+              if (changedId != null)
+                'progress': journal.operationProgress[changedId]!.name,
+            }
+          : <String, dynamic>{'snapshot': journal.toJson()};
+      // One bounded Hive record per transition. Awaiting this write preserves
+      // the executor's write-ahead boundary, including ambiguous crash recovery.
+      await _box.put(
+        '${_stepPrefix(journal.manifestId)}$_nextSequence',
+        jsonEncode(step),
+      );
+      _nextSequence++;
+      if (latestManifestId != journal.manifestId) {
+        await _box.put(_latestManifestKey, journal.manifestId);
+      }
+    }
+    _lastSaved = journal;
     _requireProfile();
   }
 
   Future<void> delete(String manifestId) async {
     _requireProfile();
-    final keys = <String>[manifestId];
+    final keys = <dynamic>[
+      manifestId,
+      ..._box.keys.where(
+        (key) => key is String && key.startsWith(_stepPrefix(manifestId)),
+      ),
+    ];
     if (_box.get(_latestManifestKey) == manifestId) {
       keys.add(_latestManifestKey);
     }
     await _box.deleteAll(keys);
+    if (_lastSaved?.manifestId == manifestId) _lastSaved = null;
     _requireProfile();
+  }
+
+  LifesumImportJournal _restore(String manifestId, String encoded) {
+    try {
+      var snapshot = _decode(encoded).toJson();
+      var operations = <String, String>{
+        for (final operation in snapshot['operations'] as List)
+          operation['id'] as String: operation['progress'] as String,
+      };
+      final prefix = _stepPrefix(manifestId);
+      final count = _box.keys
+          .where((key) => key is String && key.startsWith(prefix))
+          .length;
+      for (var sequence = 0; sequence < count; sequence++) {
+        final step =
+            jsonDecode(_box.get('$prefix$sequence')!) as Map<String, dynamic>;
+        if (step.containsKey('snapshot')) {
+          snapshot = LifesumImportJournal.fromJson(
+            step['snapshot'] as Map<String, dynamic>,
+          ).toJson();
+          operations = <String, String>{
+            for (final operation in snapshot['operations'] as List)
+              operation['id'] as String: operation['progress'] as String,
+          };
+        } else {
+          snapshot['phase'] = step['phase'];
+          snapshot['failure'] = step['failure'];
+          if (step.containsKey('id')) {
+            final id = step['id'] as String;
+            if (!operations.containsKey(id)) throw const FormatException();
+            operations[id] = step['progress'] as String;
+          }
+        }
+      }
+      snapshot['operations'] = <Map<String, String>>[
+        for (final operation in operations.entries)
+          <String, String>{'id': operation.key, 'progress': operation.value},
+      ];
+      final journal = LifesumImportJournal.fromJson(snapshot);
+      if (journal.manifestId != manifestId) throw const FormatException();
+      _lastSaved = journal;
+      _nextSequence = count;
+      return journal;
+    } on Object {
+      throw const LifesumImportJournalException(
+        LifesumImportJournalError.invalidSnapshot,
+      );
+    }
   }
 
   void _requireProfile() {

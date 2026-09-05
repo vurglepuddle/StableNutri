@@ -592,7 +592,7 @@ Future<void> initLocator() async {
 
   // Lifesum import coordination is a factory because each preparation owns a
   // single profile-generation token and one explicit confirmation boundary.
-  locator.registerLazySingleton<LifesumArchivePicker>(
+  locator.registerFactory<LifesumArchivePicker>(
     FilePickerLifesumArchivePicker.new,
   );
   locator.registerFactory<LifesumImportCoordinator>(() {

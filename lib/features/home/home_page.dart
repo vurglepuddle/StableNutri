@@ -23,8 +23,6 @@ import 'package:opennutritracker/features/home/presentation/widgets/dashboard_wi
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/fasting_home_chip.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/quick_water_widget.dart';
-import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
-import 'package:opennutritracker/features/home/presentation/widgets/quick_weight_widget.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class HomePage extends StatefulWidget {
@@ -88,13 +86,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             state.snackIntakeList,
             state.userActivityList,
             state.usesImperialUnits,
-            state.bodyWeightUnit,
-            state.usesImperialLengthUnits,
             state.showActivityTracking,
             state.showMealMacros,
-            state.userWeightKg,
-            state.weightCorridorLowerKg,
-            state.weightCorridorUpperKg,
             state.breakfastKcalTarget,
             state.lunchKcalTarget,
             state.dinnerKcalTarget,
@@ -105,6 +98,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             state.snackSharePct,
             state.waterMlToday,
             state.waterGoalMl,
+            state.waterQuickAddMl,
           );
         } else {
           return _getLoadingContent();
@@ -148,13 +142,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     List<IntakeEntity> snackIntakeList,
     List<UserActivityEntity> userActivities,
     bool usesImperialUnits,
-    BodyWeightUnit bodyWeightUnit,
-    bool usesImperialLengthUnits,
     bool showActivityTracking,
     bool showMealMacros,
-    double userWeightKg,
-    double weightCorridorLowerKg,
-    double weightCorridorUpperKg,
     double breakfastKcalTarget,
     double lunchKcalTarget,
     double dinnerKcalTarget,
@@ -165,6 +154,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     int snackSharePct,
     int waterMlToday,
     int waterGoalMl,
+    int waterQuickAddMl,
   ) {
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
@@ -180,24 +170,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 Dimens.spacing16,
                 Dimens.spacing4,
               ),
-              // Wrap rather than Row so the two chips drop onto a second line
-              // at large text scale instead of overflowing off the edge.
-              child: Wrap(
-                spacing: Dimens.spacing12,
-                runSpacing: Dimens.spacing8,
-                children: [
-                  QuickWeightWidget(
-                    weightKg: userWeightKg,
-                    bodyWeightUnit: bodyWeightUnit,
-                    weightCorridorLowerKg: weightCorridorLowerKg,
-                    weightCorridorUpperKg: weightCorridorUpperKg,
-                    usesImperialLengthUnits: usesImperialLengthUnits,
-                  ),
-                  QuickWaterWidget(
-                    waterMlToday: waterMlToday,
-                    waterGoalMl: waterGoalMl,
-                  ),
-                ],
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: QuickWaterWidget(
+                  waterMlToday: waterMlToday,
+                  waterGoalMl: waterGoalMl,
+                  amountMl: waterQuickAddMl,
+                ),
               ),
             ),
             const FastingHomeChip(),
@@ -235,15 +214,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   gender: userGender,
                   caloriesProfile: userCaloriesProfile,
                 ),
-              ),
-            if (showActivityTracking)
-              ActivityVerticalList(
-                day: DateTime.now(),
-                title: S.of(context).activityLabel,
-                userActivityList: userActivities,
-                onItemLongPressedCallback: onActivityItemLongPressed,
-                onItemTappedCallback: onActivityItemTapped,
-                onItemDragCallback: onActivityItemDrag,
               ),
             // #150 follow-up: a 0% share (e.g. OMAD sets snack to 0) hides the
             // section entirely so the home view doesn't carry an empty header
@@ -304,6 +274,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 usesImperialUnits: usesImperialUnits,
                 showMealMacros: showMealMacros,
                 mealKcalTarget: snackKcalTarget,
+              ),
+            if (showActivityTracking)
+              ActivityVerticalList(
+                day: DateTime.now(),
+                title: S.of(context).activityLabel,
+                userActivityList: userActivities,
+                onItemLongPressedCallback: onActivityItemLongPressed,
+                onItemTappedCallback: onActivityItemTapped,
+                onItemDragCallback: onActivityItemDrag,
               ),
             const SizedBox(height: 48.0),
           ],

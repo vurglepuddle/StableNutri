@@ -11,6 +11,10 @@ abstract interface class LifesumArchivePicker {
   Future<String?> pickArchivePath();
 }
 
+abstract interface class LifesumArchiveCleanup {
+  Future<void> cleanupArchive();
+}
+
 class LifesumImportSettingsSnapshot {
   LifesumImportSettingsSnapshot({
     required this.dayStartOffsetMinutes,
@@ -103,9 +107,21 @@ class LifesumImportCoordinator {
 
   /// Returns null only when the platform picker was cancelled.
   Future<LifesumImportPreparation?> chooseArchive() async {
-    final path = await _picker.pickArchivePath();
-    if (path == null) return null;
-    return prepareArchivePath(path);
+    try {
+      final path = await _picker.pickArchivePath();
+      if (path == null) return null;
+      return await prepareArchivePath(path);
+    } on Object {
+      await discardArchive();
+      rethrow;
+    }
+  }
+
+  Future<void> discardArchive() async {
+    final picker = _picker;
+    if (picker is LifesumArchiveCleanup) {
+      await (picker as LifesumArchiveCleanup).cleanupArchive();
+    }
   }
 
   /// Path-based entry point retained for deterministic tests and future
@@ -136,6 +152,17 @@ class LifesumImportCoordinator {
     LifesumImportSelection selection = const LifesumImportSelection(),
   }) async {
     _beginConfirmation(preparation);
+    try {
+      return await _confirm(preparation, selection: selection);
+    } finally {
+      await discardArchive();
+    }
+  }
+
+  Future<LifesumImportJournal> _confirm(
+    LifesumImportPreparation preparation, {
+    required LifesumImportSelection selection,
+  }) async {
     _requireProfile(preparation);
 
     final expectedManifest = _completeManifest(

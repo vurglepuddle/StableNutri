@@ -31,8 +31,10 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+    return Wrap(
+      alignment: WrapAlignment.spaceAround,
+      spacing: Dimens.spacing12,
+      runSpacing: Dimens.spacing12,
       children: [
         _MacroRing(
           intake: widget.totalCarbsIntake,
@@ -89,6 +91,7 @@ class _MacroRing extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         CircularPercentIndicator(
           radius: 15.0,
@@ -99,23 +102,27 @@ class _MacroRing extends StatelessWidget {
           backgroundColor: palette.surfaceMuted,
           circularStrokeCap: CircularStrokeCap.round,
         ),
-        Padding(
-          padding: const EdgeInsets.all(Dimens.spacing4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${intake.toInt()}/${goal.toInt()} g',
-                style: textTheme.titleSmall?.copyWith(
-                  color: palette.textStrong,
-                  fontWeight: FontWeight.w700,
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.all(Dimens.spacing4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${intake.toInt()}/${goal.toInt()} g',
+                  style: textTheme.titleSmall?.copyWith(
+                    color: palette.textStrong,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              Text(
-                label,
-                style: textTheme.bodySmall?.copyWith(color: palette.textMuted),
-              ),
-            ],
+                Text(
+                  label,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: palette.textMuted,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],

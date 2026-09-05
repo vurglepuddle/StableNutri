@@ -17,14 +17,18 @@ class LogWaterDialog extends StatefulWidget {
   static const int sliderDivisions = sliderMaxMl ~/ sliderStepMl;
   static const int sliderDefaultMl = 250;
 
-  const LogWaterDialog({super.key});
+  const LogWaterDialog({super.key, this.initialAmountMl = sliderDefaultMl});
+
+  final int initialAmountMl;
 
   @override
   State<LogWaterDialog> createState() => _LogWaterDialogState();
 }
 
 class _LogWaterDialogState extends State<LogWaterDialog> {
-  double _selectedMl = LogWaterDialog.sliderDefaultMl.toDouble();
+  late double _selectedMl = widget.initialAmountMl
+      .clamp(0, LogWaterDialog.sliderMaxMl)
+      .toDouble();
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +39,7 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Text(
-              s.logWaterDialogTitle,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: Text(s.logWaterDialogTitle, overflow: TextOverflow.ellipsis),
           ),
           const SizedBox(width: 8),
           Semantics(
@@ -61,9 +62,9 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
             s.logWaterAmountLabel(_selectedMl.round()),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w800,
-                ),
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 8),
           Semantics(

@@ -2126,7 +2126,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Not imported",
     ),
     "lifesumImportPrivacy": MessageLookupByLibrary.simpleMessage(
-      "Processed locally. The archive is not uploaded or copied into Stable.",
+      "Processed locally, never uploaded. A temporary picker copy may be kept during review and is removed when you finish or leave. Interrupted sessions are cleaned up the next time you choose an archive.",
     ),
     "lifesumImportSuccessTitle": MessageLookupByLibrary.simpleMessage(
       "History imported",

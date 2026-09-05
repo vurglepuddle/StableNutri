@@ -43,6 +43,9 @@ class ConfigEntity extends Equatable {
   final double? userFatGoalPct;
   final bool showActivityTracking;
   final bool showMealMacros;
+
+  /// Today's calorie gauge as a linear range bar rather than the ring.
+  final bool usesRangeGauge;
   final bool notificationsEnabled;
   final int notificationHour;
   final int notificationMinute;
@@ -149,6 +152,7 @@ class ConfigEntity extends Equatable {
     this.userFatGoalPct,
     this.showActivityTracking = true,
     this.showMealMacros = true,
+    this.usesRangeGauge = true,
     this.notificationsEnabled = false,
     this.notificationHour = 8,
     this.notificationMinute = 0,
@@ -251,6 +255,7 @@ class ConfigEntity extends Equatable {
     userFatGoalPct: dbo.userFatGoalPct,
     showActivityTracking: dbo.showActivityTracking ?? true,
     showMealMacros: dbo.showMealMacros ?? true,
+    usesRangeGauge: dbo.usesRangeGauge ?? true,
     notificationsEnabled: dbo.notificationsEnabled ?? false,
     notificationHour: dbo.notificationHour ?? 8,
     notificationMinute: dbo.notificationMinute ?? 0,
@@ -384,6 +389,7 @@ class ConfigEntity extends Equatable {
     userFatGoalPct,
     showActivityTracking,
     showMealMacros,
+    usesRangeGauge,
     notificationsEnabled,
     notificationHour,
     notificationMinute,

@@ -170,6 +170,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m62(current, goal) => "${current} / ${goal} l";
 
+  static String m63(lower, upper) => "goal range ${lower}–${upper}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -2183,6 +2185,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "waterTotalLabel": m62,
     "waterGoalReachedLabel": MessageLookupByLibrary.simpleMessage(
       "Daily goal reached",
+    ),
+    "calorieGaugeTowardRangeLabel": MessageLookupByLibrary.simpleMessage(
+      "toward daily range",
+    ),
+    "calorieGaugeActiveLabel": MessageLookupByLibrary.simpleMessage(
+      "active",
+    ),
+    "calorieGaugeRangeLabel": m63,
+    "calorieGaugeOverRangeNote": MessageLookupByLibrary.simpleMessage(
+      "Some days run higher. That's normal.",
+    ),
+    "privacyNoTelemetryBody": MessageLookupByLibrary.simpleMessage(
+      "Stable collects nothing. There is no analytics, no crash reporting and no account. Everything you log stays on this device, encrypted, and is only sent anywhere when you ask for it \u2014 looking up a food, or exporting your data yourself.",
+    ),
+    "settingsRangeGaugeLabel": MessageLookupByLibrary.simpleMessage(
+      "Calories as a range bar",
     ),
     "yearsLabel": m49,
     "youLabel": MessageLookupByLibrary.simpleMessage("You"),

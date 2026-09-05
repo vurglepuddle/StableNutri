@@ -162,6 +162,10 @@ class ConfigDataSource {
     await _update((c) => c.showActivityTracking = show);
   }
 
+  Future<void> setConfigUsesRangeGauge(bool usesRangeGauge) async {
+    await _update((c) => c.usesRangeGauge = usesRangeGauge);
+  }
+
   Future<void> setConfigShowMealMacros(bool show) async {
     await _update((c) => c.showMealMacros = show);
   }

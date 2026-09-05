@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:dynamic_color/dynamic_color.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logging/logging.dart';
@@ -13,11 +12,11 @@ import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/app_theme.dart';
-import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/calorie_gauge_provider.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
@@ -42,7 +41,6 @@ import 'package:opennutritracker/features/settings/presentation/widgets/accent_c
 import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -84,60 +82,24 @@ Future<void> main() async {
       channelDescription: s.notificationsDailyReminderChannelDescription,
     );
   }
-  final hasAcceptedAnonymousData = await configRepo
-      .getConfigHasAcceptedAnonymousData();
   final savedAppTheme = await configRepo.getConfigAppTheme();
   final savedUsesKilojoules = config.usesKilojoules;
+  final savedUsesRangeGauge = config.usesRangeGauge;
   final savedUseMaterialYou = config.useMaterialYou;
   final savedAccentColor = config.accentColor;
   final log = Logger('main');
 
-  // If the user has accepted anonymous data collection, run the app with
-  // sentry enabled, else run without it
-  if (kReleaseMode && hasAcceptedAnonymousData) {
-    log.info('Starting App with Sentry enabled ...');
-    _runAppWithSentryReporting(
-      isUserInitialized,
-      savedAppTheme,
-      savedLocale,
-      savedUsesKilojoules,
-      savedUseMaterialYou,
-      savedAccentColor,
-    );
-  } else {
-    log.info('Starting App ...');
-    runAppWithChangeNotifiers(
-      isUserInitialized,
-      savedAppTheme,
-      savedLocale,
-      savedUsesKilojoules,
-      savedUseMaterialYou,
-      savedAccentColor,
-    );
-  }
-}
-
-void _runAppWithSentryReporting(
-  bool isUserInitialized,
-  AppThemeEntity savedAppTheme,
-  Locale? savedLocale,
-  bool savedUsesKilojoules,
-  bool savedUseMaterialYou,
-  int? savedAccentColor,
-) async {
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = Env.sentryDns;
-      options.tracesSampleRate = 1.0;
-    },
-    appRunner: () => runAppWithChangeNotifiers(
-      isUserInitialized,
-      savedAppTheme,
-      savedLocale,
-      savedUsesKilojoules,
-      savedUseMaterialYou,
-      savedAccentColor,
-    ),
+  // Stable reports nothing anywhere: there is no crash reporter, no
+  // analytics and no consent branch, so there is only one way to start.
+  log.info('Starting App ...');
+  runAppWithChangeNotifiers(
+    isUserInitialized,
+    savedAppTheme,
+    savedLocale,
+    savedUsesKilojoules,
+    savedUseMaterialYou,
+    savedAccentColor,
+    savedUsesRangeGauge,
   );
 }
 
@@ -148,6 +110,7 @@ void runAppWithChangeNotifiers(
   bool savedUsesKilojoules,
   bool savedUseMaterialYou,
   int? savedAccentColor,
+  bool savedUsesRangeGauge,
 ) => runApp(
   MultiProvider(
     providers: [
@@ -163,6 +126,10 @@ void runAppWithChangeNotifiers(
       ),
       ChangeNotifierProvider(
         create: (_) => EnergyUnitProvider(usesKilojoules: savedUsesKilojoules),
+      ),
+      ChangeNotifierProvider(
+        create: (_) =>
+            CalorieGaugeProvider(usesRangeGauge: savedUsesRangeGauge),
       ),
     ],
     child: OpenNutriTrackerApp(userInitialized: userInitialized),

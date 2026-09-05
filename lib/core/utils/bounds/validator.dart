@@ -40,20 +40,24 @@ class ValueValidator {
 
   static double? parseHeightInCm(double? height, {bool isImperial = false}) {
     if (height == null) return null;
-    final belowMin =
-        isImperial ? height < Ranges.minHeightInFeet : height < Ranges.minHeight;
-    final aboveMax =
-        isImperial ? height > Ranges.maxHeightInFeet : height > Ranges.maxHeight;
+    final belowMin = isImperial
+        ? height < Ranges.minHeightInFeet
+        : height < Ranges.minHeight;
+    final aboveMax = isImperial
+        ? height > Ranges.maxHeightInFeet
+        : height > Ranges.maxHeight;
     if (belowMin || aboveMax) return null;
     return isImperial ? UnitCalc.feetToCm(height) : height;
   }
 
   static double? parseWeightInKg(double? weight, {bool isImperial = false}) {
     if (weight == null) return null;
-    final belowMin =
-        isImperial ? weight < Ranges.minWeightInLbs : weight < Ranges.minWeight;
-    final aboveMax =
-        isImperial ? weight > Ranges.maxWeightInLbs : weight > Ranges.maxWeight;
+    final belowMin = isImperial
+        ? weight < Ranges.minWeightInLbs
+        : weight < Ranges.minWeight;
+    final aboveMax = isImperial
+        ? weight > Ranges.maxWeightInLbs
+        : weight > Ranges.maxWeight;
     if (belowMin || aboveMax) return null;
     return isImperial ? UnitCalc.lbsToKg(weight) : weight;
   }

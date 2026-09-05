@@ -25,8 +25,7 @@ void main() {
       final now = tz.TZDateTime(ny, 2026, 6, 15, 21, 0); // 21:00
       final next = NotificationService.computeNextOccurrence(now, 20, 30);
 
-      expect(next.day, equals(16),
-          reason: 'past slot should roll to next day');
+      expect(next.day, equals(16), reason: 'past slot should roll to next day');
       expect(next.hour, equals(20));
       expect(next.minute, equals(30));
     });
@@ -85,8 +84,14 @@ void main() {
       // it to 03:30 EDT. Verify the next-occurrence helper still produces a
       // valid future TZDateTime in this case.
       final ny = tz.getLocation('America/New_York');
-      final beforeJump =
-          tz.TZDateTime(ny, 2026, 3, 8, 1, 0); // 01:00, well before the gap
+      final beforeJump = tz.TZDateTime(
+        ny,
+        2026,
+        3,
+        8,
+        1,
+        0,
+      ); // 01:00, well before the gap
       final next = NotificationService.computeNextOccurrence(beforeJump, 2, 30);
 
       // The helper should return *some* later TZDateTime (it canonicalises
@@ -103,10 +108,16 @@ void main() {
       final after = tz.TZDateTime(ny, 2026, 11, 1, 3, 0);
       final next = NotificationService.computeNextOccurrence(after, 1, 30);
 
-      expect(next.isAfter(after), isTrue,
-          reason: 'must always return a future timestamp even across DST');
-      expect(next.day, equals(2),
-          reason: 'past slot should roll to next day across DST boundary');
+      expect(
+        next.isAfter(after),
+        isTrue,
+        reason: 'must always return a future timestamp even across DST',
+      );
+      expect(
+        next.day,
+        equals(2),
+        reason: 'past slot should roll to next day across DST boundary',
+      );
     });
 
     test('handles midnight (00:00) slot', () {

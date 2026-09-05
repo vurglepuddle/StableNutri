@@ -4,7 +4,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingFourthPageBody extends StatefulWidget {
   final Function(bool active, UserGoalSelectionEntity? selectedGoal)
-      setButtonContent;
+  setButtonContent;
   final UserGoalSelectionEntity? initialGoal;
 
   const OnboardingFourthPageBody({

@@ -14,11 +14,7 @@ class WeightLogDBO extends HiveObject {
   @HiveField(2)
   String? note;
 
-  WeightLogDBO({
-    required this.date,
-    required this.weightKg,
-    this.note,
-  });
+  WeightLogDBO({required this.date, required this.weightKg, this.note});
 
   factory WeightLogDBO.fromWeightLogEntity(WeightLogEntity entity) {
     return WeightLogDBO(

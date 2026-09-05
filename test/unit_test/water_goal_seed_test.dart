@@ -19,10 +19,7 @@ void main() {
     });
 
     test('male users seed at 1900 ml (EFSA-derived)', () {
-      expect(
-        ConfigEntity.seedWaterGoalForGender(UserGenderEntity.male),
-        1900,
-      );
+      expect(ConfigEntity.seedWaterGoalForGender(UserGenderEntity.male), 1900);
     });
 
     test('non-binary users default to the averaged midpoint (1700 ml)', () {
@@ -32,18 +29,15 @@ void main() {
       );
     });
 
-    test(
-      'non-binary users with estrogen profile seed at the female value',
-      () {
-        expect(
-          ConfigEntity.seedWaterGoalForGender(
-            UserGenderEntity.nonBinary,
-            caloriesProfile: CaloriesProfileEntity.estrogenTypical,
-          ),
-          1500,
-        );
-      },
-    );
+    test('non-binary users with estrogen profile seed at the female value', () {
+      expect(
+        ConfigEntity.seedWaterGoalForGender(
+          UserGenderEntity.nonBinary,
+          caloriesProfile: CaloriesProfileEntity.estrogenTypical,
+        ),
+        1500,
+      );
+    });
 
     test(
       'non-binary users with testosterone profile seed at the male value',
@@ -68,27 +62,13 @@ void main() {
         AppThemeEntity.system,
         dailyWaterGoalMl: 2400,
       );
-      expect(
-        config.effectiveDailyWaterGoalMl(UserGenderEntity.female),
-        2400,
-      );
+      expect(config.effectiveDailyWaterGoalMl(UserGenderEntity.female), 2400);
     });
 
     test('falls back to the gendered seed when no override is stored', () {
-      const config = ConfigEntity(
-        false,
-        false,
-        false,
-        AppThemeEntity.system,
-      );
-      expect(
-        config.effectiveDailyWaterGoalMl(UserGenderEntity.male),
-        1900,
-      );
-      expect(
-        config.effectiveDailyWaterGoalMl(UserGenderEntity.female),
-        1500,
-      );
+      const config = ConfigEntity(false, false, false, AppThemeEntity.system);
+      expect(config.effectiveDailyWaterGoalMl(UserGenderEntity.male), 1900);
+      expect(config.effectiveDailyWaterGoalMl(UserGenderEntity.female), 1500);
     });
   });
 }

@@ -174,7 +174,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           const SizedBox(height: Dimens.spacing24),
           Text(
             S.of(context).recipeIngredientsLabel,
-            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: Dimens.spacing8),
           ...recipe.ingredients.map((i) => IngredientListItem(ingredient: i)),

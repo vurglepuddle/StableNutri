@@ -13,29 +13,30 @@ import 'package:opennutritracker/features/home/domain/entity/shared_meal_payload
 import 'package:opennutritracker/features/recipes/domain/entity/shared_recipe_payload.dart';
 
 MealEntity _meal(String code, String name) => MealEntity(
-      code: code,
-      name: name,
-      brands: null,
-      url: null,
-      mealQuantity: null,
-      mealUnit: 'g',
-      servingQuantity: null,
-      servingUnit: null,
-      servingSize: null,
-      nutriments: MealNutrimentsEntity.empty(),
-      source: MealSourceEntity.custom,
-    );
+  code: code,
+  name: name,
+  brands: null,
+  url: null,
+  mealQuantity: null,
+  mealUnit: 'g',
+  servingQuantity: null,
+  servingUnit: null,
+  servingSize: null,
+  nutriments: MealNutrimentsEntity.empty(),
+  source: MealSourceEntity.custom,
+);
 
 IntakeEntity _intake(MealEntity meal) => IntakeEntity(
-      id: 'intake_1',
-      meal: meal,
-      amount: 100,
-      unit: 'g',
-      dateTime: DateTime(2026, 4, 27),
-      type: IntakeTypeEntity.breakfast,
-    );
+  id: 'intake_1',
+  meal: meal,
+  amount: 100,
+  unit: 'g',
+  dateTime: DateTime(2026, 4, 27),
+  type: IntakeTypeEntity.breakfast,
+);
 
-UserActivityEntity _activity(String code, double duration) => UserActivityEntity(
+UserActivityEntity _activity(String code, double duration) =>
+    UserActivityEntity(
       'ua-$code',
       duration,
       duration * 5,
@@ -75,17 +76,17 @@ RecipeEntity _recipe() {
 void main() {
   group('classifySharedPayload', () {
     test('classifies an encoded meal payload as meal', () {
-      final code = SharedMealPayload.fromIntakeList(
-        [_intake(_meal('custom-1', 'Homemade Soup'))],
-      ).toJsonString();
+      final code = SharedMealPayload.fromIntakeList([
+        _intake(_meal('custom-1', 'Homemade Soup')),
+      ]).toJsonString();
 
       expect(classifySharedPayload(code), SharedPayloadKind.meal);
     });
 
     test('classifies an encoded activity payload as activity', () {
-      final code = SharedActivityPayload.fromUserActivityList(
-        [_activity('01010', 30)],
-      ).toJsonString();
+      final code = SharedActivityPayload.fromUserActivityList([
+        _activity('01010', 30),
+      ]).toJsonString();
 
       expect(classifySharedPayload(code), SharedPayloadKind.activity);
     });
@@ -122,18 +123,21 @@ void main() {
       // Regression guard for the ordering in classifySharedPayload:
       // an activity parser would happily accept a meal's first inner
       // array as items unless the meal kind is tried first.
-      final mealCode = SharedMealPayload.fromIntakeList(
-        [_intake(_meal('custom-1', 'A'))],
-      ).toJsonString();
+      final mealCode = SharedMealPayload.fromIntakeList([
+        _intake(_meal('custom-1', 'A')),
+      ]).toJsonString();
 
-      expect(classifySharedPayload(mealCode), isNot(SharedPayloadKind.activity));
+      expect(
+        classifySharedPayload(mealCode),
+        isNot(SharedPayloadKind.activity),
+      );
       expect(classifySharedPayload(mealCode), isNot(SharedPayloadKind.recipe));
     });
 
     test('does not cross-classify activity as meal or recipe', () {
-      final activityCode = SharedActivityPayload.fromUserActivityList(
-        [_activity('01010', 30)],
-      ).toJsonString();
+      final activityCode = SharedActivityPayload.fromUserActivityList([
+        _activity('01010', 30),
+      ]).toJsonString();
 
       expect(
         classifySharedPayload(activityCode),
@@ -146,7 +150,9 @@ void main() {
     });
 
     test('does not cross-classify recipe as meal or activity', () {
-      final recipeCode = SharedRecipePayload.fromRecipe(_recipe()).toJsonString();
+      final recipeCode = SharedRecipePayload.fromRecipe(
+        _recipe(),
+      ).toJsonString();
 
       expect(classifySharedPayload(recipeCode), isNot(SharedPayloadKind.meal));
       expect(

@@ -104,20 +104,20 @@ class SharedRecipeIngredient {
   }
 
   List<dynamic> toArray() => [
-        name,
-        brands,
-        _compact(amount),
-        unit,
-        _compact(convertedAmountG),
-        _compact(energyKcal100),
-        _compact(carbohydrates100),
-        _compact(fat100),
-        _compact(proteins100),
-        _compact(sugars100),
-        _compact(saturatedFat100),
-        _compact(fiber100),
-        thumbnailImageUrl,
-      ];
+    name,
+    brands,
+    _compact(amount),
+    unit,
+    _compact(convertedAmountG),
+    _compact(energyKcal100),
+    _compact(carbohydrates100),
+    _compact(fat100),
+    _compact(proteins100),
+    _compact(sugars100),
+    _compact(saturatedFat100),
+    _compact(fiber100),
+    thumbnailImageUrl,
+  ];
 
   RecipeIngredientEntity toIngredient() {
     return RecipeIngredientEntity(
@@ -210,8 +210,9 @@ class SharedRecipePayload {
       sugars100: n.sugars100,
       saturatedFat100: n.saturatedFat100,
       fiber100: n.fiber100,
-      ingredients:
-          recipe.ingredients.map(SharedRecipeIngredient.fromIngredient).toList(),
+      ingredients: recipe.ingredients
+          .map(SharedRecipeIngredient.fromIngredient)
+          .toList(),
     );
   }
 
@@ -219,11 +220,13 @@ class SharedRecipePayload {
     try {
       String jsonString;
       try {
-        final decompressed =
-            gzip.decode(base64Url.decode(base64Url.normalize(input)));
+        final decompressed = gzip.decode(
+          base64Url.decode(base64Url.normalize(input)),
+        );
         if (decompressed.length > _kMaxDecompressedBytes) {
           throw SharedRecipeParseException(
-              'Payload too large to decode (>$_kMaxDecompressedBytes bytes)');
+            'Payload too large to decode (>$_kMaxDecompressedBytes bytes)',
+          );
         }
         jsonString = utf8.decode(decompressed);
       } on SharedRecipeParseException {

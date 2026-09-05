@@ -41,8 +41,9 @@ class _NutrientVisibilityScreenState extends State<NutrientVisibilityScreen> {
 
   Future<void> _toggle(String key, bool visible) async {
     setState(() => _visibility[key] = visible);
-    await locator<AddConfigUsecase>()
-        .setConfigNutrientPanelVisibility(_visibility);
+    await locator<AddConfigUsecase>().setConfigNutrientPanelVisibility(
+      _visibility,
+    );
   }
 
   String _labelFor(BuildContext context, String key) {
@@ -84,7 +85,9 @@ class _NutrientVisibilityScreenState extends State<NutrientVisibilityScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
                   child: Text(
                     s.settingsNutrientsHelp,
                     style: Theme.of(context).textTheme.bodySmall,

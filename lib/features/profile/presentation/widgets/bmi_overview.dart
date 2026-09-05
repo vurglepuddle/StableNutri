@@ -41,14 +41,14 @@ class BMIOverview extends StatelessWidget {
               Text(
                 '${bmiValue.roundToPrecision(1)}',
                 style: text.displaySmall?.copyWith(
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                   color: palette.textStrong,
                 ),
               ),
               Text(
                 S.of(context).bmiLabel,
                 style: text.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: palette.textMuted,
                 ),
               ),
@@ -62,7 +62,7 @@ class BMIOverview extends StatelessWidget {
             Text(
               nutritionalStatus.getName(context),
               style: text.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: palette.textStrong,
               ),
               textAlign: TextAlign.center,
@@ -90,11 +90,9 @@ class BMIOverview extends StatelessWidget {
             ),
             InkWell(
               borderRadius: Dimens.borderRadiusS,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const SourcesScreen(),
-                ),
-              ),
+              onTap: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const SourcesScreen())),
               child: Tooltip(
                 message: S.of(context).sourcesIconTooltip,
                 child: Padding(
@@ -110,7 +108,9 @@ class BMIOverview extends StatelessWidget {
           ],
         ),
         Text(
-          S.of(context).nutritionalStatusRiskLabel(
+          S
+              .of(context)
+              .nutritionalStatusRiskLabel(
                 nutritionalStatus.getRiskStatus(context),
               ),
           style: text.titleMedium?.copyWith(color: palette.textMuted),

@@ -35,8 +35,12 @@ class FoodLoadedState extends FoodState {
   });
 
   @override
-  List<Object?> get props =>
-      [food, usesImperialUnits, remoteSourceEmpty, query];
+  List<Object?> get props => [
+    food,
+    usesImperialUnits,
+    remoteSourceEmpty,
+    query,
+  ];
 }
 
 class FoodFailedState extends FoodState {

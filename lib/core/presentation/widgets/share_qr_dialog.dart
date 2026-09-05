@@ -37,7 +37,9 @@ class _ShareQrDialogState extends State<ShareQrDialog> {
 
   final GlobalKey _shareButtonKey = GlobalKey();
 
-  static final ButtonStyle _pillStyle = OutlinedButton.styleFrom(shape: const StadiumBorder());
+  static final ButtonStyle _pillStyle = OutlinedButton.styleFrom(
+    shape: const StadiumBorder(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -148,9 +150,13 @@ class _ShareQrDialogState extends State<ShareQrDialog> {
     final painter = QrPainter.withQr(
       qr: qrCode,
       eyeStyle: const QrEyeStyle(
-          color: Color(0xFF000000), eyeShape: QrEyeShape.square),
+        color: Color(0xFF000000),
+        eyeShape: QrEyeShape.square,
+      ),
       dataModuleStyle: const QrDataModuleStyle(
-          color: Color(0xFF000000), dataModuleShape: QrDataModuleShape.square),
+        color: Color(0xFF000000),
+        dataModuleShape: QrDataModuleShape.square,
+      ),
     );
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);

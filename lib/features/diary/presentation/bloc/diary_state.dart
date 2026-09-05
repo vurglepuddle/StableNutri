@@ -28,6 +28,10 @@ class DiaryLoadedState extends DiaryState {
   });
 
   @override
-  List<Object?> get props =>
-      [trackedDayMap, usesImperialUnits, showMealMacros, showActivityTracking];
+  List<Object?> get props => [
+    trackedDayMap,
+    usesImperialUnits,
+    showMealMacros,
+    showActivityTracking,
+  ];
 }

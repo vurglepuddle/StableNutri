@@ -63,14 +63,16 @@ void main() {
       );
     }
 
-    test('serving unit is the selected unit, not the serving quantity text',
-        () {
-      final meal = build(servingQuantity: '50', unit: 'g');
-      expect(meal.servingUnit, 'g');
-      expect(meal.servingQuantity, 50);
-      // The old bug stored the quantity text as the unit.
-      expect(meal.servingUnit, isNot('50'));
-    });
+    test(
+      'serving unit is the selected unit, not the serving quantity text',
+      () {
+        final meal = build(servingQuantity: '50', unit: 'g');
+        expect(meal.servingUnit, 'g');
+        expect(meal.servingQuantity, 50);
+        // The old bug stored the quantity text as the unit.
+        expect(meal.servingUnit, isNot('50'));
+      },
+    );
 
     test('serving and meal units agree (one shared selector)', () {
       final meal = build(servingQuantity: '30', unit: 'ml');

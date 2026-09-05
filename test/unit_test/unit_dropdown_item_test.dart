@@ -18,12 +18,21 @@ void main() {
         expect(UnitDropdownItem.ml.fromString('ml'), UnitDropdownItem.ml);
         expect(UnitDropdownItem.gml.fromString('g/ml'), UnitDropdownItem.gml);
         expect(UnitDropdownItem.oz.fromString('oz'), UnitDropdownItem.oz);
-        expect(UnitDropdownItem.serving.fromString('serving'), UnitDropdownItem.serving);
+        expect(
+          UnitDropdownItem.serving.fromString('serving'),
+          UnitDropdownItem.serving,
+        );
       });
 
       test('handles fl oz variations correctly', () {
-        expect(UnitDropdownItem.flOz.fromString('fl oz'), UnitDropdownItem.flOz);
-        expect(UnitDropdownItem.flOz.fromString('fl.oz'), UnitDropdownItem.flOz);
+        expect(
+          UnitDropdownItem.flOz.fromString('fl oz'),
+          UnitDropdownItem.flOz,
+        );
+        expect(
+          UnitDropdownItem.flOz.fromString('fl.oz'),
+          UnitDropdownItem.flOz,
+        );
       });
 
       test('returns gml as default for unknown values', () {

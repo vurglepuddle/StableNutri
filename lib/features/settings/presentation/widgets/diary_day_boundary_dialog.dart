@@ -80,9 +80,9 @@ class _DiaryDayBoundaryDialogState extends State<DiaryDayBoundaryDialog> {
           TextButton(
             onPressed: _loaded
                 ? () => setState(() {
-                      _hours = 0;
-                      _minutes = 0;
-                    })
+                    _hours = 0;
+                    _minutes = 0;
+                  })
                 : null,
             child: Text(s.buttonResetLabel),
           ),

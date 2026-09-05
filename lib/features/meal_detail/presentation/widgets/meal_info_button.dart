@@ -32,9 +32,9 @@ class MealInfoButton extends StatelessWidget {
       label: Text(
         _getInfoLabelText(context),
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w700,
-            ),
+          color: accent,
+          fontWeight: FontWeight.w600,
+        ),
         textAlign: TextAlign.center,
       ),
     );
@@ -55,7 +55,8 @@ class MealInfoButton extends StatelessWidget {
       case MealSourceEntity.fdc:
         // Foods without a per-item detail page (BLS, INDB, TBCA...) link
         // to their database's website instead.
-        siteUrl = url ??
+        siteUrl =
+            url ??
             SPConst.foodSourceWebsites[backendSource] ??
             FDCConst.fdcWebsiteUrl;
         break;

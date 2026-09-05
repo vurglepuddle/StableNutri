@@ -55,7 +55,7 @@ class ActivityItemCard extends StatelessWidget {
                   AutoSizeText(
                     physicalActivityEntity.getName(context),
                     style: text.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: palette.textStrong,
                     ),
                     maxLines: 1,

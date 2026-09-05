@@ -146,7 +146,7 @@ class BodyMeasurementTrendChart extends StatelessWidget {
                                   color: Theme.of(
                                     context,
                                   ).colorScheme.onInverseSurface,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                           ],

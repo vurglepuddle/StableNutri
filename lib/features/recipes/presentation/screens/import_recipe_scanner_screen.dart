@@ -93,10 +93,7 @@ class _ImportRecipeScannerScreenState extends State<ImportRecipeScannerScreen>
           buildPortraitLockAction(context),
         ],
       ),
-      body: MobileScanner(
-        controller: _cameraController,
-        onDetect: _onDetect,
-      ),
+      body: MobileScanner(controller: _cameraController, onDetect: _onDetect),
     );
   }
 

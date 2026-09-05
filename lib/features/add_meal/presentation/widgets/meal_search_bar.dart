@@ -65,21 +65,33 @@ class _MealSearchBarState extends State<MealSearchBar> {
               onSubmitted: widget.onSearchSubmit,
               decoration: InputDecoration(
                 hintText: S.of(context).searchLabel,
-                hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
-                prefixIcon: Icon(Icons.search_rounded, size: 24, color: palette.textMuted),
+                hintStyle: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  size: 24,
+                  color: palette.textMuted,
+                ),
                 suffixIcon: widget.onBarcodePressed != null
                     ? Semantics(
                         identifier: 'meal-search-barcode',
                         child: IconButton(
-                          icon: Icon(CustomIcons.barcode_scan, size: 22, color: palette.textMuted),
+                          icon: Icon(
+                            CustomIcons.barcode_scan,
+                            size: 22,
+                            color: palette.textMuted,
+                          ),
                           onPressed: widget.onBarcodePressed,
                         ),
                       )
                     : null,
                 filled: true,
                 fillColor: palette.surfaceMuted,
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: Dimens.spacing16, horizontal: Dimens.spacing16),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: Dimens.spacing16,
+                  horizontal: Dimens.spacing16,
+                ),
                 border: border,
                 enabledBorder: border,
                 focusedBorder: OutlineInputBorder(
@@ -103,7 +115,9 @@ class _MealSearchBarState extends State<MealSearchBar> {
               foregroundColor: Theme.of(context).colorScheme.onPrimary,
               backgroundColor: accent,
               padding: const EdgeInsets.all(Dimens.spacing12),
-              shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM),
+              shape: const RoundedRectangleBorder(
+                borderRadius: Dimens.borderRadiusM,
+              ),
             ),
           ),
         ),

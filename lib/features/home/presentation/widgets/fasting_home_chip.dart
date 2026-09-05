@@ -18,8 +18,7 @@ class FastingHomeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          locator<FastingBloc>()..add(const FastingLoadRequested()),
+      create: (_) => locator<FastingBloc>()..add(const FastingLoadRequested()),
       child: const _FastingHomeChipView(),
     );
   }
@@ -54,8 +53,9 @@ class _FastingHomeChipView extends StatelessWidget {
               borderRadius: Dimens.borderRadiusM,
               child: InkWell(
                 borderRadius: Dimens.borderRadiusM,
-                onTap: () => Navigator.of(context)
-                    .pushNamed(NavigationOptions.fastingRoute),
+                onTap: () => Navigator.of(
+                  context,
+                ).pushNamed(NavigationOptions.fastingRoute),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: Dimens.spacing16,
@@ -78,7 +78,7 @@ class _FastingHomeChipView extends StatelessWidget {
                         S.of(context).fastingHomeChipBody(remaining),
                         style: textTheme.labelLarge?.copyWith(
                           color: palette.textStrong,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],

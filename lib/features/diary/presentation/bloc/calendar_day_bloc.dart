@@ -111,7 +111,8 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     final trackedDayEntity = await _getTrackedDayUsecase.getTrackedDay(day);
     final waterEntries = await _getWaterIntakeUsecase.getEntriesForDay(
       DateTime(day.year, day.month, day.day),
-      dayStartOffsetTotalMinutes: dayStartOffsetHours * 60 + dayStartOffsetMinutes,
+      dayStartOffsetTotalMinutes:
+          dayStartOffsetHours * 60 + dayStartOffsetMinutes,
     );
     final configData = await _getConfigUsecase.getConfig();
 
@@ -121,14 +122,18 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     final dailyKcalGoal = trackedDayEntity?.calorieGoal ?? 0;
     final breakfastKcalTarget = dailyKcalGoal > 0
         ? configData.targetKcalForMeal(
-            ConfigEntity.mealKeyBreakfast, dailyKcalGoal)
+            ConfigEntity.mealKeyBreakfast,
+            dailyKcalGoal,
+          )
         : 0.0;
     final lunchKcalTarget = dailyKcalGoal > 0
         ? configData.targetKcalForMeal(ConfigEntity.mealKeyLunch, dailyKcalGoal)
         : 0.0;
     final dinnerKcalTarget = dailyKcalGoal > 0
         ? configData.targetKcalForMeal(
-            ConfigEntity.mealKeyDinner, dailyKcalGoal)
+            ConfigEntity.mealKeyDinner,
+            dailyKcalGoal,
+          )
         : 0.0;
     final snackKcalTarget = dailyKcalGoal > 0
         ? configData.targetKcalForMeal(ConfigEntity.mealKeySnack, dailyKcalGoal)
@@ -201,7 +206,8 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
         day,
         carbsTracked: oldIntake.totalCarbsGram - newIntake.totalCarbsGram,
         fatTracked: oldIntake.totalFatsGram - newIntake.totalFatsGram,
-        proteinTracked: oldIntake.totalProteinsGram - newIntake.totalProteinsGram,
+        proteinTracked:
+            oldIntake.totalProteinsGram - newIntake.totalProteinsGram,
       );
     } else if (newIntake.amount > oldIntake.amount) {
       await _addTrackedDayUsecase.addDayCaloriesTracked(
@@ -212,7 +218,8 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
         day,
         carbsTracked: newIntake.totalCarbsGram - oldIntake.totalCarbsGram,
         fatTracked: newIntake.totalFatsGram - oldIntake.totalFatsGram,
-        proteinTracked: newIntake.totalProteinsGram - oldIntake.totalProteinsGram,
+        proteinTracked:
+            newIntake.totalProteinsGram - oldIntake.totalProteinsGram,
       );
     }
   }

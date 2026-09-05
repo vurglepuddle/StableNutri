@@ -107,8 +107,11 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     setOtherB(newB);
   }
 
-  void _applyTextInput(TextEditingController controller, double currentValue,
-      void Function(double) setter) {
+  void _applyTextInput(
+    TextEditingController controller,
+    double currentValue,
+    void Function(double) setter,
+  ) {
     final parsed = int.tryParse(controller.text);
     if (parsed == null || parsed < 5 || parsed > 90) {
       _syncControllers();
@@ -178,18 +181,23 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                     color: Colors.orange,
                     controller: _carbsController,
                     semanticIdentifier: 'macro-split-carbs',
-                    onSliderChanged: (v) => setState(() => _redistribute(
-                          moved: v,
-                          oldMoved: _carbsPct,
-                          setMoved: (x) => _carbsPct = x,
-                          otherA: _proteinPct,
-                          setOtherA: (x) => _proteinPct = x,
-                          otherB: _fatPct,
-                          setOtherB: (x) => _fatPct = x,
-                        )),
+                    onSliderChanged: (v) => setState(
+                      () => _redistribute(
+                        moved: v,
+                        oldMoved: _carbsPct,
+                        setMoved: (x) => _carbsPct = x,
+                        otherA: _proteinPct,
+                        setOtherA: (x) => _proteinPct = x,
+                        otherB: _fatPct,
+                        setOtherB: (x) => _fatPct = x,
+                      ),
+                    ),
                     onSliderEnd: _syncControllers,
                     onTextSubmitted: () => _applyTextInput(
-                        _carbsController, _carbsPct, (v) => _carbsPct = v),
+                      _carbsController,
+                      _carbsPct,
+                      (v) => _carbsPct = v,
+                    ),
                   ),
                   _MacroRow(
                     label: s.proteinLabel,
@@ -197,18 +205,23 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                     color: Colors.blue,
                     controller: _proteinController,
                     semanticIdentifier: 'macro-split-protein',
-                    onSliderChanged: (v) => setState(() => _redistribute(
-                          moved: v,
-                          oldMoved: _proteinPct,
-                          setMoved: (x) => _proteinPct = x,
-                          otherA: _carbsPct,
-                          setOtherA: (x) => _carbsPct = x,
-                          otherB: _fatPct,
-                          setOtherB: (x) => _fatPct = x,
-                        )),
+                    onSliderChanged: (v) => setState(
+                      () => _redistribute(
+                        moved: v,
+                        oldMoved: _proteinPct,
+                        setMoved: (x) => _proteinPct = x,
+                        otherA: _carbsPct,
+                        setOtherA: (x) => _carbsPct = x,
+                        otherB: _fatPct,
+                        setOtherB: (x) => _fatPct = x,
+                      ),
+                    ),
                     onSliderEnd: _syncControllers,
-                    onTextSubmitted: () => _applyTextInput(_proteinController,
-                        _proteinPct, (v) => _proteinPct = v),
+                    onTextSubmitted: () => _applyTextInput(
+                      _proteinController,
+                      _proteinPct,
+                      (v) => _proteinPct = v,
+                    ),
                   ),
                   _MacroRow(
                     label: s.fatLabel,
@@ -216,18 +229,23 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                     color: Colors.green,
                     controller: _fatController,
                     semanticIdentifier: 'macro-split-fat',
-                    onSliderChanged: (v) => setState(() => _redistribute(
-                          moved: v,
-                          oldMoved: _fatPct,
-                          setMoved: (x) => _fatPct = x,
-                          otherA: _carbsPct,
-                          setOtherA: (x) => _carbsPct = x,
-                          otherB: _proteinPct,
-                          setOtherB: (x) => _proteinPct = x,
-                        )),
+                    onSliderChanged: (v) => setState(
+                      () => _redistribute(
+                        moved: v,
+                        oldMoved: _fatPct,
+                        setMoved: (x) => _fatPct = x,
+                        otherA: _carbsPct,
+                        setOtherA: (x) => _carbsPct = x,
+                        otherB: _proteinPct,
+                        setOtherB: (x) => _proteinPct = x,
+                      ),
+                    ),
                     onSliderEnd: _syncControllers,
                     onTextSubmitted: () => _applyTextInput(
-                        _fatController, _fatPct, (v) => _fatPct = v),
+                      _fatController,
+                      _fatPct,
+                      (v) => _fatPct = v,
+                    ),
                   ),
                 ],
               ),
@@ -290,7 +308,10 @@ class _MacroRow extends StatelessWidget {
                 decoration: const InputDecoration(
                   suffixText: '%',
                   isDense: true,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 12,
+                  ),
                 ),
                 onSubmitted: (_) => onTextSubmitted(),
                 onEditingComplete: onTextSubmitted,

@@ -5,7 +5,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class OnboardingThirdPageBody extends StatefulWidget {
   final Function(bool active, UserActivitySelectionEntity? selectedActivity)
-      setButtonContent;
+  setButtonContent;
   final UserActivitySelectionEntity? initialActivity;
 
   const OnboardingThirdPageBody({

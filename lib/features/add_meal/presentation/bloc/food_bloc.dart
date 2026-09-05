@@ -24,7 +24,7 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
   String? _completedQuery;
 
   FoodBloc(this._searchProductUseCase, this._getConfigUsecase)
-      : super(FoodInitial()) {
+    : super(FoodInitial()) {
     on<LoadFoodEvent>(
       (event, emit) => _loadFood(event.searchString, emit, force: true),
     );
@@ -44,11 +44,13 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
           _searchString,
         );
         if (emit.isDone) return;
-        emit(FoodLoadedState(
-          food: result.meals,
-          remoteSourceEmpty: result.remoteSourceEmpty,
-          query: _searchString,
-        ));
+        emit(
+          FoodLoadedState(
+            food: result.meals,
+            remoteSourceEmpty: result.remoteSourceEmpty,
+            query: _searchString,
+          ),
+        );
         _completedQuery = _searchString;
       } catch (error) {
         log.severe(error);

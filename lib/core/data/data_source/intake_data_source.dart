@@ -28,8 +28,9 @@ class IntakeDataSource {
 
   Future<void> deleteIntakeFromId(String intakeId) async {
     log.fine('Deleting intake item from db');
-    final toDelete =
-        _intakeBox.values.where((dbo) => dbo.id == intakeId).toList();
+    final toDelete = _intakeBox.values
+        .where((dbo) => dbo.id == intakeId)
+        .toList();
     for (final element in toDelete) {
       await element.delete();
     }
@@ -75,8 +76,8 @@ class IntakeDataSource {
     // A zero total offset preserves the original wall-clock behaviour.
     // The follow-up to #139 adds a minutes companion; both compose
     // additively into a single total-minutes value here.
-    final totalMinutes = dayStartOffsetHours * 60 +
-        dayStartOffsetMinutes.clamp(0, 59);
+    final totalMinutes =
+        dayStartOffsetHours * 60 + dayStartOffsetMinutes.clamp(0, 59);
     if (totalMinutes == 0) {
       return _intakeBox.values
           .where(
@@ -114,13 +115,19 @@ class IntakeDataSource {
         .toList();
 
     // Surface custom meals before remote-sourced results.
-    final custom = uniqueIntake.where((i) => i.meal.source == MealSourceDBO.custom).toList();
-    final others = uniqueIntake.where((i) => i.meal.source != MealSourceDBO.custom).toList();
+    final custom = uniqueIntake
+        .where((i) => i.meal.source == MealSourceDBO.custom)
+        .toList();
+    final others = uniqueIntake
+        .where((i) => i.meal.source != MealSourceDBO.custom)
+        .toList();
     return [...custom, ...others].take(number).toList();
   }
 
   Future<List<IntakeDBO>> getCustomMealIntakes() async {
-    return _intakeBox.values.where((dbo) => dbo.meal.source == MealSourceDBO.custom).toList();
+    return _intakeBox.values
+        .where((dbo) => dbo.meal.source == MealSourceDBO.custom)
+        .toList();
   }
 
   /// Replace the denormalised [MealDBO] snapshot on every intake whose

@@ -24,6 +24,7 @@ import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/core/utils/calc/water_trim_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -420,6 +421,38 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       amountMl: amountMl,
     );
     await _addWaterIntakeUsecase.addEntry(entry);
+    add(const LoadItemsEvent());
+  }
+
+  /// Takes [amountMl] back off the day when a full cup is tapped. Entries are
+  /// trimmed newest-first, so the most recent drink is undone before older
+  /// ones, and a drink larger than the tapped cup is reduced rather than
+  /// deleted: the total always moves by exactly one cup (or down to zero).
+  ///
+  /// A reduced drink is rewritten under a `water-trimmed-` id so it stops
+  /// counting as "the last amount the user chose" — otherwise trimming a
+  /// 700 ml entry would silently resize every cup on the card to 450 ml.
+  Future<void> removeWaterIntake(int amountMl) async {
+    if (amountMl <= 0) return;
+    final config = await _getConfigUsecase.getConfig();
+    final entries = await _getWaterIntakeUsecase.getTodayEntries(
+      dayStartOffsetTotalMinutes: config.dayStartOffsetTotalMinutes,
+    );
+    final trim = WaterTrimCalc.trim(entries, amountMl);
+    if (trim.isEmpty) return;
+    for (final id in trim.deleteIds) {
+      await _deleteWaterIntakeUsecase.deleteEntry(id);
+    }
+    final reducedAt = trim.reducedAt;
+    if (reducedAt != null) {
+      await _addWaterIntakeUsecase.addEntry(
+        WaterIntakeEntity(
+          id: 'water-trimmed-${DateTime.now().microsecondsSinceEpoch}',
+          dateTime: reducedAt,
+          amountMl: trim.reducedMl,
+        ),
+      );
+    }
     add(const LoadItemsEvent());
   }
 

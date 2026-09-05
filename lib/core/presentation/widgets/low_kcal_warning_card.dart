@@ -44,7 +44,12 @@ class LowKcalWarningCard extends StatelessWidget {
         padding: margin,
         child: AppCard(
           color: palette.surfaceMuted,
-          padding: const EdgeInsets.fromLTRB(Dimens.spacing16, Dimens.spacing16, Dimens.spacing12, Dimens.spacing8),
+          padding: const EdgeInsets.fromLTRB(
+            Dimens.spacing16,
+            Dimens.spacing16,
+            Dimens.spacing12,
+            Dimens.spacing8,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -66,9 +71,7 @@ class LowKcalWarningCard extends StatelessWidget {
               const SizedBox(height: Dimens.spacing8),
               Text(
                 l10n.lowKcalWarningBody(thresholdKcal.round()),
-                style: textTheme.bodyMedium?.copyWith(
-                  color: palette.textMuted,
-                ),
+                style: textTheme.bodyMedium?.copyWith(color: palette.textMuted),
               ),
               Align(
                 alignment: AlignmentDirectional.centerEnd,

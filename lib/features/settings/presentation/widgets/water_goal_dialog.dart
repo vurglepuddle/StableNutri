@@ -11,7 +11,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// #32: focused entry for the daily water goal. Follows the same single-
 /// purpose-dialog pattern as the other Calculations entries split out in
 /// the #414 refactor — one number to change, a clear reset back to the
-/// default, save closes the dialog and reloads the home chip so the new
+/// default, save closes the dialog and reloads the home card so the new
 /// goal shows up without restarting the app.
 class WaterGoalDialog extends StatefulWidget {
   final SettingsBloc settingsBloc;

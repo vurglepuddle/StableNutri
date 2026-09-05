@@ -76,7 +76,9 @@ class _AccentColourScreenState extends State<AccentColourScreen> {
             children: [
               if (isAndroid)
                 AppCard(
-                  padding: const EdgeInsets.symmetric(vertical: Dimens.spacing4),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: Dimens.spacing4,
+                  ),
                   child: Semantics(
                     identifier: 'accent-option-material-you',
                     child: ListTile(
@@ -86,15 +88,14 @@ class _AccentColourScreenState extends State<AccentColourScreen> {
                       ),
                       title: Text(
                         S.of(context).settingsMaterialYouTitle,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       subtitle: Text(
                         S.of(context).settingsMaterialYouSubtitle,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: palette.textMuted,
-                            ),
+                          color: palette.textMuted,
+                        ),
                       ),
                       trailing: Icon(
                         materialYouActive
@@ -115,10 +116,10 @@ class _AccentColourScreenState extends State<AccentColourScreen> {
                 child: Text(
                   S.of(context).settingsAccentPresetsHeader,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: palette.textMuted,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.3,
-                      ),
+                    color: palette.textMuted,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                  ),
                 ),
               ),
               AppCard(
@@ -127,8 +128,7 @@ class _AccentColourScreenState extends State<AccentColourScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: accentPresetColors.length,
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4,
                     childAspectRatio: 1,
                     mainAxisSpacing: Dimens.spacing12,
@@ -159,8 +159,10 @@ class _AccentColourScreenState extends State<AccentColourScreen> {
                                   ),
                           ),
                           child: selected
-                              ? const Icon(Icons.check_rounded,
-                                  color: Colors.white)
+                              ? const Icon(
+                                  Icons.check_rounded,
+                                  color: Colors.white,
+                                )
                               : null,
                         ),
                       ),
@@ -174,18 +176,21 @@ class _AccentColourScreenState extends State<AccentColourScreen> {
                 child: Semantics(
                   identifier: 'accent-custom-colour',
                   child: ListTile(
-                    leading: _SwatchTile.iconChip(Icons.colorize_rounded, accent),
+                    leading: _SwatchTile.iconChip(
+                      Icons.colorize_rounded,
+                      accent,
+                    ),
                     title: Text(
                       S.of(context).settingsAccentCustomColour,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     subtitle: Text(
                       S.of(context).settingsAccentCustomSubtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: palette.textMuted,
-                          ),
+                        color: palette.textMuted,
+                      ),
                     ),
                     trailing: Icon(Icons.chevron_right_rounded, color: accent),
                     onTap: () => _openCustomColourDialog(currentArgb),
@@ -266,8 +271,7 @@ class _CustomColourDialogState extends State<_CustomColourDialog> {
     return rgb.toRadixString(16).padLeft(6, '0').toUpperCase();
   }
 
-  Color get _currentColor =>
-      HSLColor.fromAHSL(1, _hue, 0.7, 0.5).toColor();
+  Color get _currentColor => HSLColor.fromAHSL(1, _hue, 0.7, 0.5).toColor();
 
   void _onHueChanged(double value) {
     setState(() {

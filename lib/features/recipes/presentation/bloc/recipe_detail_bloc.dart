@@ -12,7 +12,7 @@ class RecipeDetailBloc extends Bloc<RecipeDetailEvent, RecipeDetailState> {
   final DeleteRecipeUseCase _deleteRecipeUseCase;
 
   RecipeDetailBloc(this._getRecipeByIdUseCase, this._deleteRecipeUseCase)
-      : super(const RecipeDetailInitial()) {
+    : super(const RecipeDetailInitial()) {
     on<LoadRecipeEvent>((event, emit) {
       final recipe = _getRecipeByIdUseCase.getById(event.id);
       if (recipe == null) {

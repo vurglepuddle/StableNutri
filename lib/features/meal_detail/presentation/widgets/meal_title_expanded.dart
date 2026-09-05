@@ -31,15 +31,15 @@ class MealTitleExpanded extends StatelessWidget {
               TextSpan(
                 text: meal.name ?? '',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: palette.textStrong,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: palette.textStrong,
+                  fontWeight: FontWeight.w700,
+                ),
                 children: [
                   TextSpan(
                     text: ' ${meal.brands ?? ''}',
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          color: palette.textMuted,
-                        ),
+                      color: palette.textMuted,
+                    ),
                   ),
                 ],
               ),
@@ -68,10 +68,9 @@ class MealTitleExpanded extends StatelessWidget {
                     Flexible(
                       child: Text(
                         S.of(context).machineTranslatedNameHint,
-                        style:
-                            Theme.of(context).textTheme.labelSmall?.copyWith(
-                                  color: palette.textMuted,
-                                ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: palette.textMuted,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -85,10 +84,8 @@ class MealTitleExpanded extends StatelessWidget {
                       value: double.tryParse(meal.mealQuantity ?? '') ?? 0,
                       meal: meal,
                       usesImperialUnits: usesImperialUnits,
-                      textStyle:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: palette.textMuted,
-                              ),
+                      textStyle: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(color: palette.textMuted),
                       prefix: '',
                     ),
                   )

@@ -58,8 +58,8 @@ class HomeLoadedState extends HomeState {
   final int snackSharePct;
   final UserGenderEntity userGender;
   final CaloriesProfileEntity? userCaloriesProfile;
-  // #32: hydration totals for the home chip. waterMlToday is summed across
-  // every entry that falls within the configured logical day; waterGoalMl
+  // #32: hydration totals for the home water card. waterMlToday is summed
+  // across every entry within the configured logical day; waterGoalMl
   // is the user-configurable target (Settings → Calculations).
   final int waterMlToday;
   final int waterGoalMl;

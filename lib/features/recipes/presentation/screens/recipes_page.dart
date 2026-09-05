@@ -471,7 +471,7 @@ class _RecipesPageState extends State<RecipesPage>
               s.selectionCountLabel(_selectedIds.length),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: accent,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -538,7 +538,7 @@ class _RecipesPageState extends State<RecipesPage>
               S.of(context).recipesEmptyLabel,
               style: Theme.of(
                 context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Dimens.spacing8),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
+import 'package:opennutritracker/core/utils/water_format.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Inspection only: historical totals carry no assumption about past goals.
@@ -19,7 +20,7 @@ class DayWaterWidget extends StatelessWidget {
         key: const Key('diary-water'),
         leading: const Icon(Icons.water_drop_outlined),
         title: Text(s.trendsWaterLabel),
-        subtitle: Text('$total ml'),
+        subtitle: Text('${WaterFormat.litresText(total)} ${s.litreLabel}'),
         children: [
           if (sorted.isEmpty) ListTile(title: Text(s.nothingAddedLabel)),
           for (final entry in sorted)

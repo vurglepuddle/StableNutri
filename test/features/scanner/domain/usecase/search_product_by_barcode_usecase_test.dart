@@ -26,8 +26,7 @@ void main() {
       );
     });
 
-    test(
-        'returns the local custom meal without hitting OFF when the barcode '
+    test('returns the local custom meal without hitting OFF when the barcode '
         'matches', () async {
       final localMatch = _customMealDbo(code: '1234567890123', name: 'Local');
       customMealDataSource.meals.add(localMatch);
@@ -48,13 +47,17 @@ void main() {
 
       expect(result.name, 'Local');
       expect(result.source, MealSourceEntity.custom);
-      expect(repo.getOFFProductByBarcodeCalls, 0,
-          reason: 'OFF should not be queried when a local match exists');
+      expect(
+        repo.getOFFProductByBarcodeCalls,
+        0,
+        reason: 'OFF should not be queried when a local match exists',
+      );
     });
 
     test('falls back to OFF when no local match exists', () async {
-      customMealDataSource.meals
-          .add(_customMealDbo(code: 'other', name: 'Other'));
+      customMealDataSource.meals.add(
+        _customMealDbo(code: 'other', name: 'Other'),
+      );
       repo.barcodeResult = MealEntity(
         code: 'unknown-barcode',
         name: 'OFF Result',
@@ -76,7 +79,9 @@ void main() {
     });
 
     test('ignores custom meals whose code is null', () async {
-      customMealDataSource.meals.add(_customMealDbo(code: null, name: 'NoCode'));
+      customMealDataSource.meals.add(
+        _customMealDbo(code: null, name: 'NoCode'),
+      );
       repo.barcodeResult = MealEntity(
         code: '1234',
         name: 'OFF Result',
@@ -98,10 +103,9 @@ void main() {
     test(
       'returns cached OFF result without hitting the network when present',
       () async {
-        cachedOffMealDataSource.entries.add(_offCacheDbo(
-          code: '1234',
-          name: 'Cached',
-        ));
+        cachedOffMealDataSource.entries.add(
+          _offCacheDbo(code: '1234', name: 'Cached'),
+        );
         repo.barcodeResult = MealEntity(
           code: '1234',
           name: 'Fresh OFF',
@@ -143,14 +147,11 @@ void main() {
       expect(cachedOffMealDataSource.writes.single.code, '9999');
     });
 
-    test(
-        'a thin (search-only) cache entry does not satisfy the scan; OFF is '
+    test('a thin (search-only) cache entry does not satisfy the scan; OFF is '
         'queried for the full product', () async {
-      cachedOffMealDataSource.entries.add(_offCacheDbo(
-        code: '4321',
-        name: 'Thin Cached',
-        detailed: false,
-      ));
+      cachedOffMealDataSource.entries.add(
+        _offCacheDbo(code: '4321', name: 'Thin Cached', detailed: false),
+      );
       repo.barcodeResult = MealEntity(
         code: '4321',
         name: 'Full OFF',
@@ -171,21 +172,18 @@ void main() {
     });
 
     test('custom-meal match takes priority over cached match', () async {
-      customMealDataSource.meals.add(_customMealDbo(
-        code: '5555',
-        name: 'My Custom',
-      ));
-      cachedOffMealDataSource.entries.add(_offCacheDbo(
-        code: '5555',
-        name: 'OFF Cached',
-      ));
+      customMealDataSource.meals.add(
+        _customMealDbo(code: '5555', name: 'My Custom'),
+      );
+      cachedOffMealDataSource.entries.add(
+        _offCacheDbo(code: '5555', name: 'OFF Cached'),
+      );
 
       final result = await useCase.searchProductByBarcode('5555');
 
       expect(result.name, 'My Custom');
       expect(repo.getOFFProductByBarcodeCalls, 0);
     });
-
   });
 }
 
@@ -193,31 +191,30 @@ MealDBO _offCacheDbo({
   required String code,
   required String name,
   bool detailed = true,
-}) =>
-    MealDBO(
-      code: code,
-      name: name,
-      brands: null,
-      thumbnailImageUrl: null,
-      mainImageUrl: null,
-      url: null,
-      mealQuantity: '100',
-      mealUnit: 'g',
-      servingQuantity: null,
-      servingUnit: 'g',
-      servingSize: null,
-      detailed: detailed,
-      source: MealSourceDBO.off,
-      nutriments: MealNutrimentsDBO(
-        energyKcal100: 0,
-        carbohydrates100: null,
-        fat100: null,
-        proteins100: null,
-        sugars100: null,
-        saturatedFat100: null,
-        fiber100: null,
-      ),
-    );
+}) => MealDBO(
+  code: code,
+  name: name,
+  brands: null,
+  thumbnailImageUrl: null,
+  mainImageUrl: null,
+  url: null,
+  mealQuantity: '100',
+  mealUnit: 'g',
+  servingQuantity: null,
+  servingUnit: 'g',
+  servingSize: null,
+  detailed: detailed,
+  source: MealSourceDBO.off,
+  nutriments: MealNutrimentsDBO(
+    energyKcal100: 0,
+    carbohydrates100: null,
+    fat100: null,
+    proteins100: null,
+    sugars100: null,
+    saturatedFat100: null,
+    fiber100: null,
+  ),
+);
 
 class _FakeCustomMealDataSource implements CustomMealDataSource {
   final List<MealDBO> meals = [];
@@ -229,7 +226,6 @@ class _FakeCustomMealDataSource implements CustomMealDataSource {
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
-
 
 class _FakeRemoteSearchCacheDataSource implements RemoteSearchCacheDataSource {
   final List<MealDBO> entries = [];
@@ -313,12 +309,11 @@ MealDBO _customMealDbo({required String? code, required String name}) {
 }
 
 MealNutrimentsEntity _emptyNutriments() => const MealNutrimentsEntity(
-      energyKcal100: 0,
-      carbohydrates100: null,
-      fat100: null,
-      proteins100: null,
-      sugars100: null,
-      saturatedFat100: null,
-      fiber100: null,
-    );
-
+  energyKcal100: 0,
+  carbohydrates100: null,
+  fat100: null,
+  proteins100: null,
+  sugars100: null,
+  saturatedFat100: null,
+  fiber100: null,
+);

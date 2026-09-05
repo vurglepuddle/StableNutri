@@ -92,7 +92,7 @@ class MealValueUnitText extends StatelessWidget {
     return formattedValue.endsWith('.00')
         ? formattedValue.substring(0, formattedValue.length - 3)
         : formattedValue.endsWith('0')
-            ? formattedValue.substring(0, formattedValue.length - 1)
-            : formattedValue;
+        ? formattedValue.substring(0, formattedValue.length - 1)
+        : formattedValue;
   }
 }

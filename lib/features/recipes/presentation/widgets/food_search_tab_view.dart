@@ -124,43 +124,43 @@ class _FoodSearchTabViewState extends State<FoodSearchTabView>
       builder: (context, query, _) => BlocBuilder<ProductsBloc, ProductsState>(
         bloc: _productsBloc,
         builder: (context, state) {
-        if (state is ProductsInitial) {
-          return query.trim().length >= minQueryLength
-              ? _pendingSpinner
-              : const DefaultsResultsWidget();
-        }
-        if (state is ProductsLoadingState) {
-          return _pendingSpinner;
-        }
-        if (state is ProductsLoadedState) {
-          if (state.products.isEmpty) {
-            return query.trim().length >= minQueryLength &&
-                    state.query != query
+          if (state is ProductsInitial) {
+            return query.trim().length >= minQueryLength
                 ? _pendingSpinner
-                : const NoResultsWidget();
+                : const DefaultsResultsWidget();
           }
-          return ListView.builder(
-            itemCount:
-                state.products.length + (state.remoteSourceEmpty ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == state.products.length) {
-                return const NoResultsWidget();
-              }
-              return _PickableMealCard(
-                meal: state.products[index],
-                onTap: widget.onMealSelected,
-              );
-            },
-          );
-        }
-        if (state is ProductsFailedState) {
-          return ErrorDialog(
-            errorText: S.of(context).errorFetchingProductData,
-            onRefreshPressed: () =>
-                _productsBloc.add(const RefreshProductsEvent()),
-          );
-        }
-        return const SizedBox.shrink();
+          if (state is ProductsLoadingState) {
+            return _pendingSpinner;
+          }
+          if (state is ProductsLoadedState) {
+            if (state.products.isEmpty) {
+              return query.trim().length >= minQueryLength &&
+                      state.query != query
+                  ? _pendingSpinner
+                  : const NoResultsWidget();
+            }
+            return ListView.builder(
+              itemCount:
+                  state.products.length + (state.remoteSourceEmpty ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == state.products.length) {
+                  return const NoResultsWidget();
+                }
+                return _PickableMealCard(
+                  meal: state.products[index],
+                  onTap: widget.onMealSelected,
+                );
+              },
+            );
+          }
+          if (state is ProductsFailedState) {
+            return ErrorDialog(
+              errorText: S.of(context).errorFetchingProductData,
+              onRefreshPressed: () =>
+                  _productsBloc.add(const RefreshProductsEvent()),
+            );
+          }
+          return const SizedBox.shrink();
         },
       ),
     );
@@ -172,39 +172,39 @@ class _FoodSearchTabViewState extends State<FoodSearchTabView>
       builder: (context, query, _) => BlocBuilder<FoodBloc, FoodState>(
         bloc: _foodBloc,
         builder: (context, state) {
-        if (state is FoodInitial) {
-          return query.trim().length >= minQueryLength
-              ? _pendingSpinner
-              : const DefaultsResultsWidget();
-        }
-        if (state is FoodLoadingState) {
-          return _pendingSpinner;
-        }
-        if (state is FoodLoadedState) {
-          if (state.food.isEmpty) {
-            return query.trim().length >= minQueryLength &&
-                    state.query != query
+          if (state is FoodInitial) {
+            return query.trim().length >= minQueryLength
                 ? _pendingSpinner
-                : const NoResultsWidget();
+                : const DefaultsResultsWidget();
           }
-          return ListView.builder(
-            itemCount: state.food.length + (state.remoteSourceEmpty ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == state.food.length) return const NoResultsWidget();
-              return _PickableMealCard(
-                meal: state.food[index],
-                onTap: widget.onMealSelected,
-              );
-            },
-          );
-        }
-        if (state is FoodFailedState) {
-          return ErrorDialog(
-            errorText: S.of(context).errorFetchingProductData,
-            onRefreshPressed: () => _foodBloc.add(const RefreshFoodEvent()),
-          );
-        }
-        return const SizedBox.shrink();
+          if (state is FoodLoadingState) {
+            return _pendingSpinner;
+          }
+          if (state is FoodLoadedState) {
+            if (state.food.isEmpty) {
+              return query.trim().length >= minQueryLength &&
+                      state.query != query
+                  ? _pendingSpinner
+                  : const NoResultsWidget();
+            }
+            return ListView.builder(
+              itemCount: state.food.length + (state.remoteSourceEmpty ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == state.food.length) return const NoResultsWidget();
+                return _PickableMealCard(
+                  meal: state.food[index],
+                  onTap: widget.onMealSelected,
+                );
+              },
+            );
+          }
+          if (state is FoodFailedState) {
+            return ErrorDialog(
+              errorText: S.of(context).errorFetchingProductData,
+              onRefreshPressed: () => _foodBloc.add(const RefreshFoodEvent()),
+            );
+          }
+          return const SizedBox.shrink();
         },
       ),
     );
@@ -290,7 +290,10 @@ class _PickableMealCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing8, vertical: Dimens.spacing4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: Dimens.spacing8,
+        vertical: Dimens.spacing4,
+      ),
       child: AppCard(
         padding: EdgeInsets.zero,
         child: InkWell(
@@ -331,11 +334,15 @@ class _PickableMealCard extends StatelessWidget {
                   child: AutoSizeText.rich(
                     TextSpan(
                       text: meal.name ?? '?',
-                      style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                       children: [
                         TextSpan(
                           text: ' ${meal.brands ?? ''}',
-                          style: textTheme.bodyMedium?.copyWith(color: palette.textMuted),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: palette.textMuted,
+                          ),
                         ),
                       ],
                     ),

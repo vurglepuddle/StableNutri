@@ -85,10 +85,12 @@ class IntakeRepository {
       toMeal: toMeal,
     );
     return rewrites
-        .map((pair) => (
-              IntakeEntity.fromIntakeDBO(pair.$1),
-              IntakeEntity.fromIntakeDBO(pair.$2),
-            ))
+        .map(
+          (pair) => (
+            IntakeEntity.fromIntakeDBO(pair.$1),
+            IntakeEntity.fromIntakeDBO(pair.$2),
+          ),
+        )
         .toList();
   }
 }

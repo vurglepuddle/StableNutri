@@ -188,14 +188,14 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
         bodyWeightUnitIndex: (json['bodyWeightUnitIndex'] as num?)?.toInt(),
         foodSourceToggles: (json['foodSourceToggles'] as Map<String, dynamic>?)
             ?.map((k, e) => MapEntry(k, e as bool)),
-        dailyIntakeLowerKcal:
-            (json['dailyIntakeLowerKcal'] as num?)?.toDouble(),
-        dailyIntakeUpperKcal:
-            (json['dailyIntakeUpperKcal'] as num?)?.toDouble(),
-        weightCorridorLowerKg:
-            (json['weightCorridorLowerKg'] as num?)?.toDouble(),
-        weightCorridorUpperKg:
-            (json['weightCorridorUpperKg'] as num?)?.toDouble(),
+        dailyIntakeLowerKcal: (json['dailyIntakeLowerKcal'] as num?)
+            ?.toDouble(),
+        dailyIntakeUpperKcal: (json['dailyIntakeUpperKcal'] as num?)
+            ?.toDouble(),
+        weightCorridorLowerKg: (json['weightCorridorLowerKg'] as num?)
+            ?.toDouble(),
+        weightCorridorUpperKg: (json['weightCorridorUpperKg'] as num?)
+            ?.toDouble(),
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()

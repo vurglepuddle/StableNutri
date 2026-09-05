@@ -17,12 +17,12 @@ class ActivitiesBloc extends Bloc<ActivitiesEvent, ActivitiesState> {
   List<PhysicalActivityEntity> physicalActivities = [];
 
   ActivitiesBloc(this._getPhysicalActivityUsecase)
-      : super(ActivitiesInitial()) {
+    : super(ActivitiesInitial()) {
     on<LoadActivitiesEvent>((event, emit) async {
       emit(ActivitiesLoadingState());
       try {
-        physicalActivities =
-            await _getPhysicalActivityUsecase.getAllPhysicalActivities();
+        physicalActivities = await _getPhysicalActivityUsecase
+            .getAllPhysicalActivities();
 
         emit(ActivitiesLoadedState(activities: physicalActivities));
       } catch (error) {
@@ -40,13 +40,15 @@ class ActivitiesBloc extends Bloc<ActivitiesEvent, ActivitiesState> {
         } else {
           final formattedQuery = query.toLowerCase();
           activitySuggestions = physicalActivities.where((activity) {
-            final formattedActivityName =
-                activity.getName(event.context).toLowerCase();
-            final formattedActivityDescription =
-                activity.getDescription(event.context).toLowerCase();
+            final formattedActivityName = activity
+                .getName(event.context)
+                .toLowerCase();
+            final formattedActivityDescription = activity
+                .getDescription(event.context)
+                .toLowerCase();
             final containsQuery =
                 formattedActivityName.contains(formattedQuery) ||
-                    formattedActivityDescription.contains(formattedQuery);
+                formattedActivityDescription.contains(formattedQuery);
 
             return containsQuery;
           }).toList();

@@ -2,29 +2,47 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 
-/// Friendly, highly readable type. Nunito carries everything — rounded enough to
-/// feel warm, calm enough to stay legible in dense lists. Heavy weights give the
-/// hero numbers presence without needing a separate display face.
+/// Friendly, highly readable type. Biryani carries everything — warm and open
+/// without being cute, and calm enough to stay legible in dense lists. Heavy
+/// weights give the hero numbers presence without a separate display face; Ovo
+/// appears only in the logo, where it is already outlined into paths.
+///
+/// Biryani has **no Medium (500) and no italics** — its ladder is
+/// 200/300/400/600/700/800/900. Body text therefore sits at w400 rather than
+/// the w500 the Nunito scale used; asking for 500 would silently resolve to a
+/// neighbouring face and differ between platforms.
+///
+/// The weights are also a notch lighter than the Nunito scale they replaced
+/// (800 became 700, 700 became 600, throughout the app and not just here).
+/// Biryani carries more colour on the page at the same numeric weight, and the
+/// inherited ladder read as shouting. Nothing above w700 is used: w800 and
+/// w900 exist in the family but overwhelm this layout.
 TextTheme appTextTheme(AppPalette p) {
-  const f = 'Nunito';
+  const f = 'Biryani';
   TextStyle s(double size, FontWeight w, {double spacing = 0, Color? color}) =>
-      TextStyle(fontFamily: f, fontSize: size, fontWeight: w, letterSpacing: spacing, color: color ?? p.textStrong);
+      TextStyle(
+        fontFamily: f,
+        fontSize: size,
+        fontWeight: w,
+        letterSpacing: spacing,
+        color: color ?? p.textStrong,
+      );
   return TextTheme(
-    displayLarge: s(57, FontWeight.w800, spacing: -1),
-    displayMedium: s(45, FontWeight.w800, spacing: -0.5),
-    displaySmall: s(36, FontWeight.w800),
-    headlineLarge: s(32, FontWeight.w800),
-    headlineMedium: s(28, FontWeight.w700),
-    headlineSmall: s(23, FontWeight.w700),
-    titleLarge: s(21, FontWeight.w700),
-    titleMedium: s(16, FontWeight.w700),
+    displayLarge: s(57, FontWeight.w700, spacing: -1),
+    displayMedium: s(45, FontWeight.w700, spacing: -0.5),
+    displaySmall: s(36, FontWeight.w700),
+    headlineLarge: s(32, FontWeight.w700),
+    headlineMedium: s(28, FontWeight.w600),
+    headlineSmall: s(23, FontWeight.w600),
+    titleLarge: s(21, FontWeight.w600),
+    titleMedium: s(16, FontWeight.w600),
     titleSmall: s(14, FontWeight.w600),
-    bodyLarge: s(16, FontWeight.w500),
-    bodyMedium: s(14, FontWeight.w500),
-    bodySmall: s(12.5, FontWeight.w500, color: p.textMuted),
-    labelLarge: s(15, FontWeight.w700),
-    labelMedium: s(13, FontWeight.w700),
-    labelSmall: s(11.5, FontWeight.w700, color: p.textMuted),
+    bodyLarge: s(16, FontWeight.w400),
+    bodyMedium: s(14, FontWeight.w400),
+    bodySmall: s(12.5, FontWeight.w400, color: p.textMuted),
+    labelLarge: s(15, FontWeight.w600),
+    labelMedium: s(13, FontWeight.w600),
+    labelSmall: s(11.5, FontWeight.w600, color: p.textMuted),
   );
 }
 
@@ -75,7 +93,9 @@ ThemeData buildAppTheme(AppPalette p) {
       focusElevation: 0,
       hoverElevation: 0,
       highlightElevation: 0,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(22))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(22)),
+      ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
@@ -97,9 +117,18 @@ ThemeData buildAppTheme(AppPalette p) {
     inputDecorationTheme: InputDecorationThemeData(
       filled: true,
       fillColor: p.surfaceMuted,
-      contentPadding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16, vertical: Dimens.spacing12),
-      border: const OutlineInputBorder(borderRadius: Dimens.borderRadiusM, borderSide: BorderSide.none),
-      enabledBorder: const OutlineInputBorder(borderRadius: Dimens.borderRadiusM, borderSide: BorderSide.none),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: Dimens.spacing16,
+        vertical: Dimens.spacing12,
+      ),
+      border: const OutlineInputBorder(
+        borderRadius: Dimens.borderRadiusM,
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: const OutlineInputBorder(
+        borderRadius: Dimens.borderRadiusM,
+        borderSide: BorderSide.none,
+      ),
       focusedBorder: OutlineInputBorder(
         borderRadius: Dimens.borderRadiusM,
         borderSide: BorderSide(color: p.accent, width: 2),
@@ -115,12 +144,16 @@ ThemeData buildAppTheme(AppPalette p) {
       surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusL),
     ),
-    listTileTheme: const ListTileThemeData(shape: RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM)),
+    listTileTheme: const ListTileThemeData(
+      shape: RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM),
+    ),
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: p.surface,
       surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(Dimens.radiusXL)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(Dimens.radiusXL),
+        ),
       ),
     ),
     pageTransitionsTheme: const PageTransitionsTheme(

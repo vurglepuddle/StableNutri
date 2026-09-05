@@ -15,16 +15,15 @@ MealNutrimentsEntity _nutriments({
   double? sugars,
   double? saturatedFat,
   double? fiber,
-}) =>
-    MealNutrimentsEntity(
-      energyKcal100: null,
-      carbohydrates100: carbs,
-      fat100: fat,
-      proteins100: proteins,
-      sugars100: sugars,
-      saturatedFat100: saturatedFat,
-      fiber100: fiber,
-    );
+}) => MealNutrimentsEntity(
+  energyKcal100: null,
+  carbohydrates100: carbs,
+  fat100: fat,
+  proteins100: proteins,
+  sugars100: sugars,
+  saturatedFat100: saturatedFat,
+  fiber100: fiber,
+);
 
 void main() {
   group('isNutrimentsConsistent — rule 1: sugars <= carbohydrates', () {
@@ -33,21 +32,27 @@ void main() {
       expect(isNutrimentsConsistent(n), isTrue);
     });
 
-    test('fails when sugars exceed carbs by more than the rounding tolerance', () {
-      // The reporter's flagship example: a value where sugar is reported as
-      // many times its parent carbohydrate value. Drop it.
-      final n = _nutriments(carbs: 10, sugars: 80);
-      final result = validateNutriments(n);
-      expect(result.isConsistent, isFalse);
-      expect(result.failureReason, 'sugars_exceed_carbs');
-    });
+    test(
+      'fails when sugars exceed carbs by more than the rounding tolerance',
+      () {
+        // The reporter's flagship example: a value where sugar is reported as
+        // many times its parent carbohydrate value. Drop it.
+        final n = _nutriments(carbs: 10, sugars: 80);
+        final result = validateNutriments(n);
+        expect(result.isConsistent, isFalse);
+        expect(result.failureReason, 'sugars_exceed_carbs');
+      },
+    );
 
-    test('still passes when sugars exceed carbs only within rounding tolerance', () {
-      // Sources round to 0.1g or 1g; a sugar value that nudges 0.5g above
-      // its parent carb total is a rounding artefact, not corruption.
-      final n = _nutriments(carbs: 5.0, sugars: 5.5);
-      expect(isNutrimentsConsistent(n), isTrue);
-    });
+    test(
+      'still passes when sugars exceed carbs only within rounding tolerance',
+      () {
+        // Sources round to 0.1g or 1g; a sugar value that nudges 0.5g above
+        // its parent carb total is a rounding artefact, not corruption.
+        final n = _nutriments(carbs: 5.0, sugars: 5.5);
+        expect(isNutrimentsConsistent(n), isTrue);
+      },
+    );
   });
 
   group('isNutrimentsConsistent — rule 2: saturated fat <= total fat', () {
@@ -64,22 +69,30 @@ void main() {
     });
   });
 
-  group('isNutrimentsConsistent — rule 3: macros sum to <= 100g per 100g basis', () {
-    test('passes for a normal high-protein item', () {
-      // Lean chicken breast: ~31g protein, ~3.6g fat, 0g carbs per 100g.
-      final n = _nutriments(carbs: 0, fat: 3.6, proteins: 31, saturatedFat: 1);
-      expect(isNutrimentsConsistent(n), isTrue);
-    });
+  group(
+    'isNutrimentsConsistent — rule 3: macros sum to <= 100g per 100g basis',
+    () {
+      test('passes for a normal high-protein item', () {
+        // Lean chicken breast: ~31g protein, ~3.6g fat, 0g carbs per 100g.
+        final n = _nutriments(
+          carbs: 0,
+          fat: 3.6,
+          proteins: 31,
+          saturatedFat: 1,
+        );
+        expect(isNutrimentsConsistent(n), isTrue);
+      });
 
-    test('fails when carbs + fat + protein exceed 100g per 100g basis', () {
-      // Physically impossible: 60 + 30 + 30 = 120g, but the item only weighs
-      // 100g. Likely a units/scale error upstream.
-      final n = _nutriments(carbs: 60, fat: 30, proteins: 30);
-      final result = validateNutriments(n);
-      expect(result.isConsistent, isFalse);
-      expect(result.failureReason, 'macros_exceed_100g');
-    });
-  });
+      test('fails when carbs + fat + protein exceed 100g per 100g basis', () {
+        // Physically impossible: 60 + 30 + 30 = 120g, but the item only weighs
+        // 100g. Likely a units/scale error upstream.
+        final n = _nutriments(carbs: 60, fat: 30, proteins: 30);
+        final result = validateNutriments(n);
+        expect(result.isConsistent, isFalse);
+        expect(result.failureReason, 'macros_exceed_100g');
+      });
+    },
+  );
 
   group('isNutrimentsConsistent — realistic samples pass', () {
     test('apple (typical FDC values) passes all rules', () {
@@ -89,10 +102,19 @@ void main() {
         FDCFoodNutrimentDTO(nutrientId: FDCConst.fdcTotalKcalId, amount: 52),
         FDCFoodNutrimentDTO(nutrientId: FDCConst.fdcTotalCarbsId, amount: 13.8),
         FDCFoodNutrimentDTO(nutrientId: FDCConst.fdcTotalFatId, amount: 0.2),
-        FDCFoodNutrimentDTO(nutrientId: FDCConst.fdcTotalProteinsId, amount: 0.3),
+        FDCFoodNutrimentDTO(
+          nutrientId: FDCConst.fdcTotalProteinsId,
+          amount: 0.3,
+        ),
         FDCFoodNutrimentDTO(nutrientId: FDCConst.fdcTotalSugarId, amount: 10.4),
-        FDCFoodNutrimentDTO(nutrientId: FDCConst.fdcTotalSaturatedFatId, amount: 0),
-        FDCFoodNutrimentDTO(nutrientId: FDCConst.fdcTotalDietaryFiberId, amount: 2.4),
+        FDCFoodNutrimentDTO(
+          nutrientId: FDCConst.fdcTotalSaturatedFatId,
+          amount: 0,
+        ),
+        FDCFoodNutrimentDTO(
+          nutrientId: FDCConst.fdcTotalDietaryFiberId,
+          amount: 2.4,
+        ),
       ]);
       expect(isNutrimentsConsistent(n), isTrue);
     });
@@ -106,7 +128,10 @@ void main() {
         FDCFoodNutrimentDTO(nutrientId: FDCConst.fdcTotalFatId, amount: 100),
         FDCFoodNutrimentDTO(nutrientId: FDCConst.fdcTotalProteinsId, amount: 0),
         FDCFoodNutrimentDTO(nutrientId: FDCConst.fdcTotalSugarId, amount: 0),
-        FDCFoodNutrimentDTO(nutrientId: FDCConst.fdcTotalSaturatedFatId, amount: 13.8),
+        FDCFoodNutrimentDTO(
+          nutrientId: FDCConst.fdcTotalSaturatedFatId,
+          amount: 13.8,
+        ),
       ]);
       expect(isNutrimentsConsistent(n), isTrue);
     });

@@ -7,7 +7,8 @@ void main() {
     final fixedNow = DateTime(2026, 5, 13);
 
     test('parses a single valid object and writes one intake', () {
-      const json = '{"name":"Apple","kcal":95,"protein":0.5,"carbs":25,'
+      const json =
+          '{"name":"Apple","kcal":95,"protein":0.5,"carbs":25,'
           '"fat":0.3,"mealType":"snack","amount":100,"unit":"g",'
           '"date":"2026-05-13"}';
 
@@ -30,7 +31,8 @@ void main() {
     });
 
     test('parses an array of three entries', () {
-      const json = '['
+      const json =
+          '['
           '{"name":"Oats","kcal":150,"protein":5,"carbs":27,"fat":2.5,'
           '"mealType":"breakfast","amount":40,"unit":"g"},'
           '{"name":"Banana","kcal":105,"protein":1.3,"carbs":27,"fat":0.4,'
@@ -74,7 +76,8 @@ void main() {
     });
 
     test('defaults: mealType snack, amount 100, unit g, date today', () {
-      const json = '{"name":"Apple","kcal":52,"protein":0.3,"carbs":14,"fat":0.2}';
+      const json =
+          '{"name":"Apple","kcal":52,"protein":0.3,"carbs":14,"fat":0.2}';
 
       final result = JsonMealImporter.parse(json, now: fixedNow);
 
@@ -99,7 +102,8 @@ void main() {
     });
 
     test('rejects a non-positive amount', () {
-      const json = '{"name":"Apple","kcal":52,"protein":0.3,"carbs":14,'
+      const json =
+          '{"name":"Apple","kcal":52,"protein":0.3,"carbs":14,'
           '"fat":0.2,"amount":0}';
 
       final result = JsonMealImporter.parse(json, now: fixedNow);
@@ -109,7 +113,8 @@ void main() {
     });
 
     test('rejects a malformed date string', () {
-      const json = '{"name":"Apple","kcal":52,"protein":0.3,"carbs":14,'
+      const json =
+          '{"name":"Apple","kcal":52,"protein":0.3,"carbs":14,'
           '"fat":0.2,"date":"yesterday"}';
 
       final result = JsonMealImporter.parse(json, now: fixedNow);
@@ -136,7 +141,8 @@ void main() {
     test('amount > 100 back-projects nutriments to per-100[unit]', () {
       // 200 kcal at 200 g amount = 100 kcal / 100 g, doubled to land
       // back at 200 kcal for the logged entry.
-      const json = '{"name":"Yoghurt","kcal":200,"protein":10,"carbs":20,'
+      const json =
+          '{"name":"Yoghurt","kcal":200,"protein":10,"carbs":20,'
           '"fat":8,"amount":200,"unit":"g"}';
 
       final result = JsonMealImporter.parse(json, now: fixedNow);
@@ -151,7 +157,8 @@ void main() {
     test('serving_size populates servingQuantity on the saved meal', () {
       // Issue #420 / #421: a saved custom meal with serving values set
       // makes meal-detail default re-logged quantities to 1 serving.
-      const json = '{"name":"Banana","kcal":89,"protein":1.1,"carbs":22.8,'
+      const json =
+          '{"name":"Banana","kcal":89,"protein":1.1,"carbs":22.8,'
           '"fat":0.3,"amount":100,"unit":"g","serving_size":118}';
 
       final result = JsonMealImporter.parse(json, now: fixedNow);
@@ -164,7 +171,8 @@ void main() {
     });
 
     test('serving_size omitted leaves servingQuantity null', () {
-      const json = '{"name":"Apple","kcal":52,"protein":0.3,"carbs":14,'
+      const json =
+          '{"name":"Apple","kcal":52,"protein":0.3,"carbs":14,'
           '"fat":0.2}';
 
       final result = JsonMealImporter.parse(json, now: fixedNow);
@@ -174,7 +182,8 @@ void main() {
     });
 
     test('non-positive serving_size is rejected', () {
-      const json = '{"name":"Apple","kcal":52,"protein":0.3,"carbs":14,'
+      const json =
+          '{"name":"Apple","kcal":52,"protein":0.3,"carbs":14,'
           '"fat":0.2,"serving_size":0}';
 
       final result = JsonMealImporter.parse(json, now: fixedNow);
@@ -184,7 +193,8 @@ void main() {
     });
 
     test('decimal serving_size like 62.5 is preserved', () {
-      const json = '{"name":"Protein Bar","kcal":400,"protein":20,"carbs":35,'
+      const json =
+          '{"name":"Protein Bar","kcal":400,"protein":20,"carbs":35,'
           '"fat":15,"serving_size":62.5}';
 
       final result = JsonMealImporter.parse(json, now: fixedNow);
@@ -202,8 +212,11 @@ void main() {
         JsonMealImporter.sampleJson(),
         now: DateTime(2026, 5, 13),
       );
-      expect(result.errors, isEmpty,
-          reason: 'the bundled sample must always be parseable');
+      expect(
+        result.errors,
+        isEmpty,
+        reason: 'the bundled sample must always be parseable',
+      );
       expect(result.intakes, isNotEmpty);
       // Each entry's stored MealEntity should at least have a name.
       for (final intake in result.intakes) {

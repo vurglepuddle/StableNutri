@@ -47,14 +47,8 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
             children: [
               SegmentedButton<ExportFormat>(
                 segments: const [
-                  ButtonSegment(
-                    value: ExportFormat.json,
-                    label: Text('JSON'),
-                  ),
-                  ButtonSegment(
-                    value: ExportFormat.csv,
-                    label: Text('CSV'),
-                  ),
+                  ButtonSegment(value: ExportFormat.json, label: Text('JSON')),
+                  ButtonSegment(value: ExportFormat.csv, label: Text('CSV')),
                 ],
                 selected: {_exportFormat},
                 onSelectionChanged: (next) {
@@ -80,8 +74,8 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
                       child: Text(
                         S.of(context).exportImportCsvRecipesNote,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
                       ),
                     ),
                   ],
@@ -132,15 +126,13 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
       ),
       actions: <Widget>[
         TextButton(
-          onPressed: () => _exportImportBloc.add(
-            ExportDataEvent(format: _exportFormat),
-          ),
+          onPressed: () =>
+              _exportImportBloc.add(ExportDataEvent(format: _exportFormat)),
           child: Text(S.of(context).exportAction),
         ),
         TextButton(
-          onPressed: () => _exportImportBloc.add(
-            ImportDataEvent(format: _exportFormat),
-          ),
+          onPressed: () =>
+              _exportImportBloc.add(ImportDataEvent(format: _exportFormat)),
           child: Text(S.of(context).importAction),
         ),
       ],

@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/stable_range_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/water_format.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/measurements/presentation/measurements_history_screen.dart';
 import 'package:opennutritracker/features/measurements/presentation/utils/body_measurement_format.dart';
@@ -396,6 +397,7 @@ class _WaterTrendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = S.of(context);
     final text = Theme.of(context).textTheme;
     final color = palette.proteinColor;
     final now = DateTime.now();
@@ -413,6 +415,10 @@ class _WaterTrendCard extends StatelessWidget {
       }
     }
     final avg = loggedDays == 0 ? 0 : (sum / loggedDays).round();
+    final averageLabel = strings.waterTotalLabel(
+      WaterFormat.litresText(avg),
+      WaterFormat.litresText(goalMl),
+    );
     final maxWater = spots.fold<double>(0, (m, s) => s.y > m ? s.y : m);
     final maxY =
         [maxWater, goalMl.toDouble()].reduce((a, b) => a > b ? a : b) * 1.15 +
@@ -426,23 +432,20 @@ class _WaterTrendCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  S.of(context).trendsWaterLabel,
-                  style: text.titleMedium,
-                ),
+                child: Text(strings.trendsWaterLabel, style: text.titleMedium),
               ),
               Text(
-                S.of(context).waterChipLabel(avg, goalMl),
+                averageLabel,
                 style: text.bodySmall?.copyWith(
                   color: palette.textMuted,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
           const SizedBox(height: Dimens.spacing20),
           Semantics(
-            label: S.of(context).trendsWaterLabel,
+            label: strings.trendsWaterLabel,
             child: SizedBox(
               height: 140,
               child: LineChart(
@@ -552,7 +555,7 @@ class _MacrosTrendCard extends StatelessWidget {
                   '${intake.toInt()} / ${goal.toInt()} g',
                   style: text.bodySmall?.copyWith(
                     color: palette.textStrong,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],

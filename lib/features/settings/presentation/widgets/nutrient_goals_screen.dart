@@ -180,30 +180,32 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   }
 
   void _syncControllers() {
-    _fibreController.text =
-        (_fibre ?? DailyNutrientPanel.defaultFibreRefG).round().toString();
+    _fibreController.text = (_fibre ?? DailyNutrientPanel.defaultFibreRefG)
+        .round()
+        .toString();
     _satFatController.text =
         (_satFat ?? DailyNutrientPanel.defaultSaturatedFatRefG)
             .round()
             .toString();
-    _sugarsController.text =
-        (_sugars ?? DailyNutrientPanel.defaultSugarRefG).round().toString();
-    _sodiumController.text =
-        (_sodium ?? DailyNutrientPanel.defaultSodiumRefMg).round().toString();
+    _sugarsController.text = (_sugars ?? DailyNutrientPanel.defaultSugarRefG)
+        .round()
+        .toString();
+    _sodiumController.text = (_sodium ?? DailyNutrientPanel.defaultSodiumRefMg)
+        .round()
+        .toString();
     _calciumController.text =
-        (_calcium ?? DailyNutrientPanel.defaultCalciumRefMg)
-            .round()
-            .toString();
-    _ironController.text =
-        _formatGoal(_iron ?? _ironDefaultForGender());
+        (_calcium ?? DailyNutrientPanel.defaultCalciumRefMg).round().toString();
+    _ironController.text = _formatGoal(_iron ?? _ironDefaultForGender());
     _potassiumController.text =
         (_potassium ?? DailyNutrientPanel.defaultPotassiumRefMg)
             .round()
             .toString();
-    _magnesiumController.text =
-        _formatGoal(_magnesium ?? _magnesiumDefaultForGender());
-    _vitaminDController.text =
-        _formatGoal(_vitaminD ?? DailyNutrientPanel.defaultVitaminDRefUg);
+    _magnesiumController.text = _formatGoal(
+      _magnesium ?? _magnesiumDefaultForGender(),
+    );
+    _vitaminDController.text = _formatGoal(
+      _vitaminD ?? DailyNutrientPanel.defaultVitaminDRefUg,
+    );
     _vitaminB12Controller.text = _formatGoal(
       _vitaminB12 ?? DailyNutrientPanel.defaultVitaminB12RefUg,
     );
@@ -306,21 +308,28 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   identifier: 'nutrient-fibre-slider',
                   onSliderChanged: (v) => setState(() => _fibre = v),
                   onTextSubmitted: () => _applyText(
-                      _fibreController, _fibreMin, _fibreMax, (v) => _fibre = v),
+                    _fibreController,
+                    _fibreMin,
+                    _fibreMax,
+                    (v) => _fibre = v,
+                  ),
                 ),
                 _NutrientRow(
                   label: s.settingsSaturatedFatGoalLabel,
                   description: s.settingsSaturatedFatGoalDescription,
-                  value:
-                      _satFat ?? DailyNutrientPanel.defaultSaturatedFatRefG,
+                  value: _satFat ?? DailyNutrientPanel.defaultSaturatedFatRefG,
                   min: _satFatMin,
                   max: _satFatMax,
                   divisions: _satFatDivisions,
                   controller: _satFatController,
                   identifier: 'nutrient-sat-fat-slider',
                   onSliderChanged: (v) => setState(() => _satFat = v),
-                  onTextSubmitted: () => _applyText(_satFatController,
-                      _satFatMin, _satFatMax, (v) => _satFat = v),
+                  onTextSubmitted: () => _applyText(
+                    _satFatController,
+                    _satFatMin,
+                    _satFatMax,
+                    (v) => _satFat = v,
+                  ),
                 ),
                 _NutrientRow(
                   label: s.settingsSugarsGoalLabel,
@@ -332,8 +341,12 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   controller: _sugarsController,
                   identifier: 'nutrient-sugars-slider',
                   onSliderChanged: (v) => setState(() => _sugars = v),
-                  onTextSubmitted: () => _applyText(_sugarsController,
-                      _sugarsMin, _sugarsMax, (v) => _sugars = v),
+                  onTextSubmitted: () => _applyText(
+                    _sugarsController,
+                    _sugarsMin,
+                    _sugarsMax,
+                    (v) => _sugars = v,
+                  ),
                 ),
                 _NutrientRow(
                   label: s.settingsSodiumGoalLabel,
@@ -346,8 +359,12 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   unit: 'mg',
                   identifier: 'nutrient-sodium-slider',
                   onSliderChanged: (v) => setState(() => _sodium = v),
-                  onTextSubmitted: () => _applyText(_sodiumController,
-                      _sodiumMin, _sodiumMax, (v) => _sodium = v),
+                  onTextSubmitted: () => _applyText(
+                    _sodiumController,
+                    _sodiumMin,
+                    _sodiumMax,
+                    (v) => _sodium = v,
+                  ),
                 ),
                 _NutrientRow(
                   label: s.settingsCalciumGoalLabel,
@@ -360,8 +377,12 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   unit: 'mg',
                   identifier: 'nutrient-calcium-slider',
                   onSliderChanged: (v) => setState(() => _calcium = v),
-                  onTextSubmitted: () => _applyText(_calciumController,
-                      _calciumMin, _calciumMax, (v) => _calcium = v),
+                  onTextSubmitted: () => _applyText(
+                    _calciumController,
+                    _calciumMin,
+                    _calciumMax,
+                    (v) => _calcium = v,
+                  ),
                 ),
                 _NutrientRow(
                   label: s.settingsIronGoalLabel,
@@ -386,8 +407,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                 _NutrientRow(
                   label: s.settingsPotassiumGoalLabel,
                   description: s.settingsPotassiumGoalDescription,
-                  value:
-                      _potassium ?? DailyNutrientPanel.defaultPotassiumRefMg,
+                  value: _potassium ?? DailyNutrientPanel.defaultPotassiumRefMg,
                   min: _potassiumMin,
                   max: _potassiumMax,
                   divisions: _potassiumDivisions,
@@ -395,8 +415,12 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   unit: 'mg',
                   identifier: 'nutrient-potassium-slider',
                   onSliderChanged: (v) => setState(() => _potassium = v),
-                  onTextSubmitted: () => _applyText(_potassiumController,
-                      _potassiumMin, _potassiumMax, (v) => _potassium = v),
+                  onTextSubmitted: () => _applyText(
+                    _potassiumController,
+                    _potassiumMin,
+                    _potassiumMax,
+                    (v) => _potassium = v,
+                  ),
                 ),
                 _NutrientRow(
                   label: s.settingsMagnesiumGoalLabel,
@@ -409,8 +433,12 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   unit: 'mg',
                   identifier: 'nutrient-magnesium-slider',
                   onSliderChanged: (v) => setState(() => _magnesium = v),
-                  onTextSubmitted: () => _applyText(_magnesiumController,
-                      _magnesiumMin, _magnesiumMax, (v) => _magnesium = v),
+                  onTextSubmitted: () => _applyText(
+                    _magnesiumController,
+                    _magnesiumMin,
+                    _magnesiumMax,
+                    (v) => _magnesium = v,
+                  ),
                 ),
                 _NutrientRow(
                   label: s.settingsVitaminDGoalLabel,
@@ -473,8 +501,9 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     if (parsed == null) return;
     final clamped = parsed.clamp(min, max).toDouble();
     setState(() => setter(clamped));
-    controller.text =
-        decimalStep ? clamped.toStringAsFixed(1) : clamped.round().toString();
+    controller.text = decimalStep
+        ? clamped.toStringAsFixed(1)
+        : clamped.round().toString();
   }
 }
 
@@ -555,11 +584,10 @@ class _NutrientRow extends StatelessWidget {
               child: Text(
                 description,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.7),
-                    ),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
               ),
             ),
           Semantics(

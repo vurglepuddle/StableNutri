@@ -1,4 +1,6 @@
 Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins)
+Copyright 2014 The Nunito Project Authors (https://github.com/googlefonts/nunito)
+Copyright (c) 2015 Dan Reynolds. Copyright (c) 2015 Mathieu Reguer (Biryani)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

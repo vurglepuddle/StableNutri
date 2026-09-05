@@ -112,7 +112,12 @@ class _IngredientQuantitySheetState extends State<_IngredientQuantitySheet> {
     return Padding(
       padding: EdgeInsets.only(bottom: viewInsets.bottom),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(Dimens.spacing24, Dimens.spacing24, Dimens.spacing24, Dimens.spacing16),
+        padding: const EdgeInsets.fromLTRB(
+          Dimens.spacing24,
+          Dimens.spacing24,
+          Dimens.spacing24,
+          Dimens.spacing16,
+        ),
         decoration: BoxDecoration(
           color: palette.surface,
           borderRadius: const BorderRadius.only(
@@ -137,7 +142,9 @@ class _IngredientQuantitySheetState extends State<_IngredientQuantitySheet> {
             const SizedBox(height: Dimens.spacing20),
             Text(
               widget.meal.name ?? '?',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -192,7 +199,9 @@ class _IngredientQuantitySheetState extends State<_IngredientQuantitySheet> {
               width: double.infinity,
               child: FilledButton(
                 style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: Dimens.spacing16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: Dimens.spacing16,
+                  ),
                   shape: Dimens.shapeM,
                 ),
                 onPressed: _onConfirm,
@@ -213,8 +222,8 @@ class _IngredientQuantitySheetState extends State<_IngredientQuantitySheet> {
       Navigator.of(context).pop();
       return;
     }
-    Navigator.of(context).pop(
-      IngredientQuantitySelection(amount: amount, unit: _unit),
-    );
+    Navigator.of(
+      context,
+    ).pop(IngredientQuantitySelection(amount: amount, unit: _unit));
   }
 }

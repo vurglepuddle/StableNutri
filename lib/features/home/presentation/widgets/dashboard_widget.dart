@@ -248,7 +248,18 @@ class _MacroTile extends StatelessWidget {
                 decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               ),
               const SizedBox(width: 6),
-              Flexible(child: Text(label, style: textTheme.labelMedium)),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: textTheme.labelMedium,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: Dimens.spacing12),
@@ -266,7 +277,7 @@ class _MacroTile extends StatelessWidget {
             '${intake.toInt()}/${goal.toInt()} g',
             style: textTheme.bodySmall?.copyWith(
               color: palette.textStrong,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

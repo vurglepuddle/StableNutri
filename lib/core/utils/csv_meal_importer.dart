@@ -60,24 +60,23 @@ class CsvMealImporter {
         .toList();
 
     if (lines.isEmpty) {
-      return const CsvImportResult(
-        meals: [],
-        errors: ['CSV file is empty'],
-      );
+      return const CsvImportResult(meals: [], errors: ['CSV file is empty']);
     }
 
     // Headers never contain decimal-comma payloads, so split with the
     // strict comma-only mode for the header line.
-    final headerCells = CsvRowParser.splitRow(lines.first)
-        .map((c) => c.trim().toLowerCase())
-        .toList();
+    final headerCells = CsvRowParser.splitRow(
+      lines.first,
+    ).map((c) => c.trim().toLowerCase()).toList();
     final missingRequired = requiredColumns
         .where((req) => !headerCells.contains(req))
         .toList();
     if (missingRequired.isNotEmpty) {
       return CsvImportResult(
         meals: const [],
-        errors: ['Header is missing required column(s): ${missingRequired.join(', ')}'],
+        errors: [
+          'Header is missing required column(s): ${missingRequired.join(', ')}',
+        ],
       );
     }
 
@@ -93,9 +92,10 @@ class CsvMealImporter {
       }
       if (cells.length > headerCells.length) {
         errors.add(
-            'Row $rowNum: too many columns. If a value contains a comma '
-            '(for example a decimal like 1,5), wrap that cell in double '
-            'quotes: "1,5".');
+          'Row $rowNum: too many columns. If a value contains a comma '
+          '(for example a decimal like 1,5), wrap that cell in double '
+          'quotes: "1,5".',
+        );
         continue;
       }
       final row = <String, String>{};

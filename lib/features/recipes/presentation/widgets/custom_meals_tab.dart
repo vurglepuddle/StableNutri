@@ -136,7 +136,7 @@ class CustomMealsTab extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 if (meal.brands != null) ...[
@@ -350,7 +350,7 @@ class CustomMealsTab extends StatelessWidget {
                   child: Text(
                     S.of(context).customMealsMergePickerTitle,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -365,7 +365,7 @@ class CustomMealsTab extends StatelessWidget {
                         title: Text(
                           m.name ?? '',
                           style: Theme.of(ctx2).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         subtitle: m.brands != null ? Text(m.brands!) : null,

@@ -213,31 +213,38 @@ class CsvDataExporter {
         fat100: CsvRowParser.parseDoubleOrNull(row['fat_per_100g']),
         proteins100: CsvRowParser.parseDoubleOrNull(row['protein_per_100g']),
         sugars100: CsvRowParser.parseDoubleOrNull(row['sugars_per_100g']),
-        saturatedFat100:
-            CsvRowParser.parseDoubleOrNull(row['saturated_fat_per_100g']),
+        saturatedFat100: CsvRowParser.parseDoubleOrNull(
+          row['saturated_fat_per_100g'],
+        ),
         fiber100: CsvRowParser.parseDoubleOrNull(row['fiber_per_100g']),
-        monounsaturatedFat100:
-            CsvRowParser.parseDoubleOrNull(row['monounsaturated_fat_per_100g']),
-        polyunsaturatedFat100:
-            CsvRowParser.parseDoubleOrNull(row['polyunsaturated_fat_per_100g']),
+        monounsaturatedFat100: CsvRowParser.parseDoubleOrNull(
+          row['monounsaturated_fat_per_100g'],
+        ),
+        polyunsaturatedFat100: CsvRowParser.parseDoubleOrNull(
+          row['polyunsaturated_fat_per_100g'],
+        ),
         transFat100: CsvRowParser.parseDoubleOrNull(row['trans_fat_per_100g']),
-        cholesterol100:
-            CsvRowParser.parseDoubleOrNull(row['cholesterol_per_100g']),
+        cholesterol100: CsvRowParser.parseDoubleOrNull(
+          row['cholesterol_per_100g'],
+        ),
         sodium100: CsvRowParser.parseDoubleOrNull(row['sodium_per_100g']),
         potassium100: CsvRowParser.parseDoubleOrNull(row['potassium_per_100g']),
         magnesium100: CsvRowParser.parseDoubleOrNull(row['magnesium_per_100g']),
         calcium100: CsvRowParser.parseDoubleOrNull(row['calcium_per_100g']),
         iron100: CsvRowParser.parseDoubleOrNull(row['iron_per_100g']),
         zinc100: CsvRowParser.parseDoubleOrNull(row['zinc_per_100g']),
-        phosphorus100:
-            CsvRowParser.parseDoubleOrNull(row['phosphorus_per_100g']),
+        phosphorus100: CsvRowParser.parseDoubleOrNull(
+          row['phosphorus_per_100g'],
+        ),
         vitaminA100: CsvRowParser.parseDoubleOrNull(row['vitamin_a_per_100g']),
         vitaminC100: CsvRowParser.parseDoubleOrNull(row['vitamin_c_per_100g']),
         vitaminD100: CsvRowParser.parseDoubleOrNull(row['vitamin_d_per_100g']),
-        vitaminB6100:
-            CsvRowParser.parseDoubleOrNull(row['vitamin_b6_per_100g']),
-        vitaminB12100:
-            CsvRowParser.parseDoubleOrNull(row['vitamin_b12_per_100g']),
+        vitaminB6100: CsvRowParser.parseDoubleOrNull(
+          row['vitamin_b6_per_100g'],
+        ),
+        vitaminB12100: CsvRowParser.parseDoubleOrNull(
+          row['vitamin_b12_per_100g'],
+        ),
         niacin100: CsvRowParser.parseDoubleOrNull(row['niacin_per_100g']),
       );
       final meal = MealDBO(
@@ -249,8 +256,9 @@ class CsvDataExporter {
         url: _nullable(row['meal_url']),
         mealQuantity: _nullable(row['meal_quantity']),
         mealUnit: _nullable(row['meal_unit']),
-        servingQuantity:
-            CsvRowParser.parseDoubleOrNull(row['meal_serving_quantity']),
+        servingQuantity: CsvRowParser.parseDoubleOrNull(
+          row['meal_serving_quantity'],
+        ),
         servingUnit: _nullable(row['meal_serving_unit']),
         servingSize: _nullable(row['meal_serving_size']),
         source: _parseMealSource(row['meal_source']),
@@ -281,7 +289,11 @@ class CsvDataExporter {
       final rawTags = row['tags'] ?? '';
       final tags = rawTags.isEmpty
           ? <String>[]
-          : rawTags.split('|').map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
+          : rawTags
+                .split('|')
+                .map((t) => t.trim())
+                .where((t) => t.isNotEmpty)
+                .toList();
       final pa = PhysicalActivityDBO(
         row['activity_code'] ?? '',
         row['specific_activity'] ?? '',
@@ -322,7 +334,9 @@ class CsvDataExporter {
           fatGoal: CsvRowParser.parseDoubleOrNull(row['fat_goal']),
           fatTracked: CsvRowParser.parseDoubleOrNull(row['fat_tracked']),
           proteinGoal: CsvRowParser.parseDoubleOrNull(row['protein_goal']),
-          proteinTracked: CsvRowParser.parseDoubleOrNull(row['protein_tracked']),
+          proteinTracked: CsvRowParser.parseDoubleOrNull(
+            row['protein_tracked'],
+          ),
         ),
       );
     }
@@ -352,7 +366,8 @@ class CsvDataExporter {
   /// Null values render as an empty cell.
   static String _cell(String? value) {
     if (value == null || value.isEmpty) return '';
-    final needsQuoting = value.contains(',') ||
+    final needsQuoting =
+        value.contains(',') ||
         value.contains('"') ||
         value.contains('\n') ||
         value.contains('\r');

@@ -3,8 +3,8 @@ import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 
 /// Reads water intake entries grouped by the configured logical day so the
-/// home chip and any future graph view both see the same boundary as the
-/// rest of the diary (#139).
+/// home water card and any future graph view both see the same boundary as
+/// the rest of the diary (#139).
 class GetWaterIntakeUsecase {
   final WaterIntakeRepository _waterIntakeRepository;
 
@@ -38,12 +38,15 @@ class GetWaterIntakeUsecase {
   }
 
   /// Repeat the most recent manually logged drink across app restarts and
-  /// day changes. Estimated historical daily totals are not glass sizes.
+  /// day changes. Estimated historical daily totals are not glass sizes, and
+  /// neither is the leftover of a drink partly taken back off the day by
+  /// tapping a full cup — either would resize the cups behind the user's back.
   Future<int> getQuickAddAmountMl() async {
     final now = DateTime.now();
     WaterIntakeEntity? latest;
     for (final entry in await getAllEntries()) {
       if (entry.id.startsWith('lifesum-estimated-water-') ||
+          entry.id.startsWith('water-trimmed-') ||
           entry.dateTime.isAfter(now) ||
           entry.amountMl <= 0 ||
           entry.amountMl > 1000) {

@@ -68,20 +68,24 @@ class DailyKcalOverview extends StatelessWidget {
           ),
           const SizedBox(height: Dimens.spacing8),
           Text(
-            S.of(context).mealDetailDayTotalLabel(
+            S
+                .of(context)
+                .mealDetailDayTotalLabel(
                   projected.toStringAsFixed(0),
                   dayKcalGoal.toStringAsFixed(0),
                 ),
             style: textTheme.labelLarge?.copyWith(
               color: accent,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
           ),
           if (hasLiveSelection) ...[
             const SizedBox(height: Dimens.spacing4),
             Text(
-              S.of(context).mealDetailCurrentSelectionLabel(
+              S
+                  .of(context)
+                  .mealDetailCurrentSelectionLabel(
                     currentSelectionKcal.toStringAsFixed(0),
                   ),
               style: textTheme.labelSmall?.copyWith(color: palette.textMuted),

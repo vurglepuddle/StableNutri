@@ -186,8 +186,11 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('meal-detail'), findsOneWidget);
-        expect(pushedArgs, hasLength(1),
-            reason: 'scanner should replace itself with meal-detail exactly once');
+        expect(
+          pushedArgs,
+          hasLength(1),
+          reason: 'scanner should replace itself with meal-detail exactly once',
+        );
         final args = pushedArgs.single as MealDetailScreenArguments;
         expect(args.day, DateTime(2026, 5, 21));
         expect(args.intakeTypeEntity, IntakeTypeEntity.breakfast);
@@ -195,7 +198,6 @@ void main() {
       },
     );
   });
-
 }
 
 final _loadedMeal = MealEntity(
@@ -233,12 +235,8 @@ class _FakeSearchUseCase implements SearchProductByBarcodeUseCase {
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {
   @override
-  Future<ConfigEntity> getConfig() async => const ConfigEntity(
-        true,
-        true,
-        false,
-        AppThemeEntity.system,
-      );
+  Future<ConfigEntity> getConfig() async =>
+      const ConfigEntity(true, true, false, AppThemeEntity.system);
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

@@ -8,17 +8,15 @@ void main() {
     });
 
     test('quoted field with embedded comma', () {
-      expect(
-        CsvRowParser.splitRow('a,"b,c",d'),
-        ['a', 'b,c', 'd'],
-      );
+      expect(CsvRowParser.splitRow('a,"b,c",d'), ['a', 'b,c', 'd']);
     });
 
     test('escaped double-quote inside a quoted field', () {
-      expect(
-        CsvRowParser.splitRow('a,"He said ""hi""",b'),
-        ['a', 'He said "hi"', 'b'],
-      );
+      expect(CsvRowParser.splitRow('a,"He said ""hi""",b'), [
+        'a',
+        'He said "hi"',
+        'b',
+      ]);
     });
 
     test('trailing empty field', () {

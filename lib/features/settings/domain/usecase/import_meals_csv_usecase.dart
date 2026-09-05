@@ -54,8 +54,9 @@ class ImportMealsCsvUsecase {
       imported: parseResult.meals.length,
       skipped: parseResult.errors.length,
       errorMessages: parseResult.errors,
-      anyImportedHadBarcode:
-          parseResult.meals.any((m) => m.code != null && m.code!.isNotEmpty),
+      anyImportedHadBarcode: parseResult.meals.any(
+        (m) => m.code != null && m.code!.isNotEmpty,
+      ),
     );
   }
 }

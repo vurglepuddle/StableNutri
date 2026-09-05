@@ -190,7 +190,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                       overflow: TextOverflow.ellipsis,
                       style: textTheme.titleLarge?.copyWith(
                         color: palette.textStrong,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     if (_shouldShowHeaderSummary)
@@ -200,7 +200,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                         overflow: TextOverflow.ellipsis,
                         style: textTheme.labelMedium?.copyWith(
                           color: palette.textMuted,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           height: 1.3,
                         ),
                         textAlign: TextAlign.start,

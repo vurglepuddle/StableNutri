@@ -20,25 +20,30 @@ Widget _wrap(Widget child) {
 
 void main() {
   group('SetWeeklyWeightGoalDialog', () {
-    testWidgets('Cancel returns WeeklyWeightGoalCancelled',
-        (tester) async {
+    testWidgets('Cancel returns WeeklyWeightGoalCancelled', (tester) async {
       WeeklyWeightGoalResult? captured;
-      await tester.pumpWidget(_wrap(Builder(builder: (context) {
-        return Center(
-          child: ElevatedButton(
-            onPressed: () async {
-              captured = await showDialog<WeeklyWeightGoalResult>(
-                context: context,
-                builder: (_) => const SetWeeklyWeightGoalDialog(
-                  currentGoalKg: null,
-                  bodyWeightUnit: BodyWeightUnit.kg,
+      await tester.pumpWidget(
+        _wrap(
+          Builder(
+            builder: (context) {
+              return Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    captured = await showDialog<WeeklyWeightGoalResult>(
+                      context: context,
+                      builder: (_) => const SetWeeklyWeightGoalDialog(
+                        currentGoalKg: null,
+                        bodyWeightUnit: BodyWeightUnit.kg,
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
                 ),
               );
             },
-            child: const Text('Open'),
           ),
-        );
-      })));
+        ),
+      );
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
       await tester.tap(find.text(S.current.dialogCancelLabel));
@@ -48,22 +53,28 @@ void main() {
 
     testWidgets('Reset returns WeeklyWeightGoalCleared', (tester) async {
       WeeklyWeightGoalResult? captured;
-      await tester.pumpWidget(_wrap(Builder(builder: (context) {
-        return Center(
-          child: ElevatedButton(
-            onPressed: () async {
-              captured = await showDialog<WeeklyWeightGoalResult>(
-                context: context,
-                builder: (_) => const SetWeeklyWeightGoalDialog(
-                  currentGoalKg: 0.5,
-                  bodyWeightUnit: BodyWeightUnit.kg,
+      await tester.pumpWidget(
+        _wrap(
+          Builder(
+            builder: (context) {
+              return Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    captured = await showDialog<WeeklyWeightGoalResult>(
+                      context: context,
+                      builder: (_) => const SetWeeklyWeightGoalDialog(
+                        currentGoalKg: 0.5,
+                        bodyWeightUnit: BodyWeightUnit.kg,
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
                 ),
               );
             },
-            child: const Text('Open'),
           ),
-        );
-      })));
+        ),
+      );
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
       await tester.tap(find.text(S.current.buttonResetLabel));
@@ -71,25 +82,32 @@ void main() {
       expect(captured, isA<WeeklyWeightGoalCleared>());
     });
 
-    testWidgets('OK returns WeeklyWeightGoalSet with the slider value',
-        (tester) async {
+    testWidgets('OK returns WeeklyWeightGoalSet with the slider value', (
+      tester,
+    ) async {
       WeeklyWeightGoalResult? captured;
-      await tester.pumpWidget(_wrap(Builder(builder: (context) {
-        return Center(
-          child: ElevatedButton(
-            onPressed: () async {
-              captured = await showDialog<WeeklyWeightGoalResult>(
-                context: context,
-                builder: (_) => const SetWeeklyWeightGoalDialog(
-                  currentGoalKg: -0.25,
-                  bodyWeightUnit: BodyWeightUnit.kg,
+      await tester.pumpWidget(
+        _wrap(
+          Builder(
+            builder: (context) {
+              return Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    captured = await showDialog<WeeklyWeightGoalResult>(
+                      context: context,
+                      builder: (_) => const SetWeeklyWeightGoalDialog(
+                        currentGoalKg: -0.25,
+                        bodyWeightUnit: BodyWeightUnit.kg,
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
                 ),
               );
             },
-            child: const Text('Open'),
           ),
-        );
-      })));
+        ),
+      );
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
       await tester.tap(find.text(S.current.dialogOKLabel));

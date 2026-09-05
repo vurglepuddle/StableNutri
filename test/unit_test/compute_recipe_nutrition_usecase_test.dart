@@ -113,10 +113,7 @@ void main() {
     });
 
     test('serving without servingQuantity returns null', () {
-      expect(
-        useCase.convertAmountToGrams(amount: 2, unit: 'serving'),
-        isNull,
-      );
+      expect(useCase.convertAmountToGrams(amount: 2, unit: 'serving'), isNull);
     });
 
     test('unknown unit returns null', () {
@@ -179,27 +176,29 @@ void main() {
       // 800 g of dough at 200 kcal/100g (1600 kcal total) baked down to 720 g
       // → per-100g = 1600 × 100 / 720 ≈ 222.22
       final dough = _meal(nutriments: _nutr(kcal: 200));
-      final result = useCase.compute(
-        [_ingredient(dough, 800, 'g', 800)],
-        totalWeightOverride: 720,
-      );
+      final result = useCase.compute([
+        _ingredient(dough, 800, 'g', 800),
+      ], totalWeightOverride: 720);
 
       expect(result.totalWeightG, 720);
       expect(result.perHundredG.energyKcal100, closeTo(222.22, 0.01));
     });
 
-    test('null nutrient field treated as 0 in sum, but null preserved when ALL ingredients null', () {
-      // ingredient A has iron, B has null iron
-      // → recipe iron = (5 mg × 50 g + 0 × 50 g) × 100 / 100 = 2.5 mg
-      final a = _meal(code: 'a', nutriments: _nutr(kcal: 100, iron: 5));
-      final b = _meal(code: 'b', nutriments: _nutr(kcal: 100));
-      final result = useCase.compute([
-        _ingredient(a, 50, 'g', 50),
-        _ingredient(b, 50, 'g', 50),
-      ]);
+    test(
+      'null nutrient field treated as 0 in sum, but null preserved when ALL ingredients null',
+      () {
+        // ingredient A has iron, B has null iron
+        // → recipe iron = (5 mg × 50 g + 0 × 50 g) × 100 / 100 = 2.5 mg
+        final a = _meal(code: 'a', nutriments: _nutr(kcal: 100, iron: 5));
+        final b = _meal(code: 'b', nutriments: _nutr(kcal: 100));
+        final result = useCase.compute([
+          _ingredient(a, 50, 'g', 50),
+          _ingredient(b, 50, 'g', 50),
+        ]);
 
-      expect(result.perHundredG.iron100, closeTo(2.5, 0.001));
-    });
+        expect(result.perHundredG.iron100, closeTo(2.5, 0.001));
+      },
+    );
 
     test('all ingredients null for a field → recipe field also null', () {
       final a = _meal(code: 'a', nutriments: _nutr(kcal: 100));
@@ -217,81 +216,83 @@ void main() {
 
     test('zero total weight yields empty nutriments', () {
       final a = _meal(nutriments: _nutr(kcal: 100));
-      final result = useCase.compute(
-        [_ingredient(a, 50, 'g', 50)],
-        totalWeightOverride: 0,
-      );
+      final result = useCase.compute([
+        _ingredient(a, 50, 'g', 50),
+      ], totalWeightOverride: 0);
 
       expect(result.totalWeightG, 0);
       expect(result.perHundredG.energyKcal100, isNull);
     });
 
-    test('full-nutrient coverage: every MealNutrimentsEntity field aggregates', () {
-      // Three ingredients each populating all 24 fields with the same value v.
-      // The weighted-mean of identical values is the same value back —
-      // ensures every field is summed (not just kcal/carbs/fat/protein).
-      const v = 10.0;
-      final fullN = MealNutrimentsEntity(
-        energyKcal100: v,
-        carbohydrates100: v,
-        fat100: v,
-        proteins100: v,
-        sugars100: v,
-        saturatedFat100: v,
-        fiber100: v,
-        monounsaturatedFat100: v,
-        polyunsaturatedFat100: v,
-        transFat100: v,
-        cholesterol100: v,
-        sodium100: v,
-        potassium100: v,
-        magnesium100: v,
-        calcium100: v,
-        iron100: v,
-        zinc100: v,
-        phosphorus100: v,
-        vitaminA100: v,
-        vitaminC100: v,
-        vitaminD100: v,
-        vitaminB6100: v,
-        vitaminB12100: v,
-        niacin100: v,
-      );
-      final m1 = _meal(code: 'a', nutriments: fullN);
-      final m2 = _meal(code: 'b', nutriments: fullN);
-      final m3 = _meal(code: 'c', nutriments: fullN);
-      final result = useCase.compute([
-        _ingredient(m1, 100, 'g', 100),
-        _ingredient(m2, 50, 'g', 50),
-        _ingredient(m3, 50, 'g', 50),
-      ]);
+    test(
+      'full-nutrient coverage: every MealNutrimentsEntity field aggregates',
+      () {
+        // Three ingredients each populating all 24 fields with the same value v.
+        // The weighted-mean of identical values is the same value back —
+        // ensures every field is summed (not just kcal/carbs/fat/protein).
+        const v = 10.0;
+        final fullN = MealNutrimentsEntity(
+          energyKcal100: v,
+          carbohydrates100: v,
+          fat100: v,
+          proteins100: v,
+          sugars100: v,
+          saturatedFat100: v,
+          fiber100: v,
+          monounsaturatedFat100: v,
+          polyunsaturatedFat100: v,
+          transFat100: v,
+          cholesterol100: v,
+          sodium100: v,
+          potassium100: v,
+          magnesium100: v,
+          calcium100: v,
+          iron100: v,
+          zinc100: v,
+          phosphorus100: v,
+          vitaminA100: v,
+          vitaminC100: v,
+          vitaminD100: v,
+          vitaminB6100: v,
+          vitaminB12100: v,
+          niacin100: v,
+        );
+        final m1 = _meal(code: 'a', nutriments: fullN);
+        final m2 = _meal(code: 'b', nutriments: fullN);
+        final m3 = _meal(code: 'c', nutriments: fullN);
+        final result = useCase.compute([
+          _ingredient(m1, 100, 'g', 100),
+          _ingredient(m2, 50, 'g', 50),
+          _ingredient(m3, 50, 'g', 50),
+        ]);
 
-      final p = result.perHundredG;
-      // Every field must equal v (weighted mean of identical values).
-      expect(p.energyKcal100, closeTo(v, 0.001));
-      expect(p.carbohydrates100, closeTo(v, 0.001));
-      expect(p.fat100, closeTo(v, 0.001));
-      expect(p.proteins100, closeTo(v, 0.001));
-      expect(p.sugars100, closeTo(v, 0.001));
-      expect(p.saturatedFat100, closeTo(v, 0.001));
-      expect(p.fiber100, closeTo(v, 0.001));
-      expect(p.monounsaturatedFat100, closeTo(v, 0.001));
-      expect(p.polyunsaturatedFat100, closeTo(v, 0.001));
-      expect(p.transFat100, closeTo(v, 0.001));
-      expect(p.cholesterol100, closeTo(v, 0.001));
-      expect(p.sodium100, closeTo(v, 0.001));
-      expect(p.potassium100, closeTo(v, 0.001));
-      expect(p.magnesium100, closeTo(v, 0.001));
-      expect(p.calcium100, closeTo(v, 0.001));
-      expect(p.iron100, closeTo(v, 0.001));
-      expect(p.zinc100, closeTo(v, 0.001));
-      expect(p.phosphorus100, closeTo(v, 0.001));
-      expect(p.vitaminA100, closeTo(v, 0.001));
-      expect(p.vitaminC100, closeTo(v, 0.001));
-      expect(p.vitaminD100, closeTo(v, 0.001));
-      expect(p.vitaminB6100, closeTo(v, 0.001));
-      expect(p.vitaminB12100, closeTo(v, 0.001));
-      expect(p.niacin100, closeTo(v, 0.001));
-    });
+        final p = result.perHundredG;
+        // Every field must equal v (weighted mean of identical values).
+        expect(p.energyKcal100, closeTo(v, 0.001));
+        expect(p.carbohydrates100, closeTo(v, 0.001));
+        expect(p.fat100, closeTo(v, 0.001));
+        expect(p.proteins100, closeTo(v, 0.001));
+        expect(p.sugars100, closeTo(v, 0.001));
+        expect(p.saturatedFat100, closeTo(v, 0.001));
+        expect(p.fiber100, closeTo(v, 0.001));
+        expect(p.monounsaturatedFat100, closeTo(v, 0.001));
+        expect(p.polyunsaturatedFat100, closeTo(v, 0.001));
+        expect(p.transFat100, closeTo(v, 0.001));
+        expect(p.cholesterol100, closeTo(v, 0.001));
+        expect(p.sodium100, closeTo(v, 0.001));
+        expect(p.potassium100, closeTo(v, 0.001));
+        expect(p.magnesium100, closeTo(v, 0.001));
+        expect(p.calcium100, closeTo(v, 0.001));
+        expect(p.iron100, closeTo(v, 0.001));
+        expect(p.zinc100, closeTo(v, 0.001));
+        expect(p.phosphorus100, closeTo(v, 0.001));
+        expect(p.vitaminA100, closeTo(v, 0.001));
+        expect(p.vitaminC100, closeTo(v, 0.001));
+        expect(p.vitaminD100, closeTo(v, 0.001));
+        expect(p.vitaminB6100, closeTo(v, 0.001));
+        expect(p.vitaminB12100, closeTo(v, 0.001));
+        expect(p.niacin100, closeTo(v, 0.001));
+      },
+    );
   });
 }

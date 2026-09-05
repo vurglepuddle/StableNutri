@@ -77,12 +77,12 @@ _DriRoute _routeFor(UserEntity user) {
     UserGenderEntity.female => _DriRoute.female,
     UserGenderEntity.male => _DriRoute.male,
     UserGenderEntity.nonBinary => switch (user.caloriesProfile) {
-        CaloriesProfileEntity.estrogenTypical => _DriRoute.female,
-        CaloriesProfileEntity.testosteroneTypical => _DriRoute.male,
-        // averaged is the project's documented default and null falls back
-        // to the same place; see [CaloriesProfileEntity.averaged].
-        CaloriesProfileEntity.averaged || null => _DriRoute.averaged,
-      },
+      CaloriesProfileEntity.estrogenTypical => _DriRoute.female,
+      CaloriesProfileEntity.testosteroneTypical => _DriRoute.male,
+      // averaged is the project's documented default and null falls back
+      // to the same place; see [CaloriesProfileEntity.averaged].
+      CaloriesProfileEntity.averaged || null => _DriRoute.averaged,
+    },
   };
 }
 

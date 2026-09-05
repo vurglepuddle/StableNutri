@@ -223,8 +223,7 @@ class RemoteSearchCacheDataSource {
   ///
   /// Returns the number of entries removed. Call once at app startup.
   Future<int> pruneStale(Duration maxAge) async {
-    final cutoff =
-        DateTime.now().subtract(maxAge).millisecondsSinceEpoch;
+    final cutoff = DateTime.now().subtract(maxAge).millisecondsSinceEpoch;
     final keysToDelete = <dynamic>[];
     final timestampKeysToDelete = <String>[];
 

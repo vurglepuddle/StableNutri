@@ -34,7 +34,7 @@ class MealDetailNutrimentsTable extends StatelessWidget {
         const TextStyle();
     final textStyleBold =
         Theme.of(context).textTheme.bodyMedium?.copyWith(
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: palette.textMuted,
         ) ??
         const TextStyle();
@@ -64,7 +64,7 @@ class MealDetailNutrimentsTable extends StatelessWidget {
           S.of(context).nutritionInfoLabel,
           style: Theme.of(
             context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: Dimens.spacing16),
         AppCard(
@@ -134,7 +134,7 @@ class MealDetailNutrimentsTable extends StatelessWidget {
                 S.of(context).micronutrientsLabel,
                 style: Theme.of(
                   context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
               initiallyExpanded: hasMicroData,
               children: [

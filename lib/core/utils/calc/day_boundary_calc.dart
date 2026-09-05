@@ -53,7 +53,10 @@ class DayBoundaryCalc {
   ///
   /// Out-of-range values (negative, or ≥ 24 h) are treated as 0 — the
   /// same defensive behaviour as the hours-only overload.
-  static DateTime logicalDayOfMinutes(DateTime moment, int? offsetTotalMinutes) {
+  static DateTime logicalDayOfMinutes(
+    DateTime moment,
+    int? offsetTotalMinutes,
+  ) {
     return _logicalDayOfTotalMinutes(
       moment,
       _sanitiseTotalMinutes(offsetTotalMinutes),

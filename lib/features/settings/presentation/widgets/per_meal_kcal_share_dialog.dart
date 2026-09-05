@@ -24,8 +24,7 @@ class PerMealKcalShareDialog extends StatefulWidget {
   });
 
   @override
-  State<PerMealKcalShareDialog> createState() =>
-      _PerMealKcalShareDialogState();
+  State<PerMealKcalShareDialog> createState() => _PerMealKcalShareDialogState();
 }
 
 class _PerMealKcalShareDialogState extends State<PerMealKcalShareDialog> {
@@ -68,8 +67,7 @@ class _PerMealKcalShareDialogState extends State<PerMealKcalShareDialog> {
     shares[changed] = clamped;
     final others = shares.keys.where((k) => k != changed).toList();
     final remaining = 100 - clamped;
-    final othersTotal =
-        others.fold<double>(0, (acc, k) => acc + shares[k]!);
+    final othersTotal = others.fold<double>(0, (acc, k) => acc + shares[k]!);
     if (remaining <= 0) {
       for (final k in others) {
         shares[k] = 0;
@@ -143,25 +141,27 @@ class _PerMealKcalShareDialogState extends State<PerMealKcalShareDialog> {
 
   void _reset() {
     setState(() {
-      _breakfastPct = (ConfigEntity
-              .defaultMealKcalSharesPct[ConfigEntity.mealKeyBreakfast]!)
-          .toDouble();
-      _lunchPct = (ConfigEntity
-              .defaultMealKcalSharesPct[ConfigEntity.mealKeyLunch]!)
-          .toDouble();
-      _dinnerPct = (ConfigEntity
-              .defaultMealKcalSharesPct[ConfigEntity.mealKeyDinner]!)
-          .toDouble();
-      _snackPct = (ConfigEntity
-              .defaultMealKcalSharesPct[ConfigEntity.mealKeySnack]!)
-          .toDouble();
+      _breakfastPct =
+          (ConfigEntity.defaultMealKcalSharesPct[ConfigEntity
+                  .mealKeyBreakfast]!)
+              .toDouble();
+      _lunchPct =
+          (ConfigEntity.defaultMealKcalSharesPct[ConfigEntity.mealKeyLunch]!)
+              .toDouble();
+      _dinnerPct =
+          (ConfigEntity.defaultMealKcalSharesPct[ConfigEntity.mealKeyDinner]!)
+              .toDouble();
+      _snackPct =
+          (ConfigEntity.defaultMealKcalSharesPct[ConfigEntity.mealKeySnack]!)
+              .toDouble();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
-    final totalPct = _breakfastPct.round() +
+    final totalPct =
+        _breakfastPct.round() +
         _lunchPct.round() +
         _dinnerPct.round() +
         _snackPct.round();

@@ -10,7 +10,8 @@ void main() {
       // shipped silently. The dialog assumes a preset is already normalised
       // and writes the shares straight into the sliders without rebalancing.
       for (final pattern in MealPatternEntity.values) {
-        final total = pattern.breakfastPct +
+        final total =
+            pattern.breakfastPct +
             pattern.lunchPct +
             pattern.dinnerPct +
             pattern.snackPct;
@@ -36,44 +37,48 @@ void main() {
       expect(MealPatternEntity.twoMeal.lunchPct, equals(0));
     });
 
-    test('toSharesMap returns the percentages keyed by ConfigEntity meal keys',
-        () {
-      final shares = MealPatternEntity.mediterranean.toSharesMap();
-      expect(shares[ConfigEntity.mealKeyBreakfast], equals(25));
-      expect(shares[ConfigEntity.mealKeyLunch], equals(45));
-      expect(shares[ConfigEntity.mealKeyDinner], equals(20));
-      expect(shares[ConfigEntity.mealKeySnack], equals(10));
-    });
+    test(
+      'toSharesMap returns the percentages keyed by ConfigEntity meal keys',
+      () {
+        final shares = MealPatternEntity.mediterranean.toSharesMap();
+        expect(shares[ConfigEntity.mealKeyBreakfast], equals(25));
+        expect(shares[ConfigEntity.mealKeyLunch], equals(45));
+        expect(shares[ConfigEntity.mealKeyDinner], equals(20));
+        expect(shares[ConfigEntity.mealKeySnack], equals(10));
+      },
+    );
 
-    test('toSharesMap output is drop-in for ConfigEntity.targetKcalForMeal',
-        () {
-      // OMAD with a 2000 kcal daily goal should put the entire goal on dinner
-      // and 0 on the other meals — this is the contract day_info_widget and
-      // home_page rely on when deciding whether to hide a section.
-      final config = ConfigEntity(
-        true,
-        true,
-        false,
-        AppThemeEntity.system,
-        mealKcalSharesPct: MealPatternEntity.omad.toSharesMap(),
-      );
-      expect(
-        config.targetKcalForMeal(ConfigEntity.mealKeyBreakfast, 2000),
-        equals(0),
-      );
-      expect(
-        config.targetKcalForMeal(ConfigEntity.mealKeyLunch, 2000),
-        equals(0),
-      );
-      expect(
-        config.targetKcalForMeal(ConfigEntity.mealKeyDinner, 2000),
-        equals(2000),
-      );
-      expect(
-        config.targetKcalForMeal(ConfigEntity.mealKeySnack, 2000),
-        equals(0),
-      );
-    });
+    test(
+      'toSharesMap output is drop-in for ConfigEntity.targetKcalForMeal',
+      () {
+        // OMAD with a 2000 kcal daily goal should put the entire goal on dinner
+        // and 0 on the other meals — this is the contract day_info_widget and
+        // home_page rely on when deciding whether to hide a section.
+        final config = ConfigEntity(
+          true,
+          true,
+          false,
+          AppThemeEntity.system,
+          mealKcalSharesPct: MealPatternEntity.omad.toSharesMap(),
+        );
+        expect(
+          config.targetKcalForMeal(ConfigEntity.mealKeyBreakfast, 2000),
+          equals(0),
+        );
+        expect(
+          config.targetKcalForMeal(ConfigEntity.mealKeyLunch, 2000),
+          equals(0),
+        );
+        expect(
+          config.targetKcalForMeal(ConfigEntity.mealKeyDinner, 2000),
+          equals(2000),
+        );
+        expect(
+          config.targetKcalForMeal(ConfigEntity.mealKeySnack, 2000),
+          equals(0),
+        );
+      },
+    );
   });
 
   group('Meal section visibility based on share%', () {

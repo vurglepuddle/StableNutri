@@ -29,15 +29,18 @@ class NotificationService {
     final String timeZoneName = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(timeZoneName));
 
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
-    const initSettings =
-        InitializationSettings(android: androidSettings, iOS: iosSettings);
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
 
     await _plugin.initialize(initSettings);
     _initialized = true;
@@ -48,17 +51,22 @@ class NotificationService {
   Future<bool> requestPermission() async {
     final android = _plugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (android != null) {
       final granted = await android.requestNotificationsPermission();
       return granted ?? false;
     }
     final ios = _plugin
         .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
+          IOSFlutterLocalNotificationsPlugin
+        >();
     if (ios != null) {
       final granted = await ios.requestPermissions(
-          alert: true, badge: true, sound: true);
+        alert: true,
+        badge: true,
+        sound: true,
+      );
       return granted ?? false;
     }
     return false;
@@ -84,8 +92,10 @@ class NotificationService {
       priority: Priority.defaultPriority,
     );
     const iosDetails = DarwinNotificationDetails();
-    final details =
-        NotificationDetails(android: androidDetails, iOS: iosDetails);
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
 
     final scheduledDate = computeNextOccurrence(
       tz.TZDateTime.now(tz.local),
@@ -135,8 +145,10 @@ class NotificationService {
       priority: Priority.defaultPriority,
     );
     const iosDetails = DarwinNotificationDetails();
-    final details =
-        NotificationDetails(android: androidDetails, iOS: iosDetails);
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
 
     await _plugin.zonedSchedule(
       _fastingCompleteId,
@@ -171,7 +183,13 @@ class NotificationService {
     int minute,
   ) {
     var scheduled = tz.TZDateTime(
-        now.location, now.year, now.month, now.day, hour, minute);
+      now.location,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
     if (!scheduled.isAfter(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
     }

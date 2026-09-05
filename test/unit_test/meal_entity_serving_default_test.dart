@@ -31,15 +31,18 @@ MealEntity _meal({
 
 void main() {
   group('MealEntity.hasServingValues — issue #158', () {
-    test('true when only servingQuantity is set (servingUnit/Size both null)', () {
-      // This is the scan path that previously regressed: OFF returns
-      // serving_quantity = 30 (per granola bar) but no overall package
-      // `quantity`, so the derived `servingUnit` is null. Before the fix,
-      // hasServingValues required both fields and returned false, leaving
-      // the dropdown stuck on 100 g/ml.
-      final meal = _meal(servingQuantity: 30.0);
-      expect(meal.hasServingValues, isTrue);
-    });
+    test(
+      'true when only servingQuantity is set (servingUnit/Size both null)',
+      () {
+        // This is the scan path that previously regressed: OFF returns
+        // serving_quantity = 30 (per granola bar) but no overall package
+        // `quantity`, so the derived `servingUnit` is null. Before the fix,
+        // hasServingValues required both fields and returned false, leaving
+        // the dropdown stuck on 100 g/ml.
+        final meal = _meal(servingQuantity: 30.0);
+        expect(meal.hasServingValues, isTrue);
+      },
+    );
 
     test('true when only servingSize is set (servingQuantity null)', () {
       // Some OFF entries surface a human-readable serving label like

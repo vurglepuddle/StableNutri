@@ -147,7 +147,7 @@ class _ChooseArchiveView extends StatelessWidget {
           S.of(context).lifesumImportChooseHeading,
           style: Theme.of(
             context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 6),
         Text(
@@ -172,7 +172,7 @@ class _ChooseArchiveView extends StatelessWidget {
                 S.of(context).lifesumImportArchiveLabel,
                 style: Theme.of(
                   context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
               Text(
@@ -226,7 +226,7 @@ class _ReviewView extends StatelessWidget {
           S.of(context).lifesumImportReviewHeading,
           style: Theme.of(
             context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 6),
         Text(
@@ -383,7 +383,7 @@ class _SummaryValue extends StatelessWidget {
           value.toString(),
           style: Theme.of(
             context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
@@ -427,7 +427,7 @@ class _CategoryCard extends StatelessWidget {
           foregroundColor: colors.onPrimaryContainer,
           child: Icon(icon),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Text(
@@ -475,7 +475,7 @@ class _MeasurementCard extends StatelessWidget {
             secondary: const Icon(Icons.monitor_weight_outlined),
             title: Text(
               S.of(context).lifesumImportWeightHistory,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             subtitle: Text(
               '${S.of(context).lifesumImportToAdd(preview.weightsToAdd.length)} '
@@ -490,7 +490,7 @@ class _MeasurementCard extends StatelessWidget {
             secondary: const Icon(Icons.straighten_outlined),
             title: Text(
               S.of(context).lifesumImportBodyMeasurements,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             subtitle: Text(
               <String>[
@@ -534,7 +534,7 @@ class _UnavailableCategoryCard extends StatelessWidget {
     child: ListTile(
       enabled: false,
       leading: Icon(icon),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4),
         child: Column(
@@ -542,7 +542,7 @@ class _UnavailableCategoryCard extends StatelessWidget {
           children: <Widget>[
             Text(
               S.of(context).lifesumImportNotImported,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 2),
             Text(detail),
@@ -620,7 +620,7 @@ class _SuccessView extends StatelessWidget {
             S.of(context).lifesumImportSuccessTitle,
             style: Theme.of(
               context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
           Text(
@@ -694,7 +694,7 @@ class _ErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Text(detail, textAlign: TextAlign.center),

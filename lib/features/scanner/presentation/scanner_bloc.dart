@@ -15,7 +15,7 @@ class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
   final GetConfigUsecase _getConfigUsecase;
 
   ScannerBloc(this._searchProductUseCase, this._getConfigUsecase)
-      : super(ScannerInitial()) {
+    : super(ScannerInitial()) {
     on<ScannerLoadProductEvent>((event, emit) async {
       emit(ScannerLoadingState());
 

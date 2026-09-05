@@ -12,9 +12,9 @@ class OffDisclaimer extends StatelessWidget {
     return Text(
       S.of(context).offDisclaimer,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: palette.textMuted,
-            fontStyle: FontStyle.italic,
-          ),
+        color: palette.textMuted,
+        fontStyle: FontStyle.italic,
+      ),
     );
   }
 }

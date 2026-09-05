@@ -19,7 +19,7 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   DateTime currentDay = DateTime.now();
 
   DiaryBloc(this._getDayTrackedUsecase, this._getConfigUsecase)
-      : super(DiaryInitial()) {
+    : super(DiaryInitial()) {
     on<LoadDiaryYearEvent>((event, emit) async {
       emit(DiaryLoadingState());
 
@@ -47,12 +47,14 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
           trackedDay.day.toParsedDay(): trackedDay,
       };
 
-      emit(DiaryLoadedState(
-        trackedDaysMap,
-        usesImperialUnits,
-        showMealMacros: showMealMacros,
-        showActivityTracking: showActivityTracking,
-      ));
+      emit(
+        DiaryLoadedState(
+          trackedDaysMap,
+          usesImperialUnits,
+          showMealMacros: showMealMacros,
+          showActivityTracking: showActivityTracking,
+        ),
+      );
     });
   }
 

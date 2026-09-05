@@ -166,6 +166,10 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m60(start, end) =>
       "Supported history from ${start} to ${end}. Existing Stable days will be kept.";
 
+  static String m61(amount) => "Remove ${amount} ml";
+
+  static String m62(current, goal) => "${current} / ${goal} l";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1839,7 +1843,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsVolumeLabel": MessageLookupByLibrary.simpleMessage("Volume"),
     "settingsWaterGoalDescription": MessageLookupByLibrary.simpleMessage(
-      "Used by the water chip on the home screen.",
+      "Used by the water card on the home screen.",
     ),
     "settingsWaterGoalLabel": MessageLookupByLibrary.simpleMessage(
       "Daily water goal",
@@ -2174,6 +2178,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Supported history found in this local export.",
     ),
     "lifesumImportSupportedHistoryRange": m60,
+    "litreLabel": MessageLookupByLibrary.simpleMessage("l"),
+    "logWaterRemoveAmountLabel": m61,
+    "waterTotalLabel": m62,
+    "waterGoalReachedLabel": MessageLookupByLibrary.simpleMessage(
+      "Daily goal reached",
+    ),
     "yearsLabel": m49,
     "youLabel": MessageLookupByLibrary.simpleMessage("You"),
     "zincLabel": MessageLookupByLibrary.simpleMessage("zinc"),

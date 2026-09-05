@@ -38,8 +38,11 @@ void main() {
         caught = e;
       }
 
-      expect(calls, equals(1),
-          reason: 'must not retry when shouldRetry returns false');
+      expect(
+        calls,
+        equals(1),
+        reason: 'must not retry when shouldRetry returns false',
+      );
       expect(caught, isA<_BoomError>());
     });
 
@@ -47,13 +50,10 @@ void main() {
       var calls = 0;
       Object? caught;
       try {
-        await withRetry<int>(
-          () async {
-            calls++;
-            throw _BoomError('first try');
-          },
-          attempts: 1,
-        );
+        await withRetry<int>(() async {
+          calls++;
+          throw _BoomError('first try');
+        }, attempts: 1);
       } catch (e) {
         caught = e;
       }
@@ -83,45 +83,52 @@ void main() {
       expect(caught, isA<StateError>());
     });
 
-    test('retries on exception and succeeds when attempts allow', () async {
-      var calls = 0;
-      final stopwatch = Stopwatch()..start();
-      final result = await withRetry<int>(
-        () async {
+    test(
+      'retries on exception and succeeds when attempts allow',
+      () async {
+        var calls = 0;
+        final stopwatch = Stopwatch()..start();
+        final result = await withRetry<int>(() async {
           calls++;
           if (calls < 2) throw _BoomError('once');
           return 7;
-        },
-        attempts: 3,
-      );
-      stopwatch.stop();
+        }, attempts: 3);
+        stopwatch.stop();
 
-      expect(result, equals(7));
-      expect(calls, equals(2));
-      // Backoff after the first failed attempt is 1<<0 = 1 second.
-      expect(stopwatch.elapsed,
-          greaterThan(const Duration(milliseconds: 800)));
-    }, timeout: const Timeout(Duration(seconds: 5)));
-
-    test('rethrows the original error after all attempts exhausted', () async {
-      var calls = 0;
-      Object? caught;
-
-      try {
-        await withRetry<int>(
-          () async {
-            calls++;
-            throw _BoomError('try $calls');
-          },
-          attempts: 2, // 1 failure + 1s wait + 1 retry = ~1s
+        expect(result, equals(7));
+        expect(calls, equals(2));
+        // Backoff after the first failed attempt is 1<<0 = 1 second.
+        expect(
+          stopwatch.elapsed,
+          greaterThan(const Duration(milliseconds: 800)),
         );
-      } catch (e) {
-        caught = e;
-      }
+      },
+      timeout: const Timeout(Duration(seconds: 5)),
+    );
 
-      expect(calls, equals(2));
-      expect(caught, isA<_BoomError>());
-      expect((caught as _BoomError).message, equals('try 2'));
-    }, timeout: const Timeout(Duration(seconds: 5)));
+    test(
+      'rethrows the original error after all attempts exhausted',
+      () async {
+        var calls = 0;
+        Object? caught;
+
+        try {
+          await withRetry<int>(
+            () async {
+              calls++;
+              throw _BoomError('try $calls');
+            },
+            attempts: 2, // 1 failure + 1s wait + 1 retry = ~1s
+          );
+        } catch (e) {
+          caught = e;
+        }
+
+        expect(calls, equals(2));
+        expect(caught, isA<_BoomError>());
+        expect((caught as _BoomError).message, equals('try 2'));
+      },
+      timeout: const Timeout(Duration(seconds: 5)),
+    );
   });
 }

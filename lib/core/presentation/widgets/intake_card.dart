@@ -68,7 +68,9 @@ class IntakeCard extends StatelessWidget {
                     children: [
                       Text(
                         intake.meal.name ?? "?",
-                        style: textTheme.titleSmall?.copyWith(color: palette.textStrong),
+                        style: textTheme.titleSmall?.copyWith(
+                          color: palette.textStrong,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -77,7 +79,9 @@ class IntakeCard extends StatelessWidget {
                         value: intake.amount,
                         meal: intake.meal,
                         usesImperialUnits: usesImperialUnits,
-                        textStyle: textTheme.bodySmall?.copyWith(color: palette.textMuted),
+                        textStyle: textTheme.bodySmall?.copyWith(
+                          color: palette.textMuted,
+                        ),
                       ),
                     ],
                   ),
@@ -87,7 +91,7 @@ class IntakeCard extends StatelessWidget {
                   EnergyDisplay.formatWithUnit(context, intake.totalKcal),
                   style: textTheme.labelMedium?.copyWith(
                     color: palette.textStrong,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -142,9 +146,9 @@ class _Thumbnail extends StatelessWidget {
   }
 
   Widget _fallback() => Container(
-        color: palette.surfaceMuted,
-        child: Icon(Icons.restaurant_rounded, color: palette.textMuted, size: 24),
-      );
+    color: palette.surfaceMuted,
+    child: Icon(Icons.restaurant_rounded, color: palette.textMuted, size: 24),
+  );
 }
 
 class _LocalMealImage extends StatelessWidget {

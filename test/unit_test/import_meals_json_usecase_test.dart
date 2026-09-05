@@ -53,7 +53,10 @@ class _NoopAddTrackedDayUsecase extends AddTrackedDayUsecase {
   ) async {}
 
   @override
-  Future<void> addDayCaloriesTracked(DateTime day, double caloriesTracked) async {}
+  Future<void> addDayCaloriesTracked(
+    DateTime day,
+    double caloriesTracked,
+  ) async {}
 
   @override
   Future<void> addDayMacrosTracked(
@@ -72,8 +75,7 @@ class _StubGetKcalGoalUsecase extends GetKcalGoalUsecase {
     userEntity,
     double? totalKcalActivitiesParam,
     double? kcalUserAdjustment,
-  }) async =>
-      2000;
+  }) async => 2000;
 }
 
 class _StubGetMacroGoalUsecase extends GetMacroGoalUsecase {
@@ -104,25 +106,40 @@ void main() {
       customMealBox = await Hive.openBox<MealDBO>(
         'custom_meal_json_usecase_${DateTime.now().microsecondsSinceEpoch}',
       );
-      customMealDataSource = CustomMealDataSource(FakeHiveDBProvider(customMealBox: customMealBox));
+      customMealDataSource = CustomMealDataSource(
+        FakeHiveDBProvider(customMealBox: customMealBox),
+      );
 
       // The super constructors of the use cases require concrete repository
       // instances. The recording/no-op subclasses below never call into
       // those repositories — they short-circuit the public methods — so
       // we pass repositories backed by uninitialised data sources. None of
       // these are ever read.
-      final dummyIntakeRepo = IntakeRepository(IntakeDataSource(FakeHiveDBProvider()));
-      final dummyTrackedRepo = TrackedDayRepository(TrackedDayDataSource(FakeHiveDBProvider()));
-      final dummyUserRepo = UserRepository(UserDataSource(FakeHiveDBProvider()));
-      final dummyConfigRepo = ConfigRepository(ConfigDataSource(FakeHiveDBProvider()));
-      final dummyActivityRepo =
-          UserActivityRepository(UserActivityDataSource(FakeHiveDBProvider()));
+      final dummyIntakeRepo = IntakeRepository(
+        IntakeDataSource(FakeHiveDBProvider()),
+      );
+      final dummyTrackedRepo = TrackedDayRepository(
+        TrackedDayDataSource(FakeHiveDBProvider()),
+      );
+      final dummyUserRepo = UserRepository(
+        UserDataSource(FakeHiveDBProvider()),
+      );
+      final dummyConfigRepo = ConfigRepository(
+        ConfigDataSource(FakeHiveDBProvider()),
+      );
+      final dummyActivityRepo = UserActivityRepository(
+        UserActivityDataSource(FakeHiveDBProvider()),
+      );
 
       addIntake = _RecordingAddIntakeUsecase(dummyIntakeRepo);
       sut = ImportMealsJsonUsecase(
         addIntake,
         _NoopAddTrackedDayUsecase(dummyTrackedRepo),
-        _StubGetKcalGoalUsecase(dummyUserRepo, dummyConfigRepo, dummyActivityRepo),
+        _StubGetKcalGoalUsecase(
+          dummyUserRepo,
+          dummyConfigRepo,
+          dummyActivityRepo,
+        ),
         _StubGetMacroGoalUsecase(dummyConfigRepo),
         customMealDataSource,
       );
@@ -133,7 +150,8 @@ void main() {
     });
 
     test('one pasted entry writes one intake and one custom meal', () async {
-      const json = '{"name":"Apple","kcal":95,"protein":0.5,"carbs":25,"fat":0.3}';
+      const json =
+          '{"name":"Apple","kcal":95,"protein":0.5,"carbs":25,"fat":0.3}';
 
       final result = await sut.importFromJsonString(json);
 
@@ -145,28 +163,43 @@ void main() {
     });
 
     test(
-        'pasting the same entry twice writes two intakes but only one custom meal '
-        '(dedup on name)', () async {
-      const json = '{"name":"Apple","kcal":95,"protein":0.5,"carbs":25,"fat":0.3}';
+      'pasting the same entry twice writes two intakes but only one custom meal '
+      '(dedup on name)',
+      () async {
+        const json =
+            '{"name":"Apple","kcal":95,"protein":0.5,"carbs":25,"fat":0.3}';
 
-      await sut.importFromJsonString(json);
-      final second = await sut.importFromJsonString(json);
+        await sut.importFromJsonString(json);
+        final second = await sut.importFromJsonString(json);
 
-      expect(addIntake.writtenIntakes, hasLength(2),
-          reason: 'every paste should land in the diary, even if the meal '
-              'is already saved');
-      expect(customMealDataSource.getAllCustomMeals(), hasLength(1),
-          reason: 'the saved-meals list should not bloat on re-paste');
-      expect(second.imported, 1);
-      expect(second.savedAsCustomMeals, 0,
-          reason: 'the second paste finds the name already in the box and '
-              'skips the custom-meal write');
-    });
+        expect(
+          addIntake.writtenIntakes,
+          hasLength(2),
+          reason:
+              'every paste should land in the diary, even if the meal '
+              'is already saved',
+        );
+        expect(
+          customMealDataSource.getAllCustomMeals(),
+          hasLength(1),
+          reason: 'the saved-meals list should not bloat on re-paste',
+        );
+        expect(second.imported, 1);
+        expect(
+          second.savedAsCustomMeals,
+          0,
+          reason:
+              'the second paste finds the name already in the box and '
+              'skips the custom-meal write',
+        );
+      },
+    );
 
-    test(
-        'name dedup is case-insensitive', () async {
-      const json1 = '{"name":"Apple","kcal":95,"protein":0.5,"carbs":25,"fat":0.3}';
-      const json2 = '{"name":"apple","kcal":95,"protein":0.5,"carbs":25,"fat":0.3}';
+    test('name dedup is case-insensitive', () async {
+      const json1 =
+          '{"name":"Apple","kcal":95,"protein":0.5,"carbs":25,"fat":0.3}';
+      const json2 =
+          '{"name":"apple","kcal":95,"protein":0.5,"carbs":25,"fat":0.3}';
 
       await sut.importFromJsonString(json1);
       final second = await sut.importFromJsonString(json2);
@@ -175,39 +208,50 @@ void main() {
       expect(second.savedAsCustomMeals, 0);
     });
 
-    test('an array of three distinct entries writes three intakes and three custom meals',
-        () async {
-      const json = '['
-          '{"name":"Oats","kcal":150,"protein":5,"carbs":27,"fat":2.5},'
-          '{"name":"Banana","kcal":105,"protein":1.3,"carbs":27,"fat":0.4},'
-          '{"name":"Chicken","kcal":165,"protein":31,"carbs":0,"fat":3.6}'
-          ']';
+    test(
+      'an array of three distinct entries writes three intakes and three custom meals',
+      () async {
+        const json =
+            '['
+            '{"name":"Oats","kcal":150,"protein":5,"carbs":27,"fat":2.5},'
+            '{"name":"Banana","kcal":105,"protein":1.3,"carbs":27,"fat":0.4},'
+            '{"name":"Chicken","kcal":165,"protein":31,"carbs":0,"fat":3.6}'
+            ']';
 
-      final result = await sut.importFromJsonString(json);
+        final result = await sut.importFromJsonString(json);
 
-      expect(result.imported, 3);
-      expect(result.savedAsCustomMeals, 3);
-      expect(addIntake.writtenIntakes, hasLength(3));
-      final savedNames =
-          customMealDataSource.getAllCustomMeals().map((m) => m.name).toSet();
-      expect(savedNames, equals({'Oats', 'Banana', 'Chicken'}));
-    });
+        expect(result.imported, 3);
+        expect(result.savedAsCustomMeals, 3);
+        expect(addIntake.writtenIntakes, hasLength(3));
+        final savedNames = customMealDataSource
+            .getAllCustomMeals()
+            .map((m) => m.name)
+            .toSet();
+        expect(savedNames, equals({'Oats', 'Banana', 'Chicken'}));
+      },
+    );
 
-    test('an array containing a duplicate name dedups within a single paste',
-        () async {
-      const json = '['
-          '{"name":"Oats","kcal":150,"protein":5,"carbs":27,"fat":2.5},'
-          '{"name":"Oats","kcal":150,"protein":5,"carbs":27,"fat":2.5},'
-          '{"name":"Banana","kcal":105,"protein":1.3,"carbs":27,"fat":0.4}'
-          ']';
+    test(
+      'an array containing a duplicate name dedups within a single paste',
+      () async {
+        const json =
+            '['
+            '{"name":"Oats","kcal":150,"protein":5,"carbs":27,"fat":2.5},'
+            '{"name":"Oats","kcal":150,"protein":5,"carbs":27,"fat":2.5},'
+            '{"name":"Banana","kcal":105,"protein":1.3,"carbs":27,"fat":0.4}'
+            ']';
 
-      final result = await sut.importFromJsonString(json);
+        final result = await sut.importFromJsonString(json);
 
-      expect(result.imported, 3);
-      expect(result.savedAsCustomMeals, 2,
-          reason: 'two Oats intakes but only one Oats custom meal');
-      expect(addIntake.writtenIntakes, hasLength(3));
-      expect(customMealDataSource.getAllCustomMeals(), hasLength(2));
-    });
+        expect(result.imported, 3);
+        expect(
+          result.savedAsCustomMeals,
+          2,
+          reason: 'two Oats intakes but only one Oats custom meal',
+        );
+        expect(addIntake.writtenIntakes, hasLength(3));
+        expect(customMealDataSource.getAllCustomMeals(), hasLength(2));
+      },
+    );
   });
 }

@@ -16,12 +16,12 @@ class RecentActivitiesBloc
   final GetUserActivityUsecase _getUserActivityUsecase;
 
   RecentActivitiesBloc(this._getUserActivityUsecase)
-      : super(RecentActivitiesInitial()) {
+    : super(RecentActivitiesInitial()) {
     on<LoadRecentActivitiesEvent>((event, emit) async {
       emit(RecentActivitiesLoadingState());
       try {
-        final recentUserActivities =
-            await _getUserActivityUsecase.getRecentUserActivity();
+        final recentUserActivities = await _getUserActivityUsecase
+            .getRecentUserActivity();
         emit(
           RecentActivitiesLoadedState(
             recentActivities: recentUserActivities

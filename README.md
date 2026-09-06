@@ -1,119 +1,213 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/icon/ont_logo_square_color_white_1024x1024.png">
-    <img alt="Logo" src="assets/icon/ont_logo_square_color_back_1024x1024.png" width="128" />
+    <source media="(prefers-color-scheme: dark)" srcset="assets/icon/logo_stable_light.svg">
+    <img alt="Stable" src="assets/icon/logo_stable_dark.svg" width="280" />
   </picture>
-  <h1 align="center">OpenNutriTracker</h1>
 </p>
 
 <p align="center">
-  <a href="https://opensource.org/licenses/MIT" alt="License">
-        <img src="https://img.shields.io/badge/license-GPLv3-blue" /></a>
-  <a href="https://github.com/simonoppowa/OpenNutriTracker/stargazers" alt="GitHub Stars">
-        <img src="https://img.shields.io/github/stars/simonoppowa/OpenNutriTracker.svg" /></a>
-  <a href="https://github.com/simonoppowa/OpenNutriTracker/issues" alt="GitHub Issues">
-        <img src="https://img.shields.io/github/issues/simonoppowa/OpenNutriTracker.svg" /></a>
-  <a href="https://github.com/simonoppowa/OpenNutriTracker/pulls" alt="GitHub Pull Requests">
-        <img src="https://img.shields.io/github/issues-pr/simonoppowa/OpenNutriTracker.svg" /></a>
+  <a href="LICENSE" alt="License">
+    <img src="https://img.shields.io/badge/license-GPLv3-blue" />
+  </a>
+  <img src="https://img.shields.io/badge/Flutter-3.41.7-02569B?logo=flutter&logoColor=white" alt="Flutter 3.41.7" />
+  <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20Android-lightgrey" alt="Platforms" />
+  <img src="https://img.shields.io/badge/telemetry-none-brightgreen" alt="No telemetry" />
 </p>
 
-## Description
-OpenNutriTracker is an open-source mobile application designed to simplify nutritional tracking and management. Whether you are looking to improve your health, lose weight, or simply maintain a balanced diet, OpenNutriTracker provides a minimalistic interface to easily track and analyze your daily nutrition.
+## What Stable is
 
-[Website](https://simonoppowa.github.io/OpenNutriTracker/)
+Stable is a quiet nutrition tracker.
 
-## Screenshots
-<p align="center">
-  <img alt="Logo" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_en-US.png" width="20%" />
-  &nbsp;&nbsp;
-  <img alt="Logo" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_en-US.png" width="20%" />
-  &nbsp;&nbsp;
-  <img alt="Logo" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_en-US.png" width="20%" />
-  &nbsp;&nbsp;
-  <img alt="Logo" src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_en-US.png" width="20%" />
-</p>
+It logs food, activities, water and body measurements, shows you where the day landed, and sends no analytics or telemetry anywhere. No account, no crash reporting, no streaks nagging you back into the app.
 
-## Install
-[<img src="fastlane/metadata/android/en-US/images/appstore_banner.png" width="30%">](https://apps.apple.com/us/app/opennutritracker/id6451490901)
-[<img src="fastlane/metadata/android/en-US/images/playstore_banner.png" width="30%">](https://play.google.com/store/apps/details?id=com.opennutritracker.ont.opennutritracker)
+Calories are shown as a **range**. Feedback stays neutral by design. Going over the range is just another kind of day, not a failure state.
 
-## Key Features
+Stable is built with Flutter for Android and iOS. It started as a fork of [OpenNutriTracker](https://github.com/simonoppowa/OpenNutriTracker), but has since been reworked into its own app.
 
-- **🍎 Nutritional tracking:** Log meals and snacks against a large food database — Open Food Facts plus a multi-source reference backend covering USDA FoodData Central and the German Bundeslebensmittelschlüssel (BLS), with the sources selectable in Settings → Food databases. Each entry can be searched, scanned, or added straight as a number when you already know the calorie cost.
-- **📓 Food diary:** A calendar-driven diary that breaks the day into Breakfast, Lunch, Dinner, and Snack, with per-meal kcal targets (Standard, OMAD, Five-small, Mediterranean, Two-meal, or a custom share), drag-to-rearrange between meals, and sort by time or by macro contribution.
-- **🥕 Micronutrient panel:** Day and week views for fibre, sodium, saturated fat, sugar, calcium, iron, potassium, vitamin D, vitamin B12, and magnesium, with optional Dietary Reference Intake bars from the IOM tables so you can see where you sit against the reference range.
-- **🍽️ Custom meals + recipes:** Build a one-off custom meal or save a reusable recipe with photo, brand, and barcode. The recipe builder has its own ingredient picker with barcode scanning so you can compose meals from real products without leaving the screen.
-- **⚡ Quick add:** When you already know roughly how much you ate, skip the search flow entirely — Quick add takes a title plus kcal (and optional macros) and logs it straight to the meal section.
-- **📷 Barcode scanner:** Scan packaged items for instant lookup, paste a barcode manually when the camera struggles, or attach a barcode to a custom meal so future scans recognise your own foods.
-- **🏃 Activities:** Log workouts from a categorised activity catalogue or define your own custom activities with direct kcal entry and reusable templates.
-- **💧 Water tracker:** A water chip on the home screen with quick-add increments, an editable goal, and undo for the last entry.
-- **⏱️ Fasting timer:** Optional intermittent-fasting timer with content-warning gate, a home chip showing time remaining, and a completion notification when you reach your window.
-- **⚖️ Weight history:** Capture weight during onboarding and on demand, see the trend on a chart with a dashed line at your target weight, and optionally taper the calorie goal as you approach it.
-- **🎨 Material You + theme picker:** Adopt the system accent colour on Android 12+, or pick from sixteen built-in presets. The app icon adapts to iOS dark and tinted appearances and to Android themed icons.
-- **🔢 kcal or kJ:** Switch the energy unit globally; every diary entry, target, and chart reflects the choice.
-- **📤 Export and import:** Export your full diary, activities, and custom catalogue to a JSON zip or CSV, paste a JSON blob to import meals, and share a single meal or activity as a QR code another phone can scan.
-- **🔒 Privacy first:** All data is AES-encrypted and stored locally. Anonymous crash reporting is opt-in during onboarding, can be turned off at any time, and the App Store privacy manifest declares exactly what the app does and does not collect.
-- **🚫💰 No subscriptions, in-app purchases, or ads:** OpenNutriTracker is free, with no paid tier and no advertising.
+> **Status:** Active development. Stable is not currently published to an app store, so expect rough edges if you build it from source.
 
 ## Privacy
-See [Data Protection](https://www.iubenda.com/privacy-policy/53501884)
-- **Data Encryption**: All collected user data is encrypted and stored locally on your device
-- **Minimal Data Collection**: OpenNutriTracker only collects the necessary information required for tracking nutrition and providing personalized insights. Your data will not be shared with third parties without your consent.
-- **Open-Source**: OpenNutriTracker is an open-source application
 
-## Verifying APK signatures
+Privacy is part of the design.
 
-If you are side-loading an OpenNutriTracker APK from GitHub Releases — or from F-Droid, once the app is published there — you may reasonably want to confirm that the file you downloaded was signed by the same key the maintainer uses for every release, rather than by someone who intercepted the download or repackaged the app. The check below is for anyone who would like that extra reassurance before installing.
+* **No telemetry.** No analytics, crash reporting, usage tracking or account system. Sentry and its related code have been removed entirely.
+* **Barcode scanning stays on-device.** Stable uses [`flutter_zxing`](https://pub.dev/packages/flutter_zxing), backed by zxing-cpp. It does not depend on Google ML Kit or Play Services for scanning.
+* **Local data is encrypted.** The Hive database uses AES encryption, with its key stored through `flutter_secure_storage`.
+* **Network requests are deliberate.** Stable contacts food databases when you search for or scan a product that is not already cached locally.
+* **Scanned products are cached.** Once a barcode is known locally, scanning it again does not require another lookup.
+* **Exports are explicit.** Nothing leaves the app unless you ask it to. Body measurements are deliberately excluded from exports.
+* **Delete means delete.** `Settings → Delete all my data` removes local ALL Stable data from the device.
 
-The official SHA256 fingerprint of the Android release signing certificate is:
+## Features
 
-```
-TODO(simon): paste fingerprint from release keystore — see "Generating the SHA256 fingerprint" in RELEASE.md
-```
+### Track your day
 
-To verify a downloaded APK against that fingerprint, run:
+* **Food diary** with Breakfast, Lunch, Dinner and Snack.
+* Configurable meal splits, including Standard, OMAD, Five-small, Mediterranean, Two-meal and custom.
+* Drag foods between meals and sort entries by time or macro contribution.
+* **Quick add** for foods where you only need a name, calories and optional macros.
+* **Custom foods, meals and recipes**, including barcode scanning inside the recipe builder.
+* **Activities** from a categorised MET catalogue or custom calorie templates.
+* **Water tracking** with exact volume adjustments.
+* Optional **fasting timer**, with no streaks or targets.
+
+### Scan food
+
+Stable supports:
+
+* EAN and UPC barcodes
+* GS1 DataMatrix
+* Manual barcode entry
+
+If a barcode is unknown, you can either create a new food for it or connect it to an item you already have. The association is saved locally for next time.
+
+### See what is happening
+
+* **Today** view with calorie range, macros, water, fasting and meals.
+* **Trends** for weight, measurements, water and intake.
+* **Diary / Archive** for browsing previous days.
+* **Micronutrients** for day and week views, with configurable goals and visibility.
+* **Weight and body measurements** with optional target lines and calorie tapering.
+* **Sources & References** for the calculations used by the app.
+
+Tracked micronutrients currently include fibre, sodium, saturated fat, sugar, calcium, iron, potassium, vitamin D, vitamin B12 and magnesium.
+
+### Make it yours
+
+* Multiple local profiles with separate goals and history.
+* Shared custom meal and recipe libraries between profiles.
+* Light and dark themes.
+* Material You on Android 12+.
+* Sixteen accent presets plus custom hex colours.
+* kcal or kJ.
+* Metric or imperial units.
+* Configurable start-of-day hour.
+* Optional daily reminder.
+* Biryani throughout, because obviously.
+
+Stable currently supports nine languages:
+
+English, German, Czech, Italian, Polish, Slovak, Turkish, Ukrainian and Chinese.
+
+### Import and export
+
+Stable can export tracked data as a zip containing:
+
+* **JSON**, the canonical re-importable format
+* **CSV**, for spreadsheets and other tools
+
+See [`docs/export-format.md`](docs/export-format.md) for the format.
+
+You can also:
+
+* Import Stable exports again.
+* Paste JSON for ad-hoc meal imports.
+* Share individual meals and activities as QR codes.
+* Import a Lifesum export archive.
+
+The Lifesum importer shows a preview before writing anything, preserves days already tracked in Stable, and journals the import so it can be rolled back. Lifesum does not export actual water events, so estimated water data is clearly marked as estimated.
+
+## Food data
+
+| Source                                              | Notes                                                                                                                                                                        |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Open Food Facts](https://world.openfoodfacts.org/) | Text search and barcode lookup. Works without configuration.                                                                                                                 |
+| Supabase reference backend                          | Multi-source backend for [USDA FoodData Central](https://fdc.nal.usda.gov/) and [Bundeslebensmittelschlüssel](https://www.blsdb.de) 4.0. Requires your own Supabase project. |
+| USDA FoodData Central direct                        | Requires `FDC_API_KEY`. Not currently exposed in the UI.                                                                                                                     |
+
+You can choose which sources Stable searches under **Settings → Food databases**.
+
+No shared backend credentials are included in this repository. Open Food Facts and barcode scanning work out of the box. Supabase-backed sources remain disabled until you configure your own project.
+
+The reference backend is based on [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend). Setup instructions are in [`docs/supabase-self-hosting.md`](docs/supabase-self-hosting.md).
+
+## Building from source
+
+Stable currently targets **Flutter 3.41.7**, pinned in `.fvmrc`.
+
+Using another Flutter version may resolve different package versions, so using the pinned SDK is recommended.
+
+> The current Stable work lives on the `feature/lifesum-import` branch. `main` still tracks upstream OpenNutriTracker.
 
 ```sh
-apksigner verify --print-certs /path/to/opennutritracker.apk
+git clone https://github.com/vurglepuddle/StableNutri.git
+cd StableNutri
+
+cp .env.example .env
+just install
+just build
+
+flutter run
 ```
 
-The `SHA-256` line in the output should match the value above exactly.
+`.env.example` contains placeholders for code generation. Fill in only the services you want to use:
 
-## Contribution
-Contributions to OpenNutriTracker are welcome! If you find any issues or have suggestions for new features, please open an issue or submit a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) for the project's conventions — including the requirement to target the `develop` branch and the steps for adding localized strings.
+```text
+FDC_API_KEY
+SUPABASE_PROJECT_URL
+SUPABASE_PROJECT_ANON_KEY
+```
 
-Thanks to all the contributors:
-<a href="https://github.com/simonoppowa/OpenNutriTracker/graphs/contributors">
-<img src="https://contrib.rocks/image?repo=simonoppowa/OpenNutriTracker" />
-</a>
+After changing `.env`, run:
 
-### Getting Started With Development
-See the [Getting Started](GettingStarted.md) file for more information.
+```sh
+just build
+```
 
-The data export bundle (Settings → Export / Import App Data → Export) is
-documented at [`docs/export-format.md`](docs/export-format.md) — both the
-JSON schema and the CSV companion the import / export round-trip uses.
+The generated `env.g.dart` is intentionally gitignored.
 
-The multi-source food database lives in its own repository, [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) — schema, import pipeline, and translation tooling. Self-hosting it and pointing a local build at your own Supabase project is documented at [`docs/supabase-self-hosting.md`](docs/supabase-self-hosting.md).
+Common development commands:
+
+```sh
+just format   # dart format
+just test     # full test suite
+just ci       # install, format check, intl check, build, analyze and test
+```
+
+Environment setup for Android, emulators and IDEs is covered in [GettingStarted.md](GettingStarted.md).
+
+Architecture and development notes live in [CLAUDE.md](CLAUDE.md).
+
+## Contributing
+
+Issues and pull requests are welcome.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) before changing localisation files. The generated localisation files under `lib/generated/` are maintained manually, so do not run the intl generator over them.
+
+Code uses Dart's default **80-column** formatting.
+
+Before submitting changes:
+
+```sh
+just ci
+```
 
 ## Disclaimer
-OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.
 
-The application is still under construction. Errors, bugs and crashes might occur.
+Stable is not a medical application. The data it provides is not medically validated and should be used with caution.
+
+Maintain a healthy lifestyle and consult a qualified professional if you have health concerns. Use during illness, pregnancy or lactation is not recommended.
+
+Stable is still in active development. Bugs, errors and crashes may occur.
 
 ## Acknowledgments
-The OpenNutriTracker project was inspired by the need for a simple and effective nutrition tracking tool.
-The food database used in OpenNutriTracker is powered by [Open Food Facts](https://world.openfoodfacts.org/) together with a multi-source reference backend hosted in Supabase: [USDA FoodData Central](https://fdc.nal.usda.gov/) (CC0) and the [Bundeslebensmittelschlüssel](https://www.blsdb.de) 4.0 (CC BY 4.0, © Max Rubner-Institut), with the [Anuvaad INDB](https://anuvaad.org.in) (CC BY 4.0) and [TBCA Brazil](https://www.tbca.net.br) (USP/FoRC) prepared as future sources. The schema and import pipeline live in the [OpenNutriTracker-Backend](https://github.com/simonoppowa/OpenNutriTracker-Backend) repository; self-hosting is documented in [`docs/supabase-self-hosting.md`](docs/supabase-self-hosting.md).
 
-Dietary Reference Intake values for the micronutrient panel come from the U.S. National Academies' Institute of Medicine tables. The in-app **Sources & References** screen (one tap from the home calorie ring or the profile BMI card) lists the peer-reviewed sources used for energy needs, BMI classification, macro distribution, MET activity calories, and non-binary calorie estimation.
+Stable began as a fork of [OpenNutriTracker](https://github.com/simonoppowa/OpenNutriTracker) by Simon Oppowa. Great foundation, and a lot of Stable still owes its existence to that work.
+
+Food data is provided by or derived from:
+
+* [Open Food Facts](https://world.openfoodfacts.org/)
+* [USDA FoodData Central](https://fdc.nal.usda.gov/) (CC0)
+* [Bundeslebensmittelschlüssel](https://www.blsdb.de) 4.0 (CC BY 4.0, © Max Rubner-Institut)
+
+[Anuvaad INDB](https://anuvaad.org.in) (CC BY 4.0) and [TBCA Brazil](https://www.tbca.net.br) (USP/FoRC) are prepared as future sources.
+
+Dietary Reference Intake values come from the U.S. National Academies' Institute of Medicine tables.
+
+Barcode decoding uses [zxing-cpp](https://github.com/zxing-cpp/zxing-cpp) through [`flutter_zxing`](https://pub.dev/packages/flutter_zxing).
 
 ## License
-This project is licensed under the GNU General Public License v3.0 License. See the [LICENSE](LICENSE) file for more information.
 
-## Contact
-For questions, suggestions, or collaborations, feel free to contact the project maintainer:
+Stable is licensed under the GNU General Public License v3.0, inherited from OpenNutriTracker.
 
-Simon Oppowa
-
-- GitHub: [@simonoppowa](https://github.com/simonoppowa)
-- Email: [opennutritracker-dev@pm.me](mailto:opennutritracker-dev@pm.me)
+See [LICENSE](LICENSE).

@@ -11,6 +11,23 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(':app')
+
+    // Build every native plugin against the same NDK as the app.
+    //
+    // flutter_zxing compiles zxing-cpp from source but pins no `ndkVersion`,
+    // so without this it falls back to the Android Gradle Plugin's own default
+    // (27.x) and downloads a second NDK alongside the one Flutter already
+    // requires. `evaluationDependsOn` above has already evaluated `:app`, so
+    // its resolved `flutter.ndkVersion` is readable here.
+    //
+    // Hooked on plugin application rather than `afterEvaluate`: that same
+    // `evaluationDependsOn` means some subprojects are already evaluated by
+    // this point, and registering an `afterEvaluate` on them throws.
+    plugins.withId('com.android.library') {
+        if (android.ndkVersion == null) {
+            android.ndkVersion = project(':app').android.ndkVersion
+        }
+    }
 }
 
 tasks.register("clean", Delete) {

@@ -45,7 +45,7 @@ void main() {
         localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
           S.delegate,
         ],
-        supportedLocales: S.delegate.supportedLocales,
+        supportedLocales: S.supportedLocales,
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(
             context,

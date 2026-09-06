@@ -9,6 +9,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../fixture/lifesum_export_fixture.dart';
+import '../../../../helpers/test_l10n.dart';
 
 void main() {
   group('LifesumFoodParser', () {
@@ -187,7 +188,7 @@ void main() {
         create: (_) => EnergyUnitProvider(),
         child: MaterialApp(
           localizationsDelegates: const [S.delegate],
-          supportedLocales: S.delegate.supportedLocales,
+          supportedLocales: S.supportedLocales,
           home: Scaffold(
             body: SingleChildScrollView(
               child: MealDetailNutrimentsTable(
@@ -203,7 +204,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining(S.current.perServingLabel), findsOneWidget);
+    expect(find.textContaining(l10nEn.perServingLabel), findsOneWidget);
     expect(find.text('120 kcal'), findsOneWidget);
   });
 }

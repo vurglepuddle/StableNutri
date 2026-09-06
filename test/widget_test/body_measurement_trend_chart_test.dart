@@ -38,7 +38,7 @@ void main() {
                     GlobalWidgetsLocalizations.delegate,
                     GlobalCupertinoLocalizations.delegate,
                   ],
-                  supportedLocales: S.delegate.supportedLocales,
+                  supportedLocales: S.supportedLocales,
                   home: Scaffold(
                     body: MediaQuery(
                       data: MediaQueryData(

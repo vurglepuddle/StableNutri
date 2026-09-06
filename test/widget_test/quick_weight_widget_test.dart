@@ -13,7 +13,7 @@ Widget _wrap(Widget child, {TextScaler textScaler = TextScaler.noScaling}) {
       GlobalWidgetsLocalizations.delegate,
       GlobalCupertinoLocalizations.delegate,
     ],
-    supportedLocales: S.delegate.supportedLocales,
+    supportedLocales: S.supportedLocales,
     builder: (context, child) => MediaQuery(
       data: MediaQuery.of(context).copyWith(textScaler: textScaler),
       child: child!,

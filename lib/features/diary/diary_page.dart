@@ -37,7 +37,10 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
 
   // #292: Extended from 356 days (~1 year) to 5 years so old entries are never truncated
   static const _calendarDurationDays = Duration(days: 365 * 5);
-  final _currentDate = DateTime.now();
+  // Derive today from the DiaryBloc so the "jump to today" button and swipe
+  // clamp honour the configured day-start offset (otherwise between midnight
+  // and e.g. 4 am Home and Diary disagree on which day is "today").
+  DateTime get _currentDate => _diaryBloc.currentDay;
   var _selectedDate = DateTime.now();
   var _focusedDate = DateTime.now();
 

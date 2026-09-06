@@ -66,7 +66,15 @@ dependencies:
   animated_flip_counter: ^0.3.4
   fl_chart: ^1.2.0
 
-  mobile_scanner: ^7.2.0
+  # Pinned exactly, not `^`: flutter_zxing has no verified pub.dev publisher, so
+  # a pin plus the sha256 in pubspec.lock is what guards against a re-published
+  # or hijacked release. Re-audit the tarball against the upstream repo before
+  # bumping this.
+  flutter_zxing: 3.0.1
+  # Transitively required by flutter_zxing, declared explicitly because the
+  # scanner appbar drives `FlashMode` / `CameraException` directly. Constraint
+  # deliberately mirrors flutter_zxing's own so the two can't diverge.
+  camera: ">=0.11.0 <0.13.0"
   qr_flutter: ^4.1.0
   share_plus: ^10.0.0
   image_picker: ^1.1.2

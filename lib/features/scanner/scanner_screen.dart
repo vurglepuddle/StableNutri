@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:camera/camera.dart' show CameraException, FlashMode;
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_zxing/flutter_zxing.dart';
 import 'package:logging/logging.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/scanner_orientation_mixin.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
@@ -20,7 +22,20 @@ import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/import_recipe_scanner_screen.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
 import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
+import 'package:opennutritracker/features/scanner/util/gs1_gtin.dart';
+import 'package:opennutritracker/features/scanner/util/zxing_logging.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+
+/// The retail symbologies a food product barcode can arrive in.
+///
+/// This replaces ML Kit's `BarcodeType.product`. ZXing reports the *symbology*
+/// a code was encoded in rather than guessing at what its contents mean, so the
+/// check is a format test instead of a semantic one — which is also the more
+/// dependable of the two: ML Kit's classifier was known to label perfectly
+/// valid retail barcodes as `BarcodeType.unknown` depending on print quality
+/// and camera angle.
+const int _productBarcodeFormats =
+    Format.ean13 | Format.ean8 | Format.upca | Format.upce;
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -30,7 +45,7 @@ class ScannerScreen extends StatefulWidget {
 }
 
 class _ScannerScreenState extends State<ScannerScreen>
-    with WidgetsBindingObserver, ScannerOrientationMixin {
+    with ScannerOrientationMixin {
   final log = Logger('ScannerScreen');
 
   String? _scannedBarcode;
@@ -47,36 +62,124 @@ class _ScannerScreenState extends State<ScannerScreen>
   bool _navigatedAfterLoad = false;
 
   late ScannerBloc _scannerBloc;
-  // MobileScanner stops but doesn't dispose externally-owned controllers.
-  late final MobileScannerController _cameraController;
+
+  // ReaderWidget owns the CameraController and its lifecycle (it is a
+  // WidgetsBindingObserver itself, and stops/reopens the camera on
+  // pause/resume). We only hold a reference so the appbar's torch and
+  // flip-camera actions can drive it; never dispose it from here.
+  CameraController? _cameraController;
+  bool _torchOn = false;
+  CameraLensDirection _lensDirection = CameraLensDirection.back;
 
   @override
   void initState() {
     super.initState();
     _scannerBloc = locator<ScannerBloc>();
-    _cameraController = MobileScannerController();
-    WidgetsBinding.instance.addObserver(this);
+    configureZxingLogging();
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    unawaited(_cameraController.dispose());
-    super.dispose();
+  void _onCameraCreated(CameraController? controller, Exception? error) {
+    if (!mounted) return;
+    setState(() {
+      _cameraController = controller;
+      // A freshly opened camera always comes up with the torch off, so the
+      // appbar icon has to follow it back down — otherwise flipping the
+      // camera while the torch is on leaves the icon lit over a dark scene.
+      _torchOn = false;
+    });
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_cameraController.value.hasCameraPermission) return;
-    switch (state) {
-      case AppLifecycleState.detached:
-      case AppLifecycleState.hidden:
-      case AppLifecycleState.paused:
-        unawaited(_cameraController.stop());
-      case AppLifecycleState.resumed:
-        unawaited(_cameraController.start());
-      case AppLifecycleState.inactive:
-        break;
+  Future<void> _toggleTorch() async {
+    final controller = _cameraController;
+    if (controller == null || !controller.value.isInitialized) return;
+    final turnOn = !_torchOn;
+    try {
+      await controller.setFlashMode(turnOn ? FlashMode.torch : FlashMode.off);
+    } on CameraException {
+      // Front cameras and some devices have no torch. Leave the icon where it
+      // was rather than showing a state the hardware isn't actually in.
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _torchOn = turnOn);
+  }
+
+  void _flipCamera() {
+    setState(() {
+      _lensDirection = _lensDirection == CameraLensDirection.back
+          ? CameraLensDirection.front
+          : CameraLensDirection.back;
+    });
+  }
+
+  /// Debug-only. Fires once per frame that decoded nothing (roughly once a
+  /// second, paced by `scanDelay`), so it is kept quiet unless zxing actually
+  /// reported a reason — a bare "found nothing" is the normal state of a
+  /// scanner pointed at a table and is not worth a line.
+  void _onScanFailure(Code code) {
+    if (!kDebugMode) return;
+    final error = code.error;
+    if (error == null || error.isEmpty) return;
+    log.fine('onScanFailure: $error');
+  }
+
+  void _onScan(Code code) {
+    // Logged before any filtering, so a code that decodes but gets dropped by
+    // the format test below is still visible while debugging. Without this the
+    // two failure modes — "nothing decoded" and "decoded but rejected" — look
+    // identical from the log.
+    if (kDebugMode) {
+      log.fine(
+        'onScan: "${code.text}" format=${code.format?.name} '
+        'valid=${code.isValid}',
+      );
+    }
+    if (_scannedBarcode != null) return;
+    final raw = code.text;
+    if (raw == null || raw.isEmpty) return;
+
+    // Shared-QR codes generated by the app's share dialog arrive as plain
+    // text/url. If one of these is recognised, hand off to the matching
+    // import screen with the already-scanned code so the user doesn't have
+    // to scan a second time. In pick mode (recipe ingredient picker) we
+    // ignore these — handing off would silently abandon the recipe builder
+    // mid-edit, and a shared meal/recipe/activity isn't a single ingredient
+    // anyway.
+    if (!_pickMode) {
+      final kind = classifySharedPayload(raw);
+      if (kind != null) {
+        _scannedBarcode = raw;
+        // Debug-only: scanned values are user data and must not reach a
+        // release build's logcat. `kDebugMode` is a const false in release,
+        // so this whole call is tree-shaken out rather than merely skipped.
+        if (kDebugMode) log.fine('Shared payload found: $kind');
+        _routeToSharedImport(kind, raw);
+        return;
+      }
+    }
+
+    // Only retail symbologies are treated as food barcodes. zxing-cpp
+    // verifies the EAN/UPC check digit as part of decoding, so a code that
+    // reaches here has already been validated — unlike manual entry, which
+    // still needs [isValidBarcodeCheckDigit].
+    if (((code.format ?? Format.none) & _productBarcodeFormats) != 0) {
+      _scannedBarcode = raw;
+      if (kDebugMode) log.fine('Barcode found: $raw (${code.format?.name})');
+      _scannerBloc.add(ScannerLoadProductEvent(barcode: raw));
+      return;
+    }
+
+    // Not a retail symbology, but it may still name a product: GS1 DataMatrix
+    // carries the GTIN in AI(01), and is now printed on a lot of packaging —
+    // pharmaceuticals, alcohol and tobacco across the EU, and everything under
+    // Russia's Chestny ZNAK scheme. [gtinFromGs1] returns null for anything
+    // that is not a GS1 string naming a consumer unit, so this cannot pick up
+    // an arbitrary QR payload by accident.
+    final gtin = gtinFromGs1(raw);
+    if (gtin != null) {
+      _scannedBarcode = gtin;
+      if (kDebugMode) log.fine('GS1 GTIN found: $gtin (${code.format?.name})');
+      _scannerBloc.add(ScannerLoadProductEvent(barcode: gtin));
     }
   }
 
@@ -174,25 +277,14 @@ class _ScannerScreenState extends State<ScannerScreen>
         ),
         actions: [
           IconButton(
-            icon: ValueListenableBuilder(
-              valueListenable: _cameraController,
-              builder: (context, state, child) {
-                switch (state.torchState) {
-                  case TorchState.off || TorchState.unavailable:
-                    return Icon(
-                      Icons.flash_off_rounded,
-                      color: palette.textMuted,
-                    );
-                  case TorchState.on || TorchState.auto:
-                    return const Icon(Icons.flash_on_rounded);
-                }
-              },
-            ),
-            onPressed: () => _cameraController.toggleTorch(),
+            icon: _torchOn
+                ? const Icon(Icons.flash_on_rounded)
+                : Icon(Icons.flash_off_rounded, color: palette.textMuted),
+            onPressed: _toggleTorch,
           ),
           IconButton(
             icon: const Icon(Icons.flip_camera_android_rounded),
-            onPressed: () => _cameraController.switchCamera(),
+            onPressed: _flipCamera,
           ),
           buildPortraitLockAction(context),
         ],
@@ -200,41 +292,51 @@ class _ScannerScreenState extends State<ScannerScreen>
       body: Column(
         children: [
           Expanded(
-            child: MobileScanner(
-              controller: _cameraController,
-              onDetect: (capture) {
-                if (_scannedBarcode != null) return;
-                final List<Barcode> barcodes = capture.barcodes;
-                for (final barcode in barcodes) {
-                  final raw = barcode.rawValue;
-                  if (raw == null) continue;
-
-                  // Shared-QR codes generated by the app's share dialog
-                  // arrive as plain text/url (not BarcodeType.product). If
-                  // one of these is recognised, hand off to the matching
-                  // import screen with the already-scanned code so the
-                  // user doesn't have to scan a second time. In pick mode
-                  // (recipe ingredient picker) we ignore these — handing
-                  // off would silently abandon the recipe builder mid-edit,
-                  // and a shared meal/recipe/activity isn't a single
-                  // ingredient anyway.
-                  if (!_pickMode) {
-                    final kind = classifySharedPayload(raw);
-                    if (kind != null) {
-                      _scannedBarcode = raw;
-                      log.fine('Shared payload found: $kind');
-                      _routeToSharedImport(kind, raw);
-                      return;
-                    }
-                  }
-
-                  if (barcode.type == BarcodeType.product) {
-                    _scannedBarcode = raw;
-                    log.fine('Barcode found: $raw');
-                    _scannerBloc.add(ScannerLoadProductEvent(barcode: raw));
-                  }
-                }
-              },
+            child: ReaderWidget(
+              onScan: _onScan,
+              onScanFailure: _onScanFailure,
+              onControllerCreated: _onCameraCreated,
+              lensDirection: _lensDirection,
+              // Decode every symbology, and let `_onScan` decide what counts
+              // as a food barcode.
+              //
+              // Restricting this to the retail formats made the scanner
+              // undebuggable: a label that is not EAN/UPC was never even
+              // attempted, so a Code128 or ITF barcode and a genuinely
+              // unreadable one produced exactly the same silence. Filtering in
+              // Dart instead keeps the behaviour identical — the format test in
+              // `_onScan` is still what gates the product lookup — while making
+              // the difference visible in the log.
+              //
+              // The extra detectors cost decode time, which there is room
+              // for: decoding measured 21-68 ms against a 250 ms `scanDelay`.
+              codeFormat: Format.any,
+              // ReaderWidget decodes a *square* crop of side
+              // `min(imageWidth, imageHeight) * cropPercent`. At the 0.5
+              // default that is a 360 px box out of a 1280x720 analysis frame,
+              // which truncates a retail barcode held at normal scanning
+              // distance — EAN-13 is wide and short, so it overruns the box
+              // long before it fills it vertically, and never decodes.
+              //
+              // Decoding measured 3-28 ms per frame on device, so the tight
+              // crop was buying no headroom worth having. Keep a visible aim
+              // box, but a forgiving one.
+              cropPercent: 0.9,
+              // Default is a full second between attempts, which reads as lag
+              // when a barcode is already in frame. Decoding measured 21-68 ms,
+              // so a quarter second still leaves the decode loop mostly idle.
+              scanDelay: const Duration(milliseconds: 250),
+              // zxing's extra effort pass. Matters most for exactly this case:
+              // 1D symbologies under uneven lighting or slight rotation.
+              tryHarder: true,
+              // The appbar already owns torch and flip, and there is no
+              // gallery-import flow on this screen.
+              showFlashlight: false,
+              showToggleCamera: false,
+              showGallery: false,
+              loading: DecoratedBox(
+                decoration: BoxDecoration(color: palette.canvas),
+              ),
             ),
           ),
           Padding(
@@ -316,12 +418,12 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
 
     _scannedBarcode = submitted;
-    log.fine('Manual barcode entered: $submitted');
+    if (kDebugMode) log.fine('Manual barcode entered: $submitted');
     _scannerBloc.add(ScannerLoadProductEvent(barcode: submitted));
   }
 
   void _routeToSharedImport(SharedPayloadKind kind, String code) {
-    // Pick-mode skips shared-payload handling entirely (see onDetect), so
+    // Pick-mode skips shared-payload handling entirely (see _onScan), so
     // by the time we land here `_intakeTypeEntity` and `_day` were set from
     // the logging-flow args.
     final intakeType = _intakeTypeEntity!;

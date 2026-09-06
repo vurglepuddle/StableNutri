@@ -4,13 +4,14 @@ import 'dart:math' as math;
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_zxing/flutter_zxing.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/user_image_picker_tile.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
@@ -28,6 +29,7 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:opennutritracker/features/scanner/util/zxing_logging.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -1052,7 +1054,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
     }
   }
 
-  /// Push a lightweight `MobileScanner` page that returns the first product
+  /// Push a lightweight `ReaderWidget` page that returns the first product
   /// barcode it sees, then drop the value into the barcode TextField. The
   /// scan-time validator on the field handles bad codes (8–14 digits,
   /// EAN-13 check digit) — we don't double-validate here so the user can
@@ -1063,15 +1065,17 @@ class _EditMealScreenState extends State<EditMealScreen> {
     final result = await navigator.push<String?>(
       MaterialPageRoute(builder: (_) => const _EditMealBarcodeScanPage()),
     );
-    log.fine('Edit-meal barcode scanner returned: $result');
+    if (kDebugMode) log.fine('Edit-meal barcode scanner returned: $result');
     if (result == null) return;
     if (!mounted) return;
     setState(() {
       _barcodeTextController.text = result;
     });
-    log.fine(
-      'Barcode text controller after set: ${_barcodeTextController.text}',
-    );
+    if (kDebugMode) {
+      log.fine(
+        'Barcode text controller after set: ${_barcodeTextController.text}',
+      );
+    }
   }
 
   Widget _buildRemoteMealImage() {
@@ -1285,61 +1289,34 @@ class _EditMealBarcodeScanPage extends StatefulWidget {
       _EditMealBarcodeScanPageState();
 }
 
-class _EditMealBarcodeScanPageState extends State<_EditMealBarcodeScanPage>
-    with WidgetsBindingObserver {
+class _EditMealBarcodeScanPageState extends State<_EditMealBarcodeScanPage> {
   static final _log = Logger('EditMealBarcodeScan');
-  final MobileScannerController _controller = MobileScannerController();
   bool _done = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+    configureZxingLogging();
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_controller.value.hasCameraPermission) return;
-    switch (state) {
-      case AppLifecycleState.detached:
-      case AppLifecycleState.hidden:
-      case AppLifecycleState.paused:
-        unawaited(_controller.stop());
-      case AppLifecycleState.resumed:
-        unawaited(_controller.start());
-      case AppLifecycleState.inactive:
-        break;
+  void _onScan(Code code) {
+    if (kDebugMode) {
+      _log.fine('onScan: ${code.text} (format=${code.format?.name})');
     }
-  }
-
-  void _onDetect(BarcodeCapture capture) {
-    _log.fine(
-      'onDetect: ${capture.barcodes.length} barcodes; '
-      'types=${capture.barcodes.map((b) => b.type.name).toList()}; '
-      'rawValues=${capture.barcodes.map((b) => b.rawValue).toList()}',
-    );
     if (_done) return;
-    for (final b in capture.barcodes) {
-      // Accept any non-null raw value. ML Kit's type classifier is reliable
-      // for QR / data-matrix but sometimes labels a valid retail barcode as
-      // `BarcodeType.unknown` depending on print quality and camera angle —
-      // filtering strictly by `BarcodeType.product` was silently dropping
-      // those. The save-time validator on the edit-meal screen does the
-      // real "is this a valid barcode" check.
-      final raw = b.rawValue;
-      if (raw != null && raw.isNotEmpty) {
-        _log.fine('Popping with rawValue=$raw (type=${b.type.name})');
-        _done = true;
-        Navigator.of(context).pop(raw);
-        return;
-      }
+    // Accept any non-empty text, whatever the symbology. This screen fills a
+    // free-text barcode field, so it deliberately does not restrict to the
+    // retail formats the product scanner uses — the save-time validator on
+    // the edit-meal screen does the real "is this a valid barcode" check.
+    //
+    // Under ML Kit this leniency was a workaround: its classifier labelled
+    // valid retail barcodes as `BarcodeType.unknown` depending on print
+    // quality. ZXing reports the symbology deterministically, so the leniency
+    // is now a deliberate choice rather than a hedge.
+    final raw = code.text;
+    if (raw != null && raw.isNotEmpty) {
+      _done = true;
+      Navigator.of(context).pop(raw);
     }
   }
 
@@ -1347,7 +1324,16 @@ class _EditMealBarcodeScanPageState extends State<_EditMealBarcodeScanPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(S.of(context).customMealBarcodeScanButton)),
-      body: MobileScanner(controller: _controller, onDetect: _onDetect),
+      body: ReaderWidget(
+        onScan: _onScan,
+        showGallery: false,
+        // Same reasoning as the product scanner: the 0.5 default crops a
+        // 1280x720 frame down to a 360 px square, which a retail barcode
+        // overruns horizontally at normal scanning distance.
+        cropPercent: 0.9,
+        scanDelay: const Duration(milliseconds: 250),
+        tryHarder: true,
+      ),
     );
   }
 }

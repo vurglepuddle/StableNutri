@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:logging/logging.dart';
+import 'package:flutter_zxing/flutter_zxing.dart';
 import 'package:opennutritracker/core/domain/usecase/get_physical_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/presentation/scanner_orientation_mixin.dart';
@@ -14,6 +16,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/domain/entity/shared_activity_payload.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/scanner/util/zxing_logging.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ImportActivityScannerArguments {
@@ -35,13 +38,13 @@ class ImportActivityScannerScreen extends StatefulWidget {
 
 class _ImportActivityScannerScreenState
     extends State<ImportActivityScannerScreen>
-    with WidgetsBindingObserver, ScannerOrientationMixin {
+    with ScannerOrientationMixin {
   late ActivityDetailBloc _activityDetailBloc;
   late GetPhysicalActivityUsecase _getPhysicalActivityUsecase;
   late GetUserUsecase _getUserUsecase;
+  static final _log = Logger('ImportActivityScanner');
   bool _isProcessing = false;
   bool _handledInitialCode = false;
-  late final MobileScannerController _cameraController;
 
   @override
   void initState() {
@@ -49,32 +52,7 @@ class _ImportActivityScannerScreenState
     _activityDetailBloc = locator<ActivityDetailBloc>();
     _getPhysicalActivityUsecase = locator<GetPhysicalActivityUsecase>();
     _getUserUsecase = locator<GetUserUsecase>();
-    _cameraController = MobileScannerController(
-      formats: const [BarcodeFormat.qrCode],
-    );
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    unawaited(_cameraController.dispose());
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_cameraController.value.hasCameraPermission) return;
-    switch (state) {
-      case AppLifecycleState.detached:
-      case AppLifecycleState.hidden:
-      case AppLifecycleState.paused:
-        unawaited(_cameraController.stop());
-      case AppLifecycleState.resumed:
-        unawaited(_cameraController.start());
-      case AppLifecycleState.inactive:
-        break;
-    }
+    configureZxingLogging();
   }
 
   @override
@@ -106,16 +84,35 @@ class _ImportActivityScannerScreenState
           buildPortraitLockAction(context),
         ],
       ),
-      body: MobileScanner(controller: _cameraController, onDetect: _onDetect),
+      body: ReaderWidget(
+        onScan: _onScan,
+        codeFormat: Format.qrCode,
+        showGallery: false,
+        // See the note in scanner_screen.dart: ReaderWidget decodes a square
+        // crop of `min(imageWidth, imageHeight) * cropPercent`, which at the
+        // 0.5 default is 360 px out of a 1280x720 frame. The share codes this
+        // screen reads carry a whole JSON payload, so they are dense QR — the
+        // smaller the crop, the fewer modules resolve and the less reliably
+        // they decode.
+        cropPercent: 0.9,
+        scanDelay: const Duration(milliseconds: 250),
+        tryHarder: true,
+      ),
     );
   }
 
-  void _onDetect(BarcodeCapture capture) async {
+  void _onScan(Code code) async {
+    // Logged before the processing gate so a scan that arrives while a dialog
+    // is already up is still visible; without it these screens decode in
+    // complete silence and a failed QR looks identical to a missing camera.
+    if (kDebugMode) {
+      _log.fine('onScan: "${code.text}" format=${code.format?.name}');
+    }
     if (_isProcessing) return;
-    final raw = capture.barcodes.firstOrNull?.rawValue;
+    final raw = code.text;
     if (raw == null) return;
     // Flip the flag synchronously, before any await, so a second
-    // onDetect call that mobile_scanner queues up while the camera
+    // onScan call that ReaderWidget emits while the camera
     // still has the QR in frame can't pass the gate. The flag was
     // previously only flipped inside _processCode, leaving a brief
     // microtask window where two detections could both reach the
@@ -160,7 +157,7 @@ class _ImportActivityScannerScreenState
   }
 
   Future<void> _processCode(String raw) async {
-    // Idempotent set — _onDetect flips the flag synchronously before
+    // Idempotent set — _onScan flips the flag synchronously before
     // calling here, but the paste-code dialog path doesn't, so this
     // still needs to set it.
     setState(() => _isProcessing = true);
@@ -191,7 +188,7 @@ class _ImportActivityScannerScreenState
       // Don't reset the flag on the success-and-pop path. Navigator.pop
       // schedules the pop for the next frame, so `mounted` stays true
       // for the rest of this microtask. If we reset _isProcessing to
-      // false here, a buffered onDetect that mobile_scanner emits in
+      // false here, a buffered onScan that ReaderWidget emits in
       // the same microtask passes the gate and shows a second confirm
       // dialog — except by then the scanner has popped, so
       // showDialog walks up to the home navigator and the dialog

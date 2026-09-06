@@ -5,6 +5,9 @@ import 'dart:typed_data';
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/repository/body_measurement_log_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
@@ -129,14 +132,6 @@ class ExportDataUsecase {
         ArchiveFile(recipeJsonFileName, recipeBytes.length, recipeBytes),
       );
 
-      // Include any user-attached recipe photos under their relative
-      // slug (e.g. `recipe_images/<id>.webp`). The slug matches what
-      // we persist on RecipeDBO.imagePath, so import can drop the
-      // bytes back into place without translating filenames.
-      for (final recipe in fullRecipes) {
-        await _addUserImageIfPresent(archive, recipe.imagePath);
-      }
-
       // Custom-meal photos travel through the same `meal_images/`
       // subdirectory their relative slug names.
       final customMeals = _customMealDataSource.getAllCustomMeals();
@@ -150,8 +145,16 @@ class ExportDataUsecase {
           savedMealBytes,
         ),
       );
-      for (final meal in customMeals) {
-        await _addUserImageIfPresent(archive, meal.localImagePath);
+      // Every user-attached photo, under its relative slug (e.g.
+      // `recipe_images/<id>.webp`). The slug matches what we persist on the
+      // DBO, so import can drop the bytes back into place without
+      // translating filenames.
+      for (final path in userImagePaths(
+        recipes: fullRecipes,
+        customMeals: customMeals,
+        intakes: fullIntake,
+      )) {
+        await _addUserImage(archive, path);
       }
 
       // Weight-log dataset
@@ -209,13 +212,56 @@ class ExportDataUsecase {
     return result != null && result.isNotEmpty;
   }
 
-  Future<void> _addUserImageIfPresent(
-    Archive archive,
-    String? relativePath,
-  ) async {
-    if (relativePath == null) return;
-    final sanitized = UserImageStorage.sanitizeRelative(relativePath);
-    if (sanitized == null) return;
+  /// The relative slug of every user-attached photo that belongs in a JSON
+  /// bundle, in archive order and without repeats.
+  ///
+  /// **Intakes are a source in their own right, not a duplicate of the
+  /// templates.** A custom meal logged with *Save for next time* off writes
+  /// no custom-meal record (see `edit_meal_screen`, #249), but the intake
+  /// keeps its `localImagePath` and the diary card renders it. Gathering only
+  /// from recipes and custom meals therefore put the reference in the JSON
+  /// and left the bytes out of the zip, so a restore lost the photo with
+  /// nothing failing anywhere.
+  ///
+  /// Deduplicated because the ordinary case — a saved custom meal that has
+  /// also been logged — reaches this twice, and two archive entries with one
+  /// name would double the bundle for every photographed meal.
+  ///
+  /// Pure, and separated from the file reads for that reason: which photos
+  /// belong in the bundle is the part worth testing, and it needs no
+  /// filesystem to answer. Public for that reason — `export_user_image_paths_test`
+  /// is its only caller outside this class.
+  static List<String> userImagePaths({
+    required Iterable<RecipeDBO> recipes,
+    required Iterable<MealDBO> customMeals,
+    required Iterable<IntakeDBO> intakes,
+  }) {
+    final seen = <String>{};
+    final paths = <String>[];
+
+    void add(String? relativePath) {
+      if (relativePath == null) return;
+      final sanitized = UserImageStorage.sanitizeRelative(relativePath);
+      if (sanitized == null || !seen.add(sanitized)) return;
+      paths.add(sanitized);
+    }
+
+    for (final recipe in recipes) {
+      add(recipe.imagePath);
+    }
+    for (final meal in customMeals) {
+      add(meal.localImagePath);
+    }
+    for (final intake in intakes) {
+      add(intake.meal.localImagePath);
+    }
+    return paths;
+  }
+
+  /// Adds the bytes for one already-sanitized slug, if the file is still
+  /// there. A missing file is not an error: the photo may have been cleared
+  /// by the OS, and losing one image is not worth failing an export over.
+  Future<void> _addUserImage(Archive archive, String sanitized) async {
     final absolute = await UserImageStorage.absolutePath(sanitized);
     final file = File(absolute);
     if (!await file.exists()) return;

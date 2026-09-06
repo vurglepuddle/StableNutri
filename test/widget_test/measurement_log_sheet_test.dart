@@ -61,7 +61,7 @@ Widget _app({
       GlobalWidgetsLocalizations.delegate,
       GlobalCupertinoLocalizations.delegate,
     ],
-    supportedLocales: S.delegate.supportedLocales,
+    supportedLocales: S.supportedLocales,
     builder: (context, child) => MediaQuery(
       data: MediaQuery.of(
         context,

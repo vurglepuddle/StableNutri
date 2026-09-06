@@ -13,7 +13,7 @@ Widget _app(Widget child, {double textScale = 1}) => MaterialApp(
     GlobalWidgetsLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
   ],
-  supportedLocales: S.delegate.supportedLocales,
+  supportedLocales: S.supportedLocales,
   home: Scaffold(
     body: MediaQuery(
       data: MediaQueryData(textScaler: TextScaler.linear(textScale)),

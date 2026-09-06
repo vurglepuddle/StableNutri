@@ -20,7 +20,7 @@ Widget _app({
       GlobalCupertinoLocalizations.delegate,
       GlobalWidgetsLocalizations.delegate,
     ],
-    supportedLocales: S.delegate.supportedLocales,
+    supportedLocales: S.supportedLocales,
     builder: (context, child) => MediaQuery(
       data: MediaQuery.of(
         context,
@@ -86,7 +86,7 @@ void main() {
           GlobalCupertinoLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
         ],
-        supportedLocales: S.delegate.supportedLocales,
+        supportedLocales: S.supportedLocales,
         routes: {
           NavigationOptions.diaryRoute: (_) =>
               const Scaffold(body: Text('Diary route body')),

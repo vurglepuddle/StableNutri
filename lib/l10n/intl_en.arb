@@ -1200,6 +1200,13 @@
   "lifesumImportApplying": "Importing your selected history…",
   "lifesumImportConfirmTitle": "Import selected history?",
   "lifesumImportConfirmBody": "Stable will add {count} records, including the daily summaries needed for your diary. Existing Stable data will be kept.",
+  "@lifesumImportConfirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "lifesumImportConfirmAction": "Import now",
   "lifesumImportChooseHeading": "Bring your history",
   "lifesumImportChooseIntro": "Choose the ZIP from your Lifesum data export. It stays on this device and nothing is added until you review and confirm it.",
@@ -1210,9 +1217,36 @@
   "lifesumImportFoodDiary": "Food diary",
   "lifesumImportActivities": "Activities",
   "lifesumImportHealthConnectIgnored": "{count} Health Connect step mirrors ignored",
+  "@lifesumImportHealthConnectIgnored": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "lifesumImportWaterTitle": "Estimated water history",
   "lifesumImportWaterDetail": "{amount} ml per missing day · {start}–{end} · not present in the export",
+  "@lifesumImportWaterDetail": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "lifesumImportRecipesDetail": "{count} recipe snapshots found. Stable will keep them out of this import until it can represent their missing ingredient weights honestly.",
+  "@lifesumImportRecipesDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "lifesumImportFavoritesDetail": "No favorite markers were included in this export.",
   "lifesumImportSelectedAction": "Import selected history",
   "lifesumImportChooseAgain": "Choose again",
@@ -1221,15 +1255,53 @@
   "lifesumImportWarnings": "Warnings",
   "lifesumImportFilesIgnored": "Files ignored",
   "lifesumImportToAdd": "{count} to add",
+  "@lifesumImportToAdd": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "lifesumImportExistingKept": "{count} existing kept",
+  "@lifesumImportExistingKept": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "lifesumImportWarningCount": "{count} warnings",
+  "@lifesumImportWarningCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "lifesumImportWeightHistory": "Weight history",
   "lifesumImportBodyMeasurements": "Body measurements",
   "lifesumImportNotImported": "Not imported",
   "lifesumImportPrivacy": "Processed locally, never uploaded. A temporary picker copy may be kept during review and is removed when you finish or leave. Interrupted sessions are cleaned up the next time you choose an archive.",
   "lifesumImportSuccessTitle": "History imported",
   "lifesumImportSuccessBody": "{added} records added.",
+  "@lifesumImportSuccessBody": {
+    "placeholders": {
+      "added": {
+        "type": "int"
+      }
+    }
+  },
   "lifesumImportSuccessBodyWithKept": "{added} records added · {kept} exact records kept.",
+  "@lifesumImportSuccessBodyWithKept": {
+    "placeholders": {
+      "added": {
+        "type": "int"
+      },
+      "kept": {
+        "type": "int"
+      }
+    }
+  },
   "lifesumImportDone": "Done",
   "lifesumImportInvalidTitle": "This export could not be read",
   "lifesumImportInvalidDetail": "Choose the original Lifesum ZIP again. Stable has not changed any of your data.",
@@ -1245,6 +1317,16 @@
   "lifesumImportFailedDetail": "Stable stopped safely. Choose the export again to resume or review the import.",
   "lifesumImportSupportedHistoryFound": "Supported history found in this local export.",
   "lifesumImportSupportedHistoryRange": "Supported history from {start} to {end}. Existing Stable days will be kept.",
+  "@lifesumImportSupportedHistoryRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "litreLabel": "l",
   "logWaterRemoveAmountLabel": "Remove {amount} ml",
   "waterTotalLabel": "{current} / {goal} l",

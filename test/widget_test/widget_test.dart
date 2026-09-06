@@ -40,7 +40,7 @@ Widget _dashboard({
         GlobalCupertinoLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      supportedLocales: S.delegate.supportedLocales,
+      supportedLocales: S.supportedLocales,
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(
           context,
@@ -74,7 +74,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [S.delegate],
-        supportedLocales: S.delegate.supportedLocales,
+        supportedLocales: S.supportedLocales,
         home: Scaffold(
           body: Center(
             child: SizedBox(

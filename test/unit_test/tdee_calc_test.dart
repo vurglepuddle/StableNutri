@@ -31,7 +31,9 @@ void main() {
     // 864 – (9.72 × age [y]) + PA × (14.2 × weight [kg]
     // + 503 × height [m])
 
-    // 864 - (9.72 * 25) + 1.0 *( 14,2 * 80) + 503 * 1.80 = 2662
+    // 864 - (9.72 * 25) + 1.0 * ((14.2 * 80) + (503 * 1.80))
+    //   = 621 + 1.0 * 2041.4 = 2662.4
+    // Sedentary, so PA is 1.00 and the bracketing makes no difference here.
     int expectedTdee = 2662;
 
     expect(userTdee.toInt(), expectedTdee);
@@ -48,8 +50,9 @@ void main() {
     // 387 – (7.31 × age [y]) + PA × (10.9 × weight [kg]
     // + 660.7 × height [m])
 
-    // 387 - (7.31 * 54) + 1.27 * (10.9 * 75) + 660.7 * 1.60 = 2087
-    int expectedTdee = 2087;
+    // 387 - (7.31 * 54) + 1.27 * ((10.9 * 75) + (660.7 * 1.60))
+    //   = -7.74 + 1.27 * 1874.62 = 2373.03
+    int expectedTdee = 2373;
 
     expect(userTdee.toInt(), expectedTdee);
   });
@@ -192,25 +195,26 @@ void main() {
 
     test('lowActive averaged uses both PA constants — '
         'numerical pin (would fail with shared female PA = 1.14)', () {
-      // Hand-computed expected for 80 kg / 180 cm / age 25 / lowActive (PAL 1.5):
-      //   male half  = 864 - 9.72*25 + 1.12*14.2*80 + 503*1.80
-      //              = 864 - 243   + 1272.32        + 905.4
-      //              = 2798.72
-      //   female half= 387 - 7.31*25 + 1.14*10.9*80 + 660.7*1.80
-      //              = 387 - 182.75 + 993.85        + 1189.26
-      //              = 2387.36 (rounded)
-      //   averaged   = (2798.72 + 2387.36) / 2 ≈ 2593.04
-      // The bug version used PA=1.14 in the male half too:
-      //   buggy male = 864 - 243 + 1.14*14.2*80 + 905.4 = 2821.45
-      //   buggy avg  = (2821.45 + 2387.36) / 2 ≈ 2604.4
-      // 11 kcal/day delta — small but always upward and systematic.
+      // Hand-computed expected for 80 kg / 180 cm / age 25 / lowActive (PAL 1.5).
+      // PA brackets both the weight and the height term (IOM 2005 p. 204):
+      //   male half  = 864 - 9.72*25 + 1.12*(14.2*80 + 503*1.80)
+      //              = 621          + 1.12*2041.4
+      //              = 2907.368
+      //   female half= 387 - 7.31*25 + 1.14*(10.9*80 + 660.7*1.80)
+      //              = 204.25       + 1.14*2061.26
+      //              = 2554.0864
+      //   averaged   = (2907.368 + 2554.0864) / 2 = 2730.7272
+      // The shared-PA bug this pins against used PA=1.14 in the male half too:
+      //   shared male = 621 + 1.14*2041.4 = 2948.196
+      //   shared avg  = (2948.196 + 2554.0864) / 2 ≈ 2751.14
+      // 20 kcal/day delta — small but always upward and systematic.
       final averaged = TDEECalc.getTDEEKcalIOM2005(
         buildUser(
           UserPALEntity.lowActive,
           profile: CaloriesProfileEntity.averaged,
         ),
       );
-      expect(averaged, closeTo(2593.04, 0.5));
+      expect(averaged, closeTo(2730.7272, 0.5));
     });
 
     test('estrogenTypical at lowActive uses female PA (1.14)', () {
@@ -220,8 +224,8 @@ void main() {
           profile: CaloriesProfileEntity.estrogenTypical,
         ),
       );
-      // 387 - 7.31*25 + 1.14*10.9*80 + 660.7*1.80 ≈ 2387.36
-      expect(estrogen, closeTo(2387.36, 0.5));
+      // 387 - 7.31*25 + 1.14*(10.9*80 + 660.7*1.80) = 2554.0864
+      expect(estrogen, closeTo(2554.0864, 0.5));
     });
 
     test('testosteroneTypical at veryActive uses male PA (1.54)', () {
@@ -231,9 +235,9 @@ void main() {
           profile: CaloriesProfileEntity.testosteroneTypical,
         ),
       );
-      // 864 - 9.72*25 + 1.54*14.2*80 + 503*1.80
-      //   = 864 - 243 + 1749.44 + 905.4 = 3275.84
-      expect(testosterone, closeTo(3275.84, 0.5));
+      // 864 - 9.72*25 + 1.54*(14.2*80 + 503*1.80)
+      //   = 621 + 1.54*2041.4 = 3764.756
+      expect(testosterone, closeTo(3764.756, 0.5));
     });
   });
 

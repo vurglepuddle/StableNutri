@@ -26,6 +26,17 @@ The export is a single `.zip` file (default filename
 | `body_measurements.json` | JSON | Daily optional waist/hips/chest/arm/thigh/body-fat snapshots.      |
 | `saved_meals.json`     | JSON   | Saved foods/custom meals plus Favorite and Rescue Library labels.  |
 
+**Photos travel with the JSON bundle only.** User-attached photos are added
+under `recipe_images/` and `meal_images/`, gathered from three places:
+recipes, saved custom meals, and **the diary entries themselves**. That third
+source is not redundant — a custom meal logged with *Save for next time* off
+keeps its photo on the entry without leaving a saved meal behind, so
+gathering only from the first two put the filename in the JSON and left the
+bytes out of the zip. A photo reachable from more than one of the three is in
+the bundle exactly once. A CSV export carries no photos and the importer does
+not restore any, which is another reason to use JSON for anything you intend
+to restore from.
+
 User profile (height, weight, birthday, PAL, goal) is intentionally **not**
 included — see `core/data/data_source/user_data_source.dart` for the box that
 stores it.

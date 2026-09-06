@@ -21,6 +21,12 @@ import 'package:opennutritracker/features/home/presentation/screens/import_meal_
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/import_recipe_scanner_screen.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/recipes/presentation/widgets/food_search_tab_view.dart';
+import 'package:opennutritracker/features/scanner/domain/usecase/attach_barcode_to_meal_usecase.dart';
+import 'package:opennutritracker/features/scanner/presentation/widgets/barcode_not_found_view.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/custom_meals_bloc.dart';
 import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
 import 'package:opennutritracker/features/scanner/util/gs1_gtin.dart';
 import 'package:opennutritracker/features/scanner/util/zxing_logging.dart';
@@ -244,14 +250,45 @@ class _ScannerScreenState extends State<ScannerScreen>
             });
           }
         } else if (state is ScannerFailedState) {
+          // A code that decoded fine but matched nothing is not an error the
+          // user can retry their way out of — the product simply isn't in any
+          // of the sources yet. It gets its own screen offering the two ways
+          // forward. A genuine fetch failure still gets the retry dialog,
+          // because retrying is exactly the right move there.
+          if (state.type == ScannerFailedStateType.productNotFound) {
+            return Scaffold(
+              backgroundColor: palette.canvas,
+              appBar: AppBar(
+                backgroundColor: palette.canvas,
+                toolbarHeight: MediaQuery.textScalerOf(
+                  context,
+                ).scale(kToolbarHeight),
+                title: Text(
+                  S.of(context).scanProductLabel,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              body: BarcodeNotFoundView(
+                barcode: state.barcode,
+                onCreateItemPressed: () => _onCreateItemPressed(
+                  state.barcode,
+                  state.usesImperialUnits,
+                ),
+                onConnectExistingPressed: () => _onConnectExistingPressed(
+                  state.barcode,
+                  state.usesImperialUnits,
+                ),
+                onScanAgainPressed: _onScanAgainPressed,
+              ),
+            );
+          }
           return Scaffold(
             backgroundColor: palette.canvas,
             appBar: AppBar(backgroundColor: palette.canvas),
             body: Center(
               child: ErrorDialog(
-                errorText: state.type == ScannerFailedStateType.productNotFound
-                    ? S.of(context).errorProductNotFound
-                    : S.of(context).errorFetchingProductData,
+                errorText: S.of(context).errorFetchingProductData,
                 onRefreshPressed: _onRefreshButtonPressed,
               ),
             ),
@@ -454,6 +491,131 @@ class _ScannerScreenState extends State<ScannerScreen>
           );
       }
     });
+  }
+
+  /// Hands the unresolved code to the existing custom-meal form, with the
+  /// barcode pre-filled and editable — a misread digit is fixable there
+  /// rather than being baked into a saved item.
+  ///
+  /// The form is pushed in its normal create-and-log mode, so saving lands
+  /// the user on meal detail with the food ready to log, and its
+  /// "Save for next time" box (on by default) keeps the item in the local
+  /// custom-meal box. That box is what the barcode lookup consults first, so
+  /// re-scanning the same package afterwards resolves straight to this item;
+  /// it is also what the data export serialises, so the item travels with a
+  /// backup like everything else the user has entered.
+  Future<void> _onCreateItemPressed(
+    String barcode,
+    bool usesImperialUnits,
+  ) async {
+    final navigator = Navigator.of(context);
+    final seed = MealEntity.empty().copyWith(code: barcode);
+
+    if (_pickMode) {
+      // The recipe ingredient picker has no day or intake type to give the
+      // form — it decides those later, per ingredient. Push the save-only
+      // variant and hand the saved meal back up, matching what a successful
+      // scan does in pick mode.
+      final created = await navigator.pushNamed(
+        NavigationOptions.editMealRoute,
+        arguments: EditMealScreenArguments(
+          DateTime.now(),
+          seed,
+          IntakeTypeEntity.breakfast,
+          usesImperialUnits,
+          editOnly: true,
+        ),
+      );
+      if (created is MealEntity && mounted) navigator.pop(created);
+      return;
+    }
+
+    // Not `pushReplacement`: leaving the scanner underneath means backing out
+    // of the form returns here rather than dropping the user out of the flow
+    // entirely. The form's own save then removes back to the add-meal route.
+    await navigator.pushNamed(
+      NavigationOptions.editMealRoute,
+      arguments: EditMealScreenArguments(
+        _day!,
+        seed,
+        _intakeTypeEntity!,
+        usesImperialUnits,
+      ),
+    );
+  }
+
+  /// Points the unresolved code at a food the user already has, then carries
+  /// on into the flow the scan was headed for anyway.
+  Future<void> _onConnectExistingPressed(
+    String barcode,
+    bool usesImperialUnits,
+  ) async {
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final pickTitle = S.of(context).scannerConnectPickTitle;
+
+    // The same search surface the recipe builder picks ingredients with.
+    // `onBarcodePressed` is deliberately left off: a scan is what got us
+    // here, and offering another one inside the picker would just nest a
+    // second scanner over the first.
+    final selected = await navigator.push<MealEntity>(
+      MaterialPageRoute(
+        builder: (pickContext) => Scaffold(
+          appBar: AppBar(title: Text(pickTitle)),
+          body: FoodSearchTabView(
+            onMealSelected: (meal) => Navigator.of(pickContext).pop(meal),
+          ),
+        ),
+      ),
+    );
+    if (selected == null || !mounted) return;
+
+    final connected = await locator<AttachBarcodeToMealUseCase>().attachBarcode(
+      selected,
+      barcode,
+    );
+    // This path writes to the custom-meal box without ever passing back
+    // through the Library, so the Library has to be told (see the same note
+    // on EditMealBloc.saveCustomMeal).
+    if (locator.isRegistered<CustomMealsBloc>()) {
+      locator<CustomMealsBloc>().add(LoadCustomMealsEvent());
+    }
+    if (!mounted) return;
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          S.of(context).scannerConnectedLabel(connected.name ?? barcode),
+        ),
+      ),
+    );
+
+    if (_pickMode) {
+      navigator.pop(connected);
+      return;
+    }
+    // Replace the scanner rather than stacking on it: the code is connected
+    // and saved, so coming back to a dead "not found" screen would be a
+    // stale view of a question already answered.
+    navigator.pushReplacementNamed(
+      NavigationOptions.mealDetailRoute,
+      arguments: MealDetailScreenArguments(
+        connected,
+        _intakeTypeEntity!,
+        _day!,
+        usesImperialUnits,
+      ),
+    );
+  }
+
+  /// Back to the camera. The latched barcode has to be cleared alongside the
+  /// bloc reset or [_onScan] would drop the next decode on the floor.
+  void _onScanAgainPressed() {
+    setState(() {
+      _scannedBarcode = null;
+      _navigatedAfterLoad = false;
+    });
+    _scannerBloc.add(const ScannerResetEvent());
   }
 
   void _onRefreshButtonPressed() {

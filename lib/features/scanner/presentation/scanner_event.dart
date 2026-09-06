@@ -16,3 +16,9 @@ class ScannerLoadProductEvent extends ScannerEvent {
   @override
   List<Object?> get props => [barcode];
 }
+
+/// Drops back to the camera preview after a failed lookup, so the user can
+/// point at a different code without leaving and re-entering the scanner.
+class ScannerResetEvent extends ScannerEvent {
+  const ScannerResetEvent();
+}

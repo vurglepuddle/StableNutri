@@ -355,27 +355,32 @@ class MealEntity extends Equatable {
     }
   }
 
-  MealEntity copyWith({bool? isFavorite, bool? isRescue}) => MealEntity(
-    code: code,
-    name: name,
-    brands: brands,
-    thumbnailImageUrl: thumbnailImageUrl,
-    mainImageUrl: mainImageUrl,
-    url: url,
-    mealQuantity: mealQuantity,
-    mealUnit: mealUnit,
-    servingQuantity: servingQuantity,
-    servingUnit: servingUnit,
-    servingSize: servingSize,
-    nutriments: nutriments,
-    source: source,
-    backendSource: backendSource,
-    machineTranslatedName: machineTranslatedName,
-    isFavorite: isFavorite ?? this.isFavorite,
-    isRescue: isRescue ?? this.isRescue,
-    localImagePath: localImagePath,
-    detailed: detailed,
-  );
+  MealEntity copyWith({String? code, bool? isFavorite, bool? isRescue}) =>
+      MealEntity(
+        // A caller passing [code] is re-pointing this food at a different
+        // barcode — the connect-a-scanned-code flow does exactly that. Null
+        // means "leave it alone", so an existing code is never cleared by
+        // accident.
+        code: code ?? this.code,
+        name: name,
+        brands: brands,
+        thumbnailImageUrl: thumbnailImageUrl,
+        mainImageUrl: mainImageUrl,
+        url: url,
+        mealQuantity: mealQuantity,
+        mealUnit: mealUnit,
+        servingQuantity: servingQuantity,
+        servingUnit: servingUnit,
+        servingSize: servingSize,
+        nutriments: nutriments,
+        source: source,
+        backendSource: backendSource,
+        machineTranslatedName: machineTranslatedName,
+        isFavorite: isFavorite ?? this.isFavorite,
+        isRescue: isRescue ?? this.isRescue,
+        localImagePath: localImagePath,
+        detailed: detailed,
+      );
 
   @override
   List<Object?> get props => [code, name];

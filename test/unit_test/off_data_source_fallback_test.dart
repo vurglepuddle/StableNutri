@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
+import 'package:opennutritracker/features/scanner/data/product_not_found_exception.dart';
 
 const _salHost = 'search.openfoodfacts.org';
 const _legacyPath = '/cgi/search.pl';
@@ -145,5 +146,34 @@ void main() {
         expect(response.products, isEmpty);
       },
     );
+  });
+
+  group('OFFDataSource barcode lookup', () {
+    test('a 404 surfaces as ProductNotFoundException', () async {
+      // The scanner's unknown-barcode flow keys off this exact type, and the
+      // catch block that rethrows it was reworked so a 404 stops being logged
+      // at SEVERE. Guard that the rework did not change what the caller sees.
+      final dataSource = OFFDataSource(
+        clientFactory: () =>
+            MockClient((request) async => http.Response('{}', 404)),
+      );
+
+      await expectLater(
+        dataSource.fetchBarcodeResults('5995327152479'),
+        throwsA(isA<ProductNotFoundException>()),
+      );
+    });
+
+    test('a 500 still surfaces as a generic error', () async {
+      final dataSource = OFFDataSource(
+        clientFactory: () =>
+            MockClient((request) async => http.Response('boom', 500)),
+      );
+
+      await expectLater(
+        dataSource.fetchBarcodeResults('5995327152479'),
+        throwsA(isNot(isA<ProductNotFoundException>())),
+      );
+    });
   });
 }

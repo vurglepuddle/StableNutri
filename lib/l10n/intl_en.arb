@@ -1254,5 +1254,31 @@
   "calorieGaugeRangeLabel": "goal range {lower}–{upper}",
   "settingsRangeGaugeLabel": "Calories as a range bar",
   "calorieGaugeOverRangeNote": "Some days run higher. That's normal.",
-  "privacyNoTelemetryBody": "Stable collects nothing. There is no analytics, no crash reporting and no account. Everything you log stays on this device, encrypted, and is only sent anywhere when you ask for it \u2014 looking up a food, or exporting your data yourself."
+  "privacyNoTelemetryBody": "Stable collects nothing. There is no analytics, no crash reporting and no account. Everything you log stays on this device, encrypted, and is only sent anywhere when you ask for it \u2014 looking up a food, or exporting your data yourself.",
+  "scannerNotFoundTitle": "Barcode not found",
+  "scannerNotFoundMessage": "{barcode} isn't in the food database yet. Connect it to an item you already have, or create it as a new item.",
+  "@scannerNotFoundMessage": {
+    "placeholders": {
+      "barcode": { "type": "String" }
+    }
+  },
+  "scannerConnectExistingLabel": "Connect to existing item",
+  "scannerCreateItemLabel": "Create new item",
+  "scannerScanAgainLabel": "Scan again",
+  "scannerConnectPickTitle": "Choose an item to connect",
+  "scannerConnectedLabel": "Barcode connected to {name}",
+  "@scannerConnectedLabel": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "customMealsDeleteKeepEntriesLabel": "Keep entries",
+  "customMealsDeleteWithEntriesLabel": "Delete entries too",
+  "customMealsDeleteConfirmNoEntries": "This removes it from your Library.",
+  "customMealsDeleteConfirmWithEntries": "This removes it from your Library. Your {count} diary entries using it can be kept or removed with it.",
+  "@customMealsDeleteConfirmWithEntries": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

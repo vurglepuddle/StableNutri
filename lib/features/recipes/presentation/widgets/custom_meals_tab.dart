@@ -294,26 +294,65 @@ class CustomMealsTab extends StatelessWidget {
 
   Future<void> _confirmDelete(BuildContext context, MealEntity meal) async {
     final bloc = context.read<CustomMealsBloc>();
-    final confirmed = await showDialog<bool>(
+    final mealKey = meal.code ?? meal.name ?? '';
+
+    // Counted up front so the dialog can name a real number instead of an
+    // abstract "all diary entries" the reader skims past — and so the
+    // history-rewriting option is only offered when there is history to
+    // rewrite.
+    final loggedCount = await bloc.countLoggedEntries(mealKey);
+    if (!context.mounted) return;
+
+    final choice = await showDialog<_DeleteChoice>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(S.of(context).customMealsDeleteConfirmTitle),
-        content: Text(S.of(context).customMealsDeleteConfirmContent),
+        title: Text(S.of(ctx).customMealsDeleteConfirmTitle),
+        content: Text(
+          loggedCount == 0
+              ? S.of(ctx).customMealsDeleteConfirmNoEntries
+              : S.of(ctx).customMealsDeleteConfirmWithEntries(loggedCount),
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(S.of(context).dialogCancelLabel),
+          Semantics(
+            identifier: 'custom-meal-delete-cancel',
+            child: TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(S.of(ctx).dialogCancelLabel),
+            ),
           ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(S.of(context).dialogDeleteLabel),
+          // Offered second and never as the default: this is the one that
+          // rewrites the diary.
+          if (loggedCount > 0)
+            Semantics(
+              identifier: 'custom-meal-delete-with-entries',
+              child: TextButton(
+                onPressed: () =>
+                    Navigator.of(ctx).pop(_DeleteChoice.withEntries),
+                child: Text(S.of(ctx).customMealsDeleteWithEntriesLabel),
+              ),
+            ),
+          Semantics(
+            identifier: 'custom-meal-delete-keep-entries',
+            child: TextButton(
+              onPressed: () => Navigator.of(ctx).pop(_DeleteChoice.keepEntries),
+              child: Text(
+                loggedCount == 0
+                    ? S.of(ctx).dialogDeleteLabel
+                    : S.of(ctx).customMealsDeleteKeepEntriesLabel,
+              ),
+            ),
           ),
         ],
       ),
     );
-    if (confirmed == true) {
-      bloc.add(DeleteCustomMealEvent(meal.code ?? meal.name ?? ''));
-    }
+
+    if (choice == null) return;
+    bloc.add(
+      DeleteCustomMealEvent(
+        mealKey,
+        deleteIntakes: choice == _DeleteChoice.withEntries,
+      ),
+    );
   }
 
   /// Two-step flow: pick the partner to merge with, then choose which of
@@ -535,3 +574,7 @@ class _MealLeadingThumbnail extends StatelessWidget {
     );
   }
 }
+
+/// What the delete confirmation came back with. `null` (dialog dismissed)
+/// means cancel; there is deliberately no default that touches the diary.
+enum _DeleteChoice { keepEntries, withEntries }

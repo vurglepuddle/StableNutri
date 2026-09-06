@@ -5,8 +5,10 @@ import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/custom_meals_bloc.dart';
 
 part 'edit_meal_state.dart';
 
@@ -180,5 +182,22 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
     await _customMealDataSource.saveCustomMeal(
       MealDBO.fromMealEntity(mealEntity),
     );
+
+    // Tell the Library its list is out of date.
+    //
+    // [CustomMealsBloc] is a lazy singleton and [RecipesPage] lives inside
+    // MainScreen's IndexedStack, so its `initState` — the only thing that
+    // loads the list — runs once for the life of the app. Every other write
+    // path either returns *into* the Library (which reloads on the way back)
+    // or notifies it explicitly, as the shared-meal importer does. A meal
+    // saved from the create-and-log path did neither, so it stayed invisible
+    // until the app was next resumed, which reads as the save having failed.
+    //
+    // Guarded rather than assumed: this is a cosmetic refresh, and a unit
+    // test that builds the bloc without a full locator must not have its
+    // save turned into a "couldn't save meal" error by a missing dependency.
+    if (locator.isRegistered<CustomMealsBloc>()) {
+      locator<CustomMealsBloc>().add(LoadCustomMealsEvent());
+    }
   }
 }

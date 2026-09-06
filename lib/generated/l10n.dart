@@ -1678,6 +1678,116 @@ class S {
     );
   }
 
+  /// `Keep entries`
+  String get customMealsDeleteKeepEntriesLabel {
+    return Intl.message(
+      'Keep entries',
+      name: 'customMealsDeleteKeepEntriesLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete entries too`
+  String get customMealsDeleteWithEntriesLabel {
+    return Intl.message(
+      'Delete entries too',
+      name: 'customMealsDeleteWithEntriesLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This removes it from your Library.`
+  String get customMealsDeleteConfirmNoEntries {
+    return Intl.message(
+      'This removes it from your Library.',
+      name: 'customMealsDeleteConfirmNoEntries',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This removes it from your Library. Your {count} diary entries using it can be kept or removed with it.`
+  String customMealsDeleteConfirmWithEntries(int count) {
+    return Intl.message(
+      'This removes it from your Library. Your $count diary entries using it can be kept or removed with it.',
+      name: 'customMealsDeleteConfirmWithEntries',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Barcode not found`
+  String get scannerNotFoundTitle {
+    return Intl.message(
+      'Barcode not found',
+      name: 'scannerNotFoundTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{barcode} isn't in the food database yet. Connect it to an item you already have, or create it as a new item.`
+  String scannerNotFoundMessage(String barcode) {
+    return Intl.message(
+      '$barcode isn\'t in the food database yet. Connect it to an item you already have, or create it as a new item.',
+      name: 'scannerNotFoundMessage',
+      desc: '',
+      args: [barcode],
+    );
+  }
+
+  /// `Connect to existing item`
+  String get scannerConnectExistingLabel {
+    return Intl.message(
+      'Connect to existing item',
+      name: 'scannerConnectExistingLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create new item`
+  String get scannerCreateItemLabel {
+    return Intl.message(
+      'Create new item',
+      name: 'scannerCreateItemLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Scan again`
+  String get scannerScanAgainLabel {
+    return Intl.message(
+      'Scan again',
+      name: 'scannerScanAgainLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose an item to connect`
+  String get scannerConnectPickTitle {
+    return Intl.message(
+      'Choose an item to connect',
+      name: 'scannerConnectPickTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Barcode connected to {name}`
+  String scannerConnectedLabel(String name) {
+    return Intl.message(
+      'Barcode connected to $name',
+      name: 'scannerConnectedLabel',
+      desc: '',
+      args: [name],
+    );
+  }
+
   /// `Product not found`
   String get errorProductNotFound {
     return Intl.message(

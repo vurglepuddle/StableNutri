@@ -172,6 +172,14 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m63(lower, upper) => "goal range ${lower}–${upper}";
 
+  static String m64(barcode) =>
+      "${barcode} isn\'t in the food database yet. Connect it to an item you already have, or create it as a new item.";
+
+  static String m65(name) => "Barcode connected to ${name}";
+
+  static String m66(count) =>
+      "This removes it from your Library. Your ${count} diary entries using it can be kept or removed with it.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1546,6 +1554,31 @@ class MessageLookup extends MessageLookupByLibrary {
       "That barcode doesn\'t look valid. Please check the digits and try again.",
     ),
     "scannerManualEntrySubmit": MessageLookupByLibrary.simpleMessage("Look up"),
+    "scannerNotFoundMessage": m64,
+    "customMealsDeleteConfirmNoEntries": MessageLookupByLibrary.simpleMessage(
+      "This removes it from your Library.",
+    ),
+    "customMealsDeleteConfirmWithEntries": m66,
+    "customMealsDeleteKeepEntriesLabel": MessageLookupByLibrary.simpleMessage(
+      "Keep entries",
+    ),
+    "customMealsDeleteWithEntriesLabel": MessageLookupByLibrary.simpleMessage(
+      "Delete entries too",
+    ),
+    "scannerNotFoundTitle": MessageLookupByLibrary.simpleMessage(
+      "Barcode not found",
+    ),
+    "scannerScanAgainLabel": MessageLookupByLibrary.simpleMessage("Scan again"),
+    "scannerConnectExistingLabel": MessageLookupByLibrary.simpleMessage(
+      "Connect to existing item",
+    ),
+    "scannerConnectPickTitle": MessageLookupByLibrary.simpleMessage(
+      "Choose an item to connect",
+    ),
+    "scannerConnectedLabel": m65,
+    "scannerCreateItemLabel": MessageLookupByLibrary.simpleMessage(
+      "Create new item",
+    ),
     "scannerUnlockOrientationTooltip": MessageLookupByLibrary.simpleMessage(
       "Allow rotation",
     ),

@@ -127,6 +127,14 @@ class OFFDataSource {
         log.warning('Failed OFF call: ${response.statusCode}');
         throw Exception('OFF HTTP ${response.statusCode}');
       }, shouldRetry: (e) => e is! ProductNotFoundException);
+    } on ProductNotFoundException {
+      // Not an error any more. A code OFF has never heard of is an ordinary
+      // outcome the scanner now has a whole flow for — create the item, or
+      // connect the code to one the user already has. It is already recorded
+      // by the `log.warning` above; re-logging it at SEVERE with a full
+      // stacktrace made every unknown barcode read like a crash in the
+      // device log.
+      rethrow;
     } catch (exception, stacktrace) {
       log.severe(
         'Exception while getting OFF barcode search',

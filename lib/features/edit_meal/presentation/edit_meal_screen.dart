@@ -1027,7 +1027,12 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
       if (!mounted) return;
       if (_editOnly) {
-        Navigator.of(context).pop();
+        // Pop the saved meal rather than nothing. Callers that only wanted
+        // the side effect (the Library list, the recipes page) ignore the
+        // result exactly as before; the scanner's not-found flow needs it,
+        // because in pick mode it has to hand the newly created food back
+        // up to the recipe builder that asked for an ingredient.
+        Navigator.of(context).pop(newMealEntity);
       } else {
         Navigator.of(context).pushNamedAndRemoveUntil(
           NavigationOptions.mealDetailRoute,

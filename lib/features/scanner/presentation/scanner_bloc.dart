@@ -19,26 +19,53 @@ class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
     on<ScannerLoadProductEvent>((event, emit) async {
       emit(ScannerLoadingState());
 
+      // Config is read up front because both outcomes need it: a hit routes
+      // into meal detail, and a miss routes into the custom-meal creation
+      // form — which renders its quantity fields in the user's chosen units
+      // just the same.
+      var usesImperialUnits = false;
+
       try {
+        final config = await _getConfigUsecase.getConfig();
+        usesImperialUnits = config.usesImperialFoodUnits;
+
         final meal = await _searchProductUseCase.searchProductByBarcode(
           event.barcode,
         );
-        final config = await _getConfigUsecase.getConfig();
         emit(
           ScannerLoadedState(
             product: meal,
-            usesImperialUnits: config.usesImperialFoodUnits,
+            usesImperialUnits: usesImperialUnits,
+          ),
+        );
+      } on ProductNotFoundException {
+        // This used to be `if (exception == ProductNotFoundException)` inside
+        // a bare catch, which compares the caught *instance* against the
+        // *Type* object and is therefore never true. Every 404 fell through
+        // to the generic "couldn't fetch" error, so the not-found branch —
+        // and the add-a-barcode flow hanging off it — was unreachable. An
+        // `on` clause types the match properly.
+        emit(
+          ScannerFailedState(
+            ScannerFailedStateType.productNotFound,
+            barcode: event.barcode,
+            usesImperialUnits: usesImperialUnits,
           ),
         );
       } catch (exception) {
-        if (exception == ProductNotFoundException) {
-          emit(
-            const ScannerFailedState(ScannerFailedStateType.productNotFound),
-          );
-        } else {
-          emit(const ScannerFailedState(ScannerFailedStateType.error));
-        }
+        emit(
+          ScannerFailedState(
+            ScannerFailedStateType.error,
+            barcode: event.barcode,
+            usesImperialUnits: usesImperialUnits,
+          ),
+        );
       }
     });
+
+    // "Scan again" from the not-found screen. Returning to [ScannerInitial]
+    // is what puts the camera preview back on screen; the screen clears its
+    // own latched barcode alongside this so the next decode is accepted.
+    on<ScannerResetEvent>((event, emit) => emit(ScannerInitial()));
   }
 }

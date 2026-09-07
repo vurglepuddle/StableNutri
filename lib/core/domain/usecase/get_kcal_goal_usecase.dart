@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/data/repository/user_activity_repository.d
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 
 class GetKcalGoalUsecase {
   final UserRepository _userRepository;
@@ -26,7 +27,17 @@ class GetKcalGoalUsecase {
     final totalKcalActivities =
         totalKcalActivitiesParam ??
         (await _userActivityRepository.getAllUserActivityByDate(
-          DateTime.now(),
+          // getAllUserActivityByDate takes a day label and filters through
+          // the boundary, so both halves have to be supplied: a raw
+          // DateTime.now() with no offset asked for the wall-clock day and
+          // ignored the user's configured boundary entirely, which made the
+          // kcal goal disagree with the activity list it is derived from.
+          DayBoundaryCalc.currentLogicalDayLabel(
+            config.dayStartOffsetHours,
+            config.dayStartOffsetMinutes,
+          ),
+          dayStartOffsetHours: config.dayStartOffsetHours,
+          dayStartOffsetMinutes: config.dayStartOffsetMinutes,
         )).map((activity) => activity.burnedKcal).toList().sum;
     return CalorieGoalCalc.getTotalKcalGoal(
       user,

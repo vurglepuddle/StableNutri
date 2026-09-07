@@ -155,6 +155,11 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                                     duration: const Duration(milliseconds: 800),
                                     curve: AppMotion.emphasized,
                                     value: displayValue.toInt(),
+                                    // Tighter than the display ladder (1.12)
+                                    // on purpose: a lone hero numeral has no
+                                    // second line to lead against, and the
+                                    // extra leading only pushes it off-centre
+                                    // inside the gauge.
                                     textStyle: textTheme.displaySmall?.copyWith(
                                       height: 1,
                                     ),

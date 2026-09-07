@@ -18,32 +18,85 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 /// Biryani carries more colour on the page at the same numeric weight, and the
 /// inherited ladder read as shouting. Nothing above w700 is used: w800 and
 /// w900 exist in the family but overwhelm this layout.
+/// Line heights are set explicitly on every style, and must stay that way.
+///
+/// Biryani is a Devanagari family: its vertical metrics carry room for marks
+/// above *and* below the baseline, so its intrinsic line box is **1.78x** the
+/// font size. Measured against the same string at the same size, Poppins is
+/// 1.48x and the Nunito this replaced was 1.35x — so adopting Biryani made
+/// every line in the app 32% taller overnight, with nothing to compensate.
+///
+/// Left unset it shows up as gaping leading between wrapped lines and, worse,
+/// as clipped text in any fixed-height box. At 1.78x a 23 px title is a 41 px
+/// line, so a two-line AppBar title needs 82 px in a 56 px toolbar and loses
+/// the top and bottom of both lines.
+///
+/// A *single*-line title survives, but only by accident of the framework:
+/// Material's AppBar clamps title text scaling at 1.34, which caps a 1.78x
+/// line at 54.9 px — just inside 56. Do not rely on that. It is why the
+/// one-line cases in app_bar_title_scaling_test pass either way, and it means
+/// the clamp, not our type scale, is currently holding those titles up.
+///
+/// This app is used at a raised system font scale for accessibility, so
+/// anything that only fits at 1.0 is broken in normal use. See "Type scale and
+/// text scaling" in Design/session-handoff.md.
+///
+/// The ladder below is deliberately tighter than the Material 3 ratios
+/// (which put headlineSmall at 1.33). M3's value needs 61 px for two lines and
+/// would still clip a wrapped AppBar title without also growing every toolbar.
+const _displayHeight = 1.12;
+const _headlineHeight = 1.15;
+const _titleHeight = 1.20;
+const _bodyHeight = 1.40;
+const _labelHeight = 1.30;
+
 TextTheme appTextTheme(AppPalette p) {
   const f = 'Biryani';
-  TextStyle s(double size, FontWeight w, {double spacing = 0, Color? color}) =>
-      TextStyle(
-        fontFamily: f,
-        fontSize: size,
-        fontWeight: w,
-        letterSpacing: spacing,
-        color: color ?? p.textStrong,
-      );
+  TextStyle s(
+    double size,
+    FontWeight w, {
+    required double height,
+    double spacing = 0,
+    Color? color,
+  }) => TextStyle(
+    fontFamily: f,
+    fontSize: size,
+    fontWeight: w,
+    height: height,
+    letterSpacing: spacing,
+    color: color ?? p.textStrong,
+  );
   return TextTheme(
-    displayLarge: s(57, FontWeight.w700, spacing: -1),
-    displayMedium: s(45, FontWeight.w700, spacing: -0.5),
-    displaySmall: s(36, FontWeight.w700),
-    headlineLarge: s(32, FontWeight.w700),
-    headlineMedium: s(28, FontWeight.w600),
-    headlineSmall: s(23, FontWeight.w600),
-    titleLarge: s(21, FontWeight.w600),
-    titleMedium: s(16, FontWeight.w600),
-    titleSmall: s(14, FontWeight.w600),
-    bodyLarge: s(16, FontWeight.w400),
-    bodyMedium: s(14, FontWeight.w400),
-    bodySmall: s(12.5, FontWeight.w400, color: p.textMuted),
-    labelLarge: s(15, FontWeight.w600),
-    labelMedium: s(13, FontWeight.w600),
-    labelSmall: s(11.5, FontWeight.w600, color: p.textMuted),
+    displayLarge: s(57, FontWeight.w700, spacing: -1, height: _displayHeight),
+    displayMedium: s(
+      45,
+      FontWeight.w700,
+      spacing: -0.5,
+      height: _displayHeight,
+    ),
+    displaySmall: s(36, FontWeight.w700, height: _displayHeight),
+    headlineLarge: s(32, FontWeight.w700, height: _headlineHeight),
+    headlineMedium: s(28, FontWeight.w600, height: _headlineHeight),
+    headlineSmall: s(23, FontWeight.w600, height: _headlineHeight),
+    titleLarge: s(21, FontWeight.w600, height: _titleHeight),
+    titleMedium: s(16, FontWeight.w600, height: _titleHeight),
+    titleSmall: s(14, FontWeight.w600, height: _titleHeight),
+    bodyLarge: s(16, FontWeight.w400, height: _bodyHeight),
+    bodyMedium: s(14, FontWeight.w400, height: _bodyHeight),
+    bodySmall: s(
+      12.5,
+      FontWeight.w400,
+      color: p.textMuted,
+      height: _bodyHeight,
+    ),
+    labelLarge: s(15, FontWeight.w600, height: _labelHeight),
+    labelMedium: s(13, FontWeight.w600, height: _labelHeight),
+    labelSmall: s(
+      11.5,
+      FontWeight.w600,
+      color: p.textMuted,
+      height: _labelHeight,
+    ),
   );
 }
 

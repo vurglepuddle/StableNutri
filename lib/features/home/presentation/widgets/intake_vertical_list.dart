@@ -201,7 +201,6 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                         style: textTheme.labelMedium?.copyWith(
                           color: palette.textMuted,
                           fontWeight: FontWeight.w600,
-                          height: 1.3,
                         ),
                         textAlign: TextAlign.start,
                       ),

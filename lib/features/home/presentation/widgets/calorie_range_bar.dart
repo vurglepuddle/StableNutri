@@ -148,6 +148,8 @@ class CalorieRangeBar extends StatelessWidget {
             duration: AppMotion.durationLong,
             curve: AppMotion.emphasized,
             thousandSeparator: ' ',
+            // Deliberately tighter than the display ladder — see the same
+            // counter in dashboard_widget.dart.
             textStyle: textTheme.displaySmall?.copyWith(height: 1),
           ),
           const SizedBox(width: Dimens.spacing8),

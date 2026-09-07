@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_zxing/flutter_zxing.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/scanner_orientation_mixin.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
@@ -260,9 +261,7 @@ class _ScannerScreenState extends State<ScannerScreen>
               backgroundColor: palette.canvas,
               appBar: AppBar(
                 backgroundColor: palette.canvas,
-                toolbarHeight: MediaQuery.textScalerOf(
-                  context,
-                ).scale(kToolbarHeight),
+                toolbarHeight: appBarHeightForTitle(context, titleLines: 2),
                 title: Text(
                   S.of(context).scanProductLabel,
                   maxLines: 2,
@@ -306,7 +305,7 @@ class _ScannerScreenState extends State<ScannerScreen>
       backgroundColor: palette.canvas,
       appBar: AppBar(
         backgroundColor: palette.canvas,
-        toolbarHeight: MediaQuery.textScalerOf(context).scale(kToolbarHeight),
+        toolbarHeight: appBarHeightForTitle(context, titleLines: 2),
         title: Text(
           S.of(context).scanProductLabel,
           maxLines: 2,

@@ -157,21 +157,25 @@ flutter:
       - asset: fonts/Poppins-Thin.ttf
       - asset: fonts/Poppins-ThinItalic.ttf
         style: italic
-    - family: Biryani
+    - family: Commissioner
       fonts:
-      - asset: fonts/Biryani-ExtraLight.ttf
+      - asset: fonts/Commissioner-Thin.ttf
+        weight: 100
+      - asset: fonts/Commissioner-ExtraLight.ttf
         weight: 200
-      - asset: fonts/Biryani-Light.ttf
+      - asset: fonts/Commissioner-Light.ttf
         weight: 300
-      - asset: fonts/Biryani-Regular.ttf
+      - asset: fonts/Commissioner-Regular.ttf
         weight: 400
-      - asset: fonts/Biryani-SemiBold.ttf
+      - asset: fonts/Commissioner-Medium.ttf
+        weight: 500
+      - asset: fonts/Commissioner-SemiBold.ttf
         weight: 600
-      - asset: fonts/Biryani-Bold.ttf
+      - asset: fonts/Commissioner-Bold.ttf
         weight: 700
-      - asset: fonts/Biryani-ExtraBold.ttf
+      - asset: fonts/Commissioner-ExtraBold.ttf
         weight: 800
-      - asset: fonts/Biryani-Black.ttf
+      - asset: fonts/Commissioner-Black.ttf
         weight: 900
     - family: Fredoka
       fonts:

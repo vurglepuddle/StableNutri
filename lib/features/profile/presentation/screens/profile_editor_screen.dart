@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/update_profile_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -43,7 +44,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
     final s = S.of(context);
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: MediaQuery.textScalerOf(context).scale(kToolbarHeight),
+        toolbarHeight: appBarHeightForTitle(context, titleLines: 2),
         title: Text(
           s.editProfileTitle,
           maxLines: 2,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
@@ -62,7 +63,7 @@ class _AddActivityScreenState extends State<AddActivityScreen>
       backgroundColor: palette.canvas,
       appBar: AppBar(
         backgroundColor: palette.canvas,
-        toolbarHeight: MediaQuery.textScalerOf(context).scale(kToolbarHeight),
+        toolbarHeight: appBarHeightForTitle(context, titleLines: 2),
         title: Text(
           S.of(context).activityLabel,
           maxLines: 2,

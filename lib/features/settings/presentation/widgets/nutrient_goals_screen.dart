@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -261,7 +262,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
       appBar: AppBar(
         // Grow the bar with the text scale so the title can wrap to two lines
         // beside the actions rather than clipping at large font sizes.
-        toolbarHeight: MediaQuery.textScalerOf(context).scale(kToolbarHeight),
+        toolbarHeight: appBarHeightForTitle(context, titleLines: 2),
         title: Text(
           s.settingsNutrientGoalsLabel,
           maxLines: 2,

@@ -11,6 +11,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_zxing/flutter_zxing.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/user_image_picker_tile.dart';
@@ -250,7 +251,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
         appBar: AppBar(
           backgroundColor: palette.canvas,
           surfaceTintColor: Colors.transparent,
-          toolbarHeight: MediaQuery.textScalerOf(context).scale(kToolbarHeight),
+          toolbarHeight: appBarHeightForTitle(context, titleLines: 2),
           title: Text(
             S.of(context).editMealLabel,
             maxLines: 2,

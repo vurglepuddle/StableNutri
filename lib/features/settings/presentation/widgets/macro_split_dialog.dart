@@ -4,6 +4,47 @@ import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart'
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+/// Rounds three macro percentage shares to integers that sum to exactly 100.
+///
+/// Uses the largest-remainder method so the result stays as close as possible
+/// to the unconstrained ratio. Independent rounding is unsafe here: two
+/// half-up .5 remainders produce 101, and `SettingsBloc.setMacroGoals` stores
+/// via `toInt()/100`, which truncates.
+@visibleForTesting
+(int carbs, int protein, int fat) roundMacroPercentsToHundred(
+  double carbsPct,
+  double proteinPct,
+  double fatPct,
+) {
+  const defaultCarbs = 60.0;
+  const defaultProtein = 15.0;
+  const defaultFat = 25.0;
+
+  final values = [carbsPct, proteinPct, fatPct];
+  final total = values.fold<double>(0, (sum, v) => sum + v);
+  final scaled = total <= 0
+      ? const [defaultCarbs, defaultProtein, defaultFat]
+      : [for (final v in values) v * 100.0 / total];
+
+  final floors = [for (final v in scaled) v.floor()];
+  final remaining = 100 - floors.reduce((a, b) => a + b);
+  final order = List<int>.generate(3, (i) => i)
+    ..sort((a, b) {
+      final fracCmp = (scaled[b] - floors[b]).compareTo(scaled[a] - floors[a]);
+      if (fracCmp != 0) return fracCmp;
+      // Prefer the originally larger share; fall back to lower index for a
+      // deterministic triple when both remainder and magnitude match.
+      final sizeCmp = scaled[b].compareTo(scaled[a]);
+      if (sizeCmp != 0) return sizeCmp;
+      return a.compareTo(b);
+    });
+  final result = List<int>.from(floors);
+  for (var i = 0; i < remaining; i++) {
+    result[order[i]]++;
+  }
+  return (result[0], result[1], result[2]);
+}
+
 /// Three sliders that distribute the daily kcal goal across
 /// carbohydrate, protein, and fat. Moving any one slider rebalances
 /// the other two against 100% so the trio always adds up, with each
@@ -121,7 +162,20 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   }
 
   Future<void> _save() async {
-    await widget.settingsBloc.setMacroGoals(_carbsPct, _proteinPct, _fatPct);
+    // [_redistribute] leaves fractional percentages (e.g. 14.625), and
+    // setMacroGoals stores via toInt()/100 — passing the raw doubles
+    // truncates each share, so a split the dialog shows as 100% could
+    // persist as 99%. Balance to an exact 100% integer triple first.
+    final rounded = roundMacroPercentsToHundred(
+      _carbsPct,
+      _proteinPct,
+      _fatPct,
+    );
+    await widget.settingsBloc.setMacroGoals(
+      rounded.$1.toDouble(),
+      rounded.$2.toDouble(),
+      rounded.$3.toDouble(),
+    );
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
     await widget.settingsBloc.updateTrackedDay(DateTime.now());

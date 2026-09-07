@@ -68,14 +68,20 @@ class _IngredientQuantitySheetState extends State<_IngredientQuantitySheet> {
   }
 
   String _defaultUnit(MealEntity meal) {
-    if (meal.hasServingValues) return 'serving';
+    // Gated on a serving the recipe maths can actually scale, not on
+    // hasServingValues: the latter is true for unparseable serving text,
+    // and convertAmountToGrams returns null for those, which the builder
+    // stores as 0 g.
+    if (meal.scalableServingQuantity != null) return 'serving';
     if (meal.isLiquid) return 'ml';
     return 'g';
   }
 
   List<DropdownMenuItem<String>> _unitItems(BuildContext context) {
     final items = <DropdownMenuItem<String>>[];
-    if (widget.meal.hasServingValues) {
+    // Same gate as _defaultUnit: offering a serving nothing can scale puts
+    // a unit in the list that silently contributes no weight.
+    if (widget.meal.scalableServingQuantity != null) {
       items.add(_unitItem('serving'));
     }
     if (widget.meal.isSolid ||

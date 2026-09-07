@@ -151,7 +151,10 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                                 labelText: S.of(context).unitLabel,
                               ),
                               items: <DropdownMenuItem<String>>[
-                                if (widget.product.hasServingValues)
+                                // A serving the app cannot scale is a
+                                // no-op dressed as a unit.
+                                if (widget.product.scalableServingQuantity !=
+                                    null)
                                   _getServingDropdownItem(context),
                                 if (widget.product.isSolid ||
                                     !widget.product.isLiquid &&

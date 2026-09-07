@@ -1,6 +1,7 @@
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 
 class GetIntakeUsecase {
   final IntakeRepository _intakeRepository;
@@ -25,6 +26,11 @@ class GetIntakeUsecase {
   // [dayStartOffsetMinutes]) when they have the user's configured boundary.
   // Both default to 0 so every existing caller keeps wall-clock-midnight
   // behaviour exactly the same.
+  //
+  // The getToday... reads resolve the boundary before querying, because the
+  // query takes a day *label*: handing it a raw DateTime.now() asks for the
+  // wall-clock date, which between midnight and the boundary is not the
+  // logical day the user is still in.
   Future<List<IntakeEntity>> getBreakfastIntakeByDay(
     DateTime day, {
     int dayStartOffsetHours = 0,
@@ -40,7 +46,10 @@ class GetIntakeUsecase {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
   }) async => getBreakfastIntakeByDay(
-    DateTime.now(),
+    DayBoundaryCalc.currentLogicalDayLabel(
+      dayStartOffsetHours,
+      dayStartOffsetMinutes,
+    ),
     dayStartOffsetHours: dayStartOffsetHours,
     dayStartOffsetMinutes: dayStartOffsetMinutes,
   );
@@ -60,7 +69,10 @@ class GetIntakeUsecase {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
   }) async => await getLunchIntakeByDay(
-    DateTime.now(),
+    DayBoundaryCalc.currentLogicalDayLabel(
+      dayStartOffsetHours,
+      dayStartOffsetMinutes,
+    ),
     dayStartOffsetHours: dayStartOffsetHours,
     dayStartOffsetMinutes: dayStartOffsetMinutes,
   );
@@ -80,7 +92,10 @@ class GetIntakeUsecase {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
   }) async => await getDinnerIntakeByDay(
-    DateTime.now(),
+    DayBoundaryCalc.currentLogicalDayLabel(
+      dayStartOffsetHours,
+      dayStartOffsetMinutes,
+    ),
     dayStartOffsetHours: dayStartOffsetHours,
     dayStartOffsetMinutes: dayStartOffsetMinutes,
   );
@@ -100,7 +115,10 @@ class GetIntakeUsecase {
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
   }) async => await getSnackIntakeByDay(
-    DateTime.now(),
+    DayBoundaryCalc.currentLogicalDayLabel(
+      dayStartOffsetHours,
+      dayStartOffsetMinutes,
+    ),
     dayStartOffsetHours: dayStartOffsetHours,
     dayStartOffsetMinutes: dayStartOffsetMinutes,
   );

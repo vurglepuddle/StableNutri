@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
@@ -76,21 +75,23 @@ class IntakeDataSource {
     // A zero total offset preserves the original wall-clock behaviour.
     // The follow-up to #139 adds a minutes companion; both compose
     // additively into a single total-minutes value here.
-    final totalMinutes =
-        dayStartOffsetHours * 60 + dayStartOffsetMinutes.clamp(0, 59);
-    if (totalMinutes == 0) {
-      return _intakeBox.values
-          .where(
-            (intake) =>
-                DateUtils.isSameDay(dateTime, intake.dateTime) &&
-                intake.type == intakeType,
-          )
-          .toList();
-    }
+    //
+    // [dateTime] is a day *label* — the calendar date the caller is asking
+    // about — so only the stored timestamp is resolved through the boundary.
+    // Resolving both is what made a configured boundary shift the whole
+    // selection: subtracting the offset from a midnight label lands in the
+    // previous day, so tapping the 20th listed the 19th's entries.
+    //
+    // No zero-offset fast path is needed: the predicate reduces to plain
+    // calendar-day equality when no offset is set.
+    final totalMinutes = DayBoundaryCalc.totalMinutesOf(
+      dayStartOffsetHours,
+      dayStartOffsetMinutes,
+    );
     return _intakeBox.values
         .where(
           (intake) =>
-              DayBoundaryCalc.isSameLogicalDayMinutes(
+              DayBoundaryCalc.isMomentInLogicalDayMinutes(
                 dateTime,
                 intake.dateTime,
                 totalMinutes,

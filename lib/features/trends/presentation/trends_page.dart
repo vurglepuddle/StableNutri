@@ -549,8 +549,19 @@ class _MacrosTrendCard extends StatelessWidget {
           for (final (label, intake, goal, color) in rows) ...[
             Row(
               children: [
-                Text(label, style: text.labelMedium),
-                const Spacer(),
+                // Expanded rather than a bare Text plus Spacer — see
+                // activity_vertial_list.dart. A long macro label ("Kohlen-
+                // hydrate") at a large text scale would otherwise push the
+                // row past its width instead of ellipsizing.
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.labelMedium,
+                  ),
+                ),
+                const SizedBox(width: Dimens.spacing8),
                 Text(
                   '${intake.toInt()} / ${goal.toInt()} g',
                   style: text.bodySmall?.copyWith(

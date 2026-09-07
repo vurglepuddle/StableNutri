@@ -56,8 +56,21 @@ class _ActivityVerticalListState extends State<ActivityVerticalList> {
                 color: Theme.of(context).colorScheme.onSurface,
               ),
               const SizedBox(width: Dimens.spacing8),
-              Text(widget.title, style: Theme.of(context).textTheme.titleLarge),
-              const Spacer(),
+              // Expanded, not a bare Text beside a Spacer: a plain child of
+              // a Row is laid out against unbounded width, so it renders at
+              // its full intrinsic size and overflows the row rather than
+              // ellipsizing. At 320 px with a 1.6x text scale, the German
+              // "Aktivität" overflowed by 109 px. Same shape the meal-section
+              // header in intake_vertical_list.dart already uses.
+              Expanded(
+                child: Text(
+                  widget.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              const SizedBox(width: Dimens.spacing8),
               PopupMenuButton<_ActivityPopupMenuSelection>(
                 onSelected: (_ActivityPopupMenuSelection selection) async {
                   switch (selection) {

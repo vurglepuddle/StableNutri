@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/user_image_picker_tile.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
@@ -125,9 +126,7 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
           },
           child: Scaffold(
             appBar: AppBar(
-              toolbarHeight: MediaQuery.textScalerOf(
-                context,
-              ).scale(kToolbarHeight),
+              toolbarHeight: appBarHeightForTitle(context, titleLines: 2),
               title: Text(
                 state.isExistingRecipe
                     ? S.of(context).editRecipeTitle

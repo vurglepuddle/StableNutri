@@ -1,57 +1,59 @@
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 
-/// Friendly, highly readable type. Biryani carries everything — warm and open
-/// without being cute, and calm enough to stay legible in dense lists. Heavy
-/// weights give the hero numbers presence without a separate display face; Ovo
-/// appears only in the logo, where it is already outlined into paths.
+/// Friendly, highly readable type. Commissioner carries everything — a low
+/// contrast humanist sans, warm and open without being cute, and calm enough
+/// to stay legible in dense lists. Heavy weights give the hero numbers
+/// presence without a separate display face; Ovo appears only in the logo,
+/// where it is already outlined into paths.
 ///
-/// Biryani has **no Medium (500) and no italics** — its ladder is
-/// 200/300/400/600/700/800/900. Body text therefore sits at w400 rather than
-/// the w500 the Nunito scale used; asking for 500 would silently resolve to a
-/// neighbouring face and differ between platforms.
+/// Commissioner replaced Biryani because Biryani has **no Cyrillic and no
+/// Greek** — 0 of 256 code points. Ukrainian is a shipped locale and Russian
+/// was wanted, so both fell back to whatever the OS supplied, and any Cyrillic
+/// food name a user typed rendered in a different face mid-list. Commissioner
+/// covers every locale this app ships except Chinese, which no Latin text face
+/// includes; CJK stays on the system fallback deliberately rather than
+/// bundling ~15 MB of Noto.
 ///
-/// The weights are also a notch lighter than the Nunito scale they replaced
-/// (800 became 700, 700 became 600, throughout the app and not just here).
-/// Biryani carries more colour on the page at the same numeric weight, and the
-/// inherited ladder read as shouting. Nothing above w700 is used: w800 and
-/// w900 exist in the family but overwhelm this layout.
-/// Line heights are set explicitly on every style, and must stay that way.
+/// It also has the full 100–900 ladder, including the Medium (500) Biryani
+/// lacked. Body text still sits at w400 and the app-wide weights are unchanged
+/// by the swap; 500 is simply available now if the scale is ever revisited.
+/// There are no italics.
 ///
-/// Biryani is a Devanagari family: its vertical metrics carry room for marks
-/// above *and* below the baseline, so its intrinsic line box is **1.78x** the
-/// font size. Measured against the same string at the same size, Poppins is
-/// 1.48x and the Nunito this replaced was 1.35x — so adopting Biryani made
-/// every line in the app 32% taller overnight, with nothing to compensate.
+/// ## Line heights are set explicitly, and must stay that way
 ///
-/// Left unset it shows up as gaping leading between wrapped lines and, worse,
-/// as clipped text in any fixed-height box. At 1.78x a 23 px title is a 41 px
-/// line, so a two-line AppBar title needs 82 px in a 56 px toolbar and loses
-/// the top and bottom of both lines.
+/// Every style below sets `height`. Left unset, the line box comes from the
+/// font's own metrics, and that is how the previous face shipped clipped
+/// screen titles: Biryani is a Devanagari family whose metrics reserve room
+/// for marks above and below the baseline, giving a **1.765 em** natural line.
+/// A 23 px title became a 41 px line, so a two-line AppBar title needed 82 px
+/// in a 56 px toolbar and lost the top and bottom of both rows.
 ///
-/// A *single*-line title survives, but only by accident of the framework:
-/// Material's AppBar clamps title text scaling at 1.34, which caps a 1.78x
-/// line at 54.9 px — just inside 56. Do not rely on that. It is why the
-/// one-line cases in app_bar_title_scaling_test pass either way, and it means
-/// the clamp, not our type scale, is currently holding those titles up.
+/// Commissioner is far better behaved — **1.223 em** natural, against 1.364
+/// for Nunito and 1.500 for Poppins — but the rule stands regardless of face.
+/// An explicit ladder is what keeps layout independent of whichever font is
+/// installed next.
+///
+/// The floor is not arbitrary. With even leading distribution the box has to
+/// stay at or above **1.22**, because Commissioner's declared descent (0.206
+/// em) barely clears its own descender ink (0.204 em): tighten past that and
+/// the tails of g, j, p, q and y are cut. Nothing below 1.22 belongs here.
 ///
 /// This app is used at a raised system font scale for accessibility, so
 /// anything that only fits at 1.0 is broken in normal use. See "Type scale and
 /// text scaling" in Design/session-handoff.md.
-///
-/// The ladder below is deliberately tighter than the Material 3 ratios
-/// (which put headlineSmall at 1.33). M3's value needs 61 px for two lines and
-/// would still clip a wrapped AppBar title without also growing every toolbar.
-const _displayHeight = 1.12;
-const _headlineHeight = 1.15;
-const _titleHeight = 1.20;
-const _bodyHeight = 1.40;
-const _labelHeight = 1.30;
+const _displayHeight = 1.25;
+const _headlineHeight = 1.25;
+const _titleHeight = 1.30;
+const _bodyHeight = 1.45;
+const _labelHeight = 1.35;
 
 TextTheme appTextTheme(AppPalette p) {
-  const f = 'Biryani';
+  const f = 'Commissioner';
   TextStyle s(
     double size,
     FontWeight w, {
@@ -63,6 +65,14 @@ TextTheme appTextTheme(AppPalette p) {
     fontSize: size,
     fontWeight: w,
     height: height,
+    // Split the leading evenly above and below, rather than in proportion to
+    // the font's own ascent and descent, which is the default. Proportional
+    // distribution shrinks the declared ascent as soon as `height` tightens
+    // the box, which drags the baseline up and cuts the tops of letters — it
+    // is what left a sliver clipped off Biryani's titles even after the
+    // heights were set. Even distribution keeps the glyphs centred in whatever
+    // box the ladder asks for, and is the better model for any font.
+    leadingDistribution: TextLeadingDistribution.even,
     letterSpacing: spacing,
     color: color ?? p.textStrong,
   );
@@ -98,6 +108,42 @@ TextTheme appTextTheme(AppPalette p) {
       height: _labelHeight,
     ),
   );
+}
+
+/// The toolbar height an AppBar needs for a title of [titleLines] lines.
+///
+/// `kToolbarHeight` is 56 and does not grow, so a wrapped title is clipped
+/// rather than overflowed — silently, with no stripes and no exception. Every
+/// screen whose title can wrap should size its bar from the type scale instead
+/// of assuming the constant fits.
+///
+/// Two details this has to account for, both easy to get wrong:
+///
+///  * Material clamps AppBar *title* scaling at 1.34 while the caller scales
+///    the toolbar by the full factor, so above 1.34 the bar grows and the
+///    title does not. The binding case is therefore at or below 1.34, not at
+///    the largest scale.
+///  * The title's line box is `fontSize * height` from the theme, not
+///    `fontSize`. That is the whole reason the previous font clipped.
+///
+/// Never returns less than the scaled [kToolbarHeight], so single-line screens
+/// keep exactly the height they had.
+double appBarHeightForTitle(BuildContext context, {int titleLines = 1}) {
+  final scaler = MediaQuery.textScalerOf(context);
+  final base = scaler.scale(kToolbarHeight);
+  if (titleLines <= 1) return base;
+
+  final theme = Theme.of(context);
+  final style =
+      theme.appBarTheme.titleTextStyle ?? theme.textTheme.headlineSmall;
+  final fontSize = style?.fontSize;
+  if (fontSize == null) return base;
+
+  // Material's own clamp on AppBar title scaling.
+  final titleScale = math.min(scaler.scale(fontSize) / fontSize, 1.34);
+  final lineHeight = fontSize * titleScale * (style?.height ?? 1.0);
+
+  return math.max(base, lineHeight * titleLines + Dimens.spacing8);
 }
 
 /// Builds the friendly-flat [ThemeData] for a palette. Component themes carry

@@ -220,7 +220,7 @@ class CsvRecipeImporter {
             compute.convertAmountToGrams(
               amount: p.amount,
               unit: p.unit,
-              servingQuantityG: p.meal.servingQuantity,
+              servingQuantityG: p.meal.scalableServingQuantity,
             ) ??
             0;
         return RecipeIngredientEntity(

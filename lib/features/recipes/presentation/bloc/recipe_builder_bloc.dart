@@ -110,7 +110,7 @@ class RecipeBuilderBloc extends Bloc<RecipeBuilderEvent, RecipeBuilderState> {
         _computeUseCase.convertAmountToGrams(
           amount: event.amount,
           unit: event.unit,
-          servingQuantityG: event.meal.servingQuantity,
+          servingQuantityG: event.meal.scalableServingQuantity,
         ) ??
         0;
     final newIngredient = RecipeIngredientEntity(
@@ -133,7 +133,7 @@ class RecipeBuilderBloc extends Bloc<RecipeBuilderEvent, RecipeBuilderState> {
         _computeUseCase.convertAmountToGrams(
           amount: event.amount,
           unit: event.unit,
-          servingQuantityG: old.snapshotMeal.servingQuantity,
+          servingQuantityG: old.snapshotMeal.scalableServingQuantity,
         ) ??
         0;
     final updated = old.copyWith(

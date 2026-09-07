@@ -20,7 +20,7 @@ class _FakeRecipeRepository implements RecipeRepository {
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
-MealEntity _meal(String code, {double kcal = 100}) {
+MealEntity _meal(String code, {double kcal = 100, String? servingSize}) {
   return MealEntity(
     code: code,
     name: code,
@@ -29,7 +29,7 @@ MealEntity _meal(String code, {double kcal = 100}) {
     mealUnit: 'g',
     servingQuantity: null,
     servingUnit: null,
-    servingSize: null,
+    servingSize: servingSize,
     nutriments: MealNutrimentsEntity(
       energyKcal100: kcal,
       carbohydrates100: null,
@@ -188,5 +188,44 @@ void main() {
         expect(bloc.state.name, 'Cake (copy)');
       },
     );
+
+    // The recipe half of the "serving the app cannot scale" defect. The
+    // ingredient dialog offers (and defaults to) 'serving' for any meal with
+    // serving data, while convertAmountToGrams could only read the numeric
+    // servingQuantity -- and _onAddIngredient turns its null into `?? 0`. An
+    // OFF product whose serving is text-only therefore joined the recipe
+    // weighing nothing, contributing no weight and no nutrition, silently.
+    test(
+      'an ingredient whose serving is text-only still weighs its grams',
+      () async {
+        bloc.add(
+          AddIngredientEvent(
+            meal: _meal('yoghurt', kcal: 60, servingSize: '2 Tbsp (32 g)'),
+            amount: 1,
+            unit: 'serving',
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        expect(bloc.state.ingredients.single.convertedAmountG, 32);
+        expect(bloc.state.totalWeightG, 32);
+      },
+    );
+
+    test('a serving with no metric figure still contributes nothing', () async {
+      // Unchanged by the fix, and worth pinning: "1 egg" cannot be scaled by
+      // reading harder, so it stays 0 g. The dialog no longer offers
+      // 'serving' for such a meal, which is where that case is handled.
+      bloc.add(
+        AddIngredientEvent(
+          meal: _meal('egg', kcal: 140, servingSize: '1 egg'),
+          amount: 1,
+          unit: 'serving',
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.ingredients.single.convertedAmountG, 0);
+    });
   });
 }

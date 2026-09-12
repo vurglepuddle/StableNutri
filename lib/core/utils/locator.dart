@@ -1,4 +1,7 @@
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:opennutritracker/core/data/health/health_connect_service.dart';
+import 'package:opennutritracker/core/data/health/health_steps_sync.dart';
+import 'package:opennutritracker/core/data/repository/daily_steps_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/body_measurement_log_data_source.dart';
@@ -71,6 +74,7 @@ import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecas
 import 'package:opennutritracker/core/domain/usecase/update_library_item_usecase.dart';
 import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/env.dart';
+import 'package:opennutritracker/core/utils/food_backend.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/profile_bootstrap.dart';
@@ -130,7 +134,6 @@ import 'package:opennutritracker/features/settings/presentation/bloc/custom_meal
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/lifesum_import_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 final locator = GetIt.instance;
 
@@ -152,17 +155,12 @@ Future<void> initLocator() async {
     () => DeleteAllUserDataUsecase(locator(), locator(), locator()),
   );
 
-  // Backend
-  await Supabase.initialize(
+  // Optional food lookup; construct the client only on the first search.
+  registerFoodBackend(
+    locator,
     url: Env.supabaseProjectUrl,
     anonKey: Env.supabaseProjectAnonKey,
-    // In debug builds supabase_flutter attaches its own printer to the
-    // shared root log stream (hierarchical logging is off), duplicating
-    // every app log line in a second format. LoggerConfig already prints
-    // everything — including supabase records — once.
-    debug: false,
   );
-  locator.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
 
   // Notification service (#312)
   locator.registerLazySingleton<NotificationService>(
@@ -172,6 +170,17 @@ Future<void> initLocator() async {
   // Cache manager
   locator.registerLazySingleton<CacheManager>(
     () => OntImageCacheManager.instance,
+  );
+
+  locator.registerLazySingleton(() => DailyStepsRepository(locator()));
+  locator.registerLazySingleton(HealthConnectService.new);
+  locator.registerLazySingleton(
+    () => HealthStepsSync(
+      db: locator(),
+      repository: locator(),
+      service: locator(),
+      getConfig: locator<ConfigRepository>().getConfig,
+    ),
   );
 
   // BLoCs
@@ -195,6 +204,8 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      dailyStepsRepository: locator(),
+      healthStepsSync: locator(),
     ),
   );
   locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
@@ -211,6 +222,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      dailyStepsRepository: locator(),
     ),
   );
   locator.registerLazySingleton<ProfileBloc>(
@@ -456,6 +468,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      dailyStepsRepository: locator(),
     ),
   );
   locator.registerLazySingleton(
@@ -468,6 +481,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      dailyStepsRepository: locator(),
     ),
   );
   locator.registerLazySingleton(() => ImportMealsCsvUsecase(locator()));

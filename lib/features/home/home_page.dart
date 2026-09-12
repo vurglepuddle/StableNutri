@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/entity/daily_steps.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
@@ -99,6 +100,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             state.waterMlToday,
             state.waterGoalMl,
             state.waterQuickAddMl,
+            state.dailySteps,
           );
         } else {
           return _getLoadingContent();
@@ -155,6 +157,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     int waterMlToday,
     int waterGoalMl,
     int waterQuickAddMl,
+    DailySteps? dailySteps,
   ) {
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
@@ -269,6 +272,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 day: DateTime.now(),
                 title: S.of(context).activityLabel,
                 userActivityList: userActivities,
+                dailySteps: dailySteps,
                 onItemLongPressedCallback: onActivityItemLongPressed,
                 onItemTappedCallback: onActivityItemTapped,
                 onItemDragCallback: onActivityItemDrag,

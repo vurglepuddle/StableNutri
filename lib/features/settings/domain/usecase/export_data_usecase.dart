@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/repository/body_measurement_log_repository.dart';
+import 'package:opennutritracker/core/data/repository/daily_steps_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
@@ -32,6 +33,7 @@ class ExportDataUsecase {
   final WeightLogRepository _weightLogRepository;
   final CustomActivityTemplateRepository _customActivityTemplateRepository;
   final BodyMeasurementLogRepository _bodyMeasurementLogRepository;
+  final DailyStepsRepository? dailyStepsRepository;
 
   ExportDataUsecase(
     this._userActivityRepository,
@@ -41,8 +43,9 @@ class ExportDataUsecase {
     this._customMealDataSource,
     this._weightLogRepository,
     this._customActivityTemplateRepository,
-    this._bodyMeasurementLogRepository,
-  );
+    this._bodyMeasurementLogRepository, {
+    this.dailyStepsRepository,
+  });
 
   /// Exports user activity, intake, tracked day, recipe, weight-log and
   /// Custom activity template data to a zip at a user-specified location,
@@ -70,6 +73,28 @@ class ExportDataUsecase {
     String trackedDayCsvFileName = 'user_tracked_day.csv',
   }) async {
     final archive = Archive();
+    final dailySteps = dailyStepsRepository?.all();
+    if (dailySteps != null) {
+      final bytes = utf8.encode(
+        format == ExportFormat.json
+            ? jsonEncode(dailySteps.map((row) => row.toJson()).toList())
+            : [
+                'day,steps,read_at,day_start_offset_minutes',
+                ...dailySteps.map(
+                  (row) =>
+                      '${row.dayKey},${row.steps},'
+                      '${row.readAt.toUtc().toIso8601String()},${row.offsetMinutes}',
+                ),
+              ].join('\r\n'),
+      );
+      archive.addFile(
+        ArchiveFile(
+          format == ExportFormat.json ? 'daily_steps.json' : 'daily_steps.csv',
+          bytes.length,
+          bytes,
+        ),
+      );
+    }
 
     // Activity dataset
     final fullUserActivity = await _userActivityRepository

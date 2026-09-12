@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:opennutritracker/core/data/repository/daily_steps_repository.dart';
+import 'package:opennutritracker/core/domain/entity/daily_steps.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
@@ -37,6 +39,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   final GetConfigUsecase _getConfigUsecase;
   final AddConfigUsecase _addConfigUsecase;
   final GetWaterIntakeUsecase _getWaterIntakeUsecase;
+  final DailyStepsRepository? dailyStepsRepository;
 
   DateTime? _currentDay;
 
@@ -51,8 +54,9 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     this._updateUserActivityUsecase,
     this._getConfigUsecase,
     this._addConfigUsecase,
-    this._getWaterIntakeUsecase,
-  ) : super(CalendarDayInitial()) {
+    this._getWaterIntakeUsecase, {
+    this.dailyStepsRepository,
+  }) : super(CalendarDayInitial()) {
     on<LoadCalendarDayEvent>((event, emit) async {
       emit(CalendarDayLoading());
       _currentDay = event.day;
@@ -157,6 +161,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
         configData.mealKcalSharesPct[ConfigEntity.mealKeySnack] ?? 0,
         diarySortPreferences: config.diarySortPreferences,
         waterEntries: waterEntries,
+        dailySteps: dailyStepsRepository?.forDay(day),
       ),
     );
   }

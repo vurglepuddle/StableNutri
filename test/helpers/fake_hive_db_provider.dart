@@ -32,6 +32,7 @@ class FakeHiveDBProvider extends HiveDBProvider {
   final Box<WeightLogDBO>? _weightLogBox;
   final Box<BodyMeasurementLogDBO>? _bodyMeasurementLogBox;
   final Box<String>? _lifesumImportJournalBox;
+  final Box<String>? _dailyStepsBox;
   final Box<WaterIntakeDBO>? _waterIntakeBox;
   final Box<FastingSessionDBO>? _fastingBox;
 
@@ -50,6 +51,7 @@ class FakeHiveDBProvider extends HiveDBProvider {
     Box<WeightLogDBO>? weightLogBox,
     Box<BodyMeasurementLogDBO>? bodyMeasurementLogBox,
     Box<String>? lifesumImportJournalBox,
+    Box<String>? dailyStepsBox,
     Box<WaterIntakeDBO>? waterIntakeBox,
     Box<FastingSessionDBO>? fastingBox,
   }) : _fakeActiveProfileId = activeProfileId,
@@ -66,6 +68,7 @@ class FakeHiveDBProvider extends HiveDBProvider {
        _weightLogBox = weightLogBox,
        _bodyMeasurementLogBox = bodyMeasurementLogBox,
        _lifesumImportJournalBox = lifesumImportJournalBox,
+       _dailyStepsBox = dailyStepsBox,
        _waterIntakeBox = waterIntakeBox,
        _fastingBox = fastingBox;
 
@@ -115,6 +118,8 @@ class FakeHiveDBProvider extends HiveDBProvider {
       _require(_bodyMeasurementLogBox);
   @override
   Box<String> get lifesumImportJournalBox => _require(_lifesumImportJournalBox);
+  @override
+  Box<String> get dailyStepsBox => _require(_dailyStepsBox);
   @override
   Box<WaterIntakeDBO> get waterIntakeBox => _require(_waterIntakeBox);
   @override

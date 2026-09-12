@@ -14,52 +14,75 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class SpFoodDataSource {
   final log = Logger('SpFoodDataSource');
 
-  Future<List<SpFoodDTO>> fetchSearchWordResults(String searchString) async {
+  Future<List<SpFoodDTO>> fetchSearchWordResults(
+    String searchString, {
+    String? localeName,
+  }) async {
+    if (!locator.isRegistered<SupabaseClient>() ||
+        searchString.trim().isEmpty) {
+      return const [];
+    }
+
     try {
-      return await withRetry(() async {
-        log.fine('Fetching Supabase food results');
-        final enabledSources = await _enabledSources();
-        if (enabledSources != null && enabledSources.isEmpty) {
-          log.fine('All Supabase food sources disabled; skipping search');
-          return const <SpFoodDTO>[];
-        }
+      return await withRetry(
+        () async {
+          log.fine('Fetching Supabase food results');
+          final enabledSources = await _enabledSources();
+          if (enabledSources != null && enabledSources.isEmpty) {
+            log.fine('All Supabase food sources disabled; skipping search');
+            return const <SpFoodDTO>[];
+          }
 
-        final supaBaseClient = locator<SupabaseClient>();
-        final locale = SPConst.translationLocaleOf(
-          SupportedLanguage.fromCode(Platform.localeName),
-        );
+          final supaBaseClient = locator<SupabaseClient>();
+          final locale = SPConst.translationLocaleOf(
+            SupportedLanguage.fromCode(localeName ?? Platform.localeName),
+          );
 
-        if (locale != null) {
-          final localized = await _searchByTranslation(
+          if (locale != null) {
+            final localized = await _searchByTranslation(
+              supaBaseClient,
+              locale,
+              searchString,
+              enabledSources,
+            );
+            // Foods without a translation for this locale are only findable
+            // by their English name, so an empty localized result set falls
+            // through to the English search instead of returning nothing.
+            if (localized.isNotEmpty) {
+              log.fine('Successful localized ($locale) response from Supabase');
+              return localized;
+            }
+          }
+
+          final results = await _searchEnglish(
             supaBaseClient,
-            locale,
             searchString,
             enabledSources,
           );
-          // Foods without a translation for this locale are only findable
-          // by their English name, so an empty localized result set falls
-          // through to the English search instead of returning nothing.
-          if (localized.isNotEmpty) {
-            log.fine('Successful localized ($locale) response from Supabase');
-            return localized;
-          }
-        }
-
-        final results = await _searchEnglish(
-          supaBaseClient,
-          searchString,
-          enabledSources,
-        );
-        log.fine('Successful response from Supabase');
-        return results;
-      });
-    } catch (exception, stacktrace) {
-      log.severe(
-        'Exception while getting Supabase food search',
-        exception,
-        stacktrace,
+          log.fine('Successful response from Supabase');
+          return results;
+        },
+        shouldRetry: (error) =>
+            error is! PostgrestException || error.code != 'PGRST202',
       );
-      return Future.error(exception);
+    } on PostgrestException catch (exception) {
+      if (exception.code == 'PGRST202') {
+        // An older backend needs the SQL migration. Never fall back to GET,
+        // which would expose the search term in request URLs again.
+        log.warning(
+          'Food backend search functions are missing; update its schema.',
+        );
+        return const [];
+      }
+      log.warning(
+        'Food backend search failed; local results remain available.',
+      );
+      rethrow;
+    } catch (_) {
+      log.warning(
+        'Food backend search failed; local results remain available.',
+      );
+      rethrow;
     }
   }
 
@@ -81,19 +104,11 @@ class SpFoodDataSource {
     String searchString,
     List<String>? enabledSources,
   ) async {
-    var query = client
-        .from(SPConst.foodSummaryTable)
-        .select()
-        .textSearch(
-          SPConst.foodName,
-          searchString,
-          config: SPConst.foodNameFtsConfig,
-          type: TextSearchType.websearch,
-        );
-    if (enabledSources != null) {
-      query = query.inFilter(SPConst.foodSource, enabledSources);
-    }
-    final response = await query.limit(SPConst.maxNumberOfItems);
+    final response = await _rpcRows(client, SPConst.searchFoodSummaryFn, {
+      'term': searchString,
+      'sources': enabledSources,
+      'max_rows': SPConst.maxNumberOfItems,
+    });
 
     return response.map((food) => SpFoodDTO.fromJson(food)).toList();
   }
@@ -108,20 +123,15 @@ class SpFoodDataSource {
     String searchString,
     List<String>? enabledSources,
   ) async {
-    final translationRows = await client
-        .from(SPConst.foodTranslationTable)
-        .select(
-          '${SPConst.translationFoodId}, ${SPConst.translationDescription}, '
-          '${SPConst.translationSource}',
-        )
-        .eq(SPConst.translationLocale, locale)
-        .textSearch(
-          SPConst.translationDescription,
-          searchString,
-          config: SPConst.translationFtsConfig,
-          type: TextSearchType.websearch,
-        )
-        .limit(SPConst.maxNumberOfItems);
+    final translationRows = await _rpcRows(
+      client,
+      SPConst.searchFoodTranslationFn,
+      {
+        'term': searchString,
+        'loc': locale,
+        'max_rows': SPConst.maxNumberOfItems,
+      },
+    );
 
     if (translationRows.isEmpty) return const [];
 
@@ -138,14 +148,10 @@ class SpFoodDataSource {
 
     // The source filter is applied on the summary fetch rather than the
     // translation match: food_translation has no source column.
-    var query = client
-        .from(SPConst.foodSummaryTable)
-        .select()
-        .inFilter(SPConst.foodId, nameByFoodId.keys.toList());
-    if (enabledSources != null) {
-      query = query.inFilter(SPConst.foodSource, enabledSources);
-    }
-    final response = await query;
+    final response = await _rpcRows(client, SPConst.foodSummaryByIdsFn, {
+      'ids': nameByFoodId.keys.toList(),
+      'sources': enabledSources,
+    });
 
     return response.map((food) {
       final dto = SpFoodDTO.fromJson(food);
@@ -155,5 +161,14 @@ class SpFoodDataSource {
       );
       return dto;
     }).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _rpcRows(
+    SupabaseClient client,
+    String function,
+    Map<String, dynamic> params,
+  ) async {
+    final response = await client.rpc(function, params: params);
+    return (response as List).cast<Map<String, dynamic>>();
   }
 }

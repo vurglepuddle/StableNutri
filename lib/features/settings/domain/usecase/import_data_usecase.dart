@@ -14,6 +14,8 @@ import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/body_measurement_log_repository.dart';
+import 'package:opennutritracker/core/data/repository/daily_steps_repository.dart';
+import 'package:opennutritracker/core/domain/entity/daily_steps.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -31,6 +33,7 @@ class ImportDataUsecase {
   final CustomActivityTemplateRepository _customActivityTemplateRepository;
   final BodyMeasurementLogRepository _bodyMeasurementLogRepository;
   final CustomMealDataSource _customMealDataSource;
+  final DailyStepsRepository? dailyStepsRepository;
 
   ImportDataUsecase(
     this._userActivityRepository,
@@ -40,8 +43,9 @@ class ImportDataUsecase {
     this._weightLogRepository,
     this._customActivityTemplateRepository,
     this._bodyMeasurementLogRepository,
-    this._customMealDataSource,
-  );
+    this._customMealDataSource, {
+    this.dailyStepsRepository,
+  });
 
   /// Imports user activity, intake, tracked day, and (optionally) recipe,
   /// weight log or Custom activity template data from a zip file
@@ -59,6 +63,7 @@ class ImportDataUsecase {
     String bodyMeasurementLogJsonFileName = 'body_measurements.json',
     String savedMealsJsonFileName = 'saved_meals.json',
   }) async {
+    final stepTarget = dailyStepsRepository?.beginImport();
     // Allow user to pick a zip file
     final result = await FilePicker.pickFiles(
       type: FileType.any,
@@ -73,6 +78,18 @@ class ImportDataUsecase {
     final file = File(result.files.single.path!);
     final zipBytes = await file.readAsBytes();
     final archive = ZipDecoder().decodeBytes(zipBytes);
+    // Validate optional step snapshots before any archive data is written.
+    // Enabling automatic Health Connect import never transfers with a backup.
+    final stepFile = archive.findFile('daily_steps.json');
+    final stepTotals = stepFile == null
+        ? <DailySteps>[]
+        : (jsonDecode(utf8.decode(stepFile.content as List<int>)) as List)
+              .map(
+                (json) =>
+                    DailySteps.fromJson(Map<String, dynamic>.from(json as Map)),
+              )
+              .toList();
+    stepTarget?.requireCurrentProfile();
 
     // Extract and process user activity data
     final userActivityFile = archive.findFile(userActivityJsonFileName);
@@ -195,6 +212,8 @@ class ImportDataUsecase {
           .toList();
       await _customActivityTemplateRepository.addAllTemplateDBOs(templateDBOs);
     }
+
+    await stepTarget?.save(stepTotals);
 
     // Restore any user-attached photos — recipes under `recipe_images/`
     // and custom meals under `meal_images/`. Each archive entry's name

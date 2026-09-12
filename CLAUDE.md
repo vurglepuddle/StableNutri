@@ -16,14 +16,19 @@ The rebrand is **partial and deliberate**, so expect both names in the tree:
 - `upstream` remotes, the README, the launcher icons and the `appTitle` l10n string still say OpenNutriTracker.
 - Code comments, the design docs and the user-facing copy increasingly say Stable. New work should say Stable.
 
-Flutter version: **3.44.8** (pinned in `.fvmrc`), which matches the unqualified `flutter` on the maintainer's PATH.
-The pin used to say 3.41.7 while every build and format run was actually on 3.44.8; that gap hid a compile error for
-weeks (`CupertinoPageTransitionsBuilder` left `material.dart` in 3.44). If you change the pin, re-run
-`dart format --set-exit-if-changed` over the tree immediately — a formatter version change rewrites hundreds of files
-and doubles the conflict surface against upstream. See `Design/upstream-merge-strategy.md`.
+Flutter version: **3.44.8**, pinned in `.fvmrc`. Verify the selected SDK before
+running commands. After an SDK change, check formatting using the justfile targets.
 
-The durable working notes for this project live in `../Design/session-handoff-2026-08-03.md` (newest section first).
-Read it before starting; append to the top when finishing.
+Read [the handoff](../Design/session-handoff.md) before starting. When finishing,
+prepend a short session note: 5–8 bullets, at most 150 words. Say what changed,
+what remains unverified, and where to resume so the user can continue from this
+file alone. Keep the latest two notes and the whole handoff around 100 lines.
+Remove older details already covered by current state; do not accumulate reports.
+
+Maintain [TODO](../Design/TODO.md) in place, preserving the user's priorities.
+Use plain language and short tasks. Do not add session narratives, font-selection
+history, repeated test logs, or long file lists. Put necessary technical details
+in [implementation notes](../Design/implementation-notes.md) or the relevant plan.
 
 ## Commands
 
@@ -71,7 +76,6 @@ fresh clone. Replace them:
 
 ```
 FDC_API_KEY="YOUR_KEY"        # USDA Food Data Central API key (direct FDC source, not actively used in UI)
-SENTRY_DNS="DNS_URL"
 SUPABASE_PROJECT_URL="PROJECT_URL"
 SUPABASE_PROJECT_ANON_KEY="ANON_KEY"
 ```
@@ -276,12 +280,13 @@ Clean Architecture with a feature-based module structure.
 ### App startup sequence
 
 `main()` → `initLocator()` → Hive init (AES key from `flutter_secure_storage`) → open the **global** boxes →
-`bootstrapActiveProfile()` resolves the active profile and opens its **per-profile** box-set → Supabase init → prune the
+`bootstrapActiveProfile()` resolves the active profile and opens its **per-profile** box-set → register optional food backend → prune the
 stale remote-search cache → restore scheduled notifications → check `UserDataSource.hasUserData()` → route to
 `onboarding` (first run) or `main` (returning user).
 
-Sentry is enabled only in **release mode**, and only if the user consented to anonymous data collection during
-onboarding.
+Sentry is removed. The optional Supabase food client is created on first search,
+with authentication refresh disabled. Missing/example configuration skips it.
+SDK payload logs are suppressed; app logging is debug-only.
 
 ### Navigation shell
 
@@ -336,7 +341,7 @@ lib/
     fasting/      # Intermittent-fasting timer with a content-warning gate
     settings/     # Settings, export/import, Lifesum import, day-start, theme
     onboarding/   # First-run setup
-  generated/      # Intl files — maintained by hand (see Localization)
+  generated/      # Ignored gen-l10n output (see Localization)
   l10n/           # Source ARB translation files
 ```
 
@@ -447,7 +452,7 @@ in `lib/core/utils/calc/`:
   one soft shadow. A single vivid `accent` is user-overridable (accent picker / Material You) via `withAccent()`.
   Semantic colours — the macro trio (carbs amber, fat coral, protein teal) and `waterColor` — are **fixed** so the
   dashboard reads the same whatever accent is chosen. `colorScheme` maps the palette onto Material 3.
-- **`app_theme.dart`** — `appTextTheme(AppPalette)` and `buildAppTheme(AppPalette)`. Type is **Nunito** throughout.
+- **`app_theme.dart`** — `appTextTheme(AppPalette)` and `buildAppTheme(AppPalette)`. Type is **Commissioner**; preserve explicit line heights and even leading. See the implementation notes for large-text testing.
 - **`dimens.dart`** — spacing, radii, `minTouchTarget`, and `AppMotion` (durations + emphasized curves). Use these
   tokens rather than raw numbers.
 - **`AppCard`** (`core/presentation/widgets/app_card.dart`) is the one card surface. Dashboard items are `AppCard`s

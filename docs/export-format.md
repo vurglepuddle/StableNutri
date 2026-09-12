@@ -25,6 +25,8 @@ The export is a single `.zip` file (default filename
 | `weight_log.json`     | JSON   | Daily weight readings. No CSV counterpart.                         |
 | `body_measurements.json` | JSON | Daily optional waist/hips/chest/arm/thigh/body-fat snapshots.      |
 | `saved_meals.json`     | JSON   | Saved foods/custom meals plus Favorite and Rescue Library labels.  |
+| `daily_steps.json`     | JSON   | Daily Health Connect step snapshots; optional in older backups.    |
+| `daily_steps.csv`      | CSV    | Step totals for spreadsheets; emitted with CSV exports.            |
 
 **Photos travel with the JSON bundle only.** User-attached photos are added
 under `recipe_images/` and `meal_images/`, gathered from three places:
@@ -47,6 +49,15 @@ spreadsheet, a Syncthing-style backup, or external tooling can read the same
 data without going through Hive.
 
 ## JSON schema
+
+`daily_steps.json` contains an array of `{day, steps, readAtMs, offsetMinutes}`
+objects. `day` is a `yyyy-MM-dd` diary day; `steps` is an absolute integer count;
+`readAtMs` is the Health Connect read time in epoch milliseconds; `offsetMinutes`
+is the configured diary boundary used for aggregation. Restore replaces the
+snapshot for that day, keeping a newer existing read. It does not add counts or
+change calorie/activity entries. Automatic-import consent is per profile and is
+not exported or enabled by restoring a backup. The step CSV is for analysis;
+use JSON to restore step history.
 
 The JSON files are direct serializations of the Hive DBO classes via
 `json_serializable`, so the source of truth lives in

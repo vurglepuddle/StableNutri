@@ -52,6 +52,7 @@ class HiveDBProvider extends ChangeNotifier {
   static const weightLogBoxName = 'WeightLogBox';
   static const bodyMeasurementLogBoxName = 'BodyMeasurementLogBox';
   static const lifesumImportJournalBoxName = 'LifesumImportJournalBox';
+  static const dailyStepsBoxName = 'DailyStepsBox';
   // #32: per-entry water intake log keyed by uuid; one row per sip so the
   // dialog's "undo last" can roll a single entry back without losing the
   // rest of the day.
@@ -83,6 +84,7 @@ class HiveDBProvider extends ChangeNotifier {
     weightLogBoxName,
     bodyMeasurementLogBoxName,
     lifesumImportJournalBoxName,
+    dailyStepsBoxName,
     waterIntakeBoxName,
     fastingBoxName,
   ];
@@ -112,6 +114,7 @@ class HiveDBProvider extends ChangeNotifier {
   Box<WeightLogDBO>? _weightLogBox;
   Box<BodyMeasurementLogDBO>? _bodyMeasurementLogBox;
   Box<String>? _lifesumImportJournalBox;
+  Box<String>? _dailyStepsBox;
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
 
@@ -137,6 +140,8 @@ class HiveDBProvider extends ChangeNotifier {
       _requireBox(_bodyMeasurementLogBox, bodyMeasurementLogBoxName);
   Box<String> get lifesumImportJournalBox =>
       _requireBox(_lifesumImportJournalBox, lifesumImportJournalBoxName);
+  Box<String> get dailyStepsBox =>
+      _requireBox(_dailyStepsBox, dailyStepsBoxName);
   Box<WaterIntakeDBO> get waterIntakeBox =>
       _requireBox(_waterIntakeBox, waterIntakeBoxName);
   Box<FastingSessionDBO> get fastingBox =>
@@ -269,6 +274,10 @@ class HiveDBProvider extends ChangeNotifier {
       boxNameFor(fastingBoxName, suffix),
       encryptionCipher: _cipher,
     );
+    _dailyStepsBox = await Hive.openBox(
+      boxNameFor(dailyStepsBoxName, suffix),
+      encryptionCipher: _cipher,
+    );
   }
 
   Future<void> _closeActiveProfileBoxes() async {
@@ -281,6 +290,7 @@ class HiveDBProvider extends ChangeNotifier {
       if (_weightLogBox != null) _weightLogBox!.close(),
       if (_bodyMeasurementLogBox != null) _bodyMeasurementLogBox!.close(),
       if (_lifesumImportJournalBox != null) _lifesumImportJournalBox!.close(),
+      if (_dailyStepsBox != null) _dailyStepsBox!.close(),
       if (_waterIntakeBox != null) _waterIntakeBox!.close(),
       if (_fastingBox != null) _fastingBox!.close(),
     ]);
@@ -292,6 +302,7 @@ class HiveDBProvider extends ChangeNotifier {
     _weightLogBox = null;
     _bodyMeasurementLogBox = null;
     _lifesumImportJournalBox = null;
+    _dailyStepsBox = null;
     _waterIntakeBox = null;
     _fastingBox = null;
   }

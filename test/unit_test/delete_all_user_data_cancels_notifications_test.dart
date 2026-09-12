@@ -76,6 +76,7 @@ void main() {
         ),
         waterIntakeBox: await Hive.openBox<WaterIntakeDBO>('delete_all_water'),
         fastingBox: await Hive.openBox<FastingSessionDBO>('delete_all_fast'),
+        dailyStepsBox: await Hive.openBox<String>('delete_all_steps'),
       );
       final configDataSource = ConfigDataSource(provider);
       configRepository = ConfigRepository(configDataSource);

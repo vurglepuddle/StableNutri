@@ -164,6 +164,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
                   snackSharePct: state.snackSharePct,
                   diarySortPreferences: state.diarySortPreferences,
                   waterEntries: state.waterEntries,
+                  dailySteps: state.dailySteps,
                 );
               }
               return const SizedBox();

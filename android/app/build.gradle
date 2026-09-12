@@ -60,7 +60,7 @@ android {
 
     defaultConfig {
         applicationId "com.opennutritracker.ont.opennutritracker"
-        minSdkVersion flutter.minSdkVersion
+        minSdkVersion 26
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -134,5 +134,6 @@ flutter {
 }
 
 dependencies {
+    implementation 'androidx.health.connect:connect-client:1.1.0'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
 }

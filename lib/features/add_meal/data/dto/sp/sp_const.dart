@@ -45,11 +45,11 @@ class SPConst {
   /// other values (native, community, verified) involve a human and don't.
   static const translationSourceMachine = 'machine';
 
-  // Text-search configs matching the indexes in schema.sql:
-  // food.description uses to_tsvector('english', ...), food_translation
-  // uses to_tsvector('simple', ...) since it holds many languages.
-  static const foodNameFtsConfig = 'english';
-  static const translationFtsConfig = 'simple';
+  // POST RPCs keep search terms and matched IDs out of request URLs.
+  // Requires the backend's search functions; see docs/supabase-self-hosting.md.
+  static const searchFoodSummaryFn = 'search_food_summary';
+  static const searchFoodTranslationFn = 'search_food_translation';
+  static const foodSummaryByIdsFn = 'food_summary_by_ids';
 
   /// food_source.code prefix shared by the USDA FDC sources
   /// (fdc_foundation, fdc_sr_legacy, fdc_survey). Only these foods have a

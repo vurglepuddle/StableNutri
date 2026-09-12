@@ -24,7 +24,22 @@ Users pick which sources they want to search in **Settings → Food databases**.
 
 ## What the app reads
 
-The app reads exactly two relations from the backend schema; everything else in the backend repo (the per-source raw tables, the nutrient mapping, the import staging) is invisible to it. All names come from `SPConst` (`lib/features/add_meal/data/dto/sp/sp_const.dart`); the query code lives in `lib/features/add_meal/data/data_sources/sp_food_data_source.dart`.
+Food search reads two relations through POST RPCs: `search_food_summary`,
+`search_food_translation`, and `food_summary_by_ids`. Search terms, source filters,
+and matched IDs travel in JSON bodies rather than request URLs. This keeps them
+out of URL-based access logs; it does not hide them from the server receiving the
+request or guarantee that a hosting provider never logs bodies.
+
+All names come from `SPConst`; the query code lives in
+`lib/features/add_meal/data/data_sources/sp_food_data_source.dart`.
+
+For an existing backend, apply
+[the search RPC migration](../sql/migrations/20260912_food_search_rpc.sql) before
+using this build. It adds the functions and an English search index without
+rewriting food data. The backend's existing read grants/RLS still apply. New
+backends can use the current upstream `sql/schema.sql`, which includes these RPCs.
+If the functions are missing, Stable keeps local results available and reports
+the schema issue in its own debug log. It does not fall back to URL-based search.
 
 ### `food_summary` — one flat row per food
 
@@ -84,7 +99,17 @@ Both values are obfuscated at compile time by the `envied` package, so a rebuild
 just build
 ```
 
-That regenerates `lib/core/utils/env.g.dart` (which is gitignored) with the new values baked in. After that, a normal `flutter run` will pick them up. The app's `Supabase.initialize` call in `lib/core/utils/locator.dart` reads from `Env.supabaseProjectUrl` and `Env.supabaseProjectAnonKey`, so as long as the regenerated env file is in place you don't need to touch any other code.
+That regenerates `lib/core/utils/env.g.dart` (gitignored). Fully restart the app
+after rebuilding. `registerFoodBackend` reads the generated configuration and
+registers a client only for a valid HTTP(S) endpoint and a non-placeholder key.
+With missing/example configuration, Stable skips this backend; Open Food Facts,
+saved foods, and cached results remain available.
+
+The client is created on the first backend search, with authentication refresh
+disabled. Stable uses public food lookup and does not initialize Supabase's
+Flutter login, session persistence, or deep-link handling. SDK log records are
+excluded from the app's debug output because they can contain credentials and
+request bodies. App-level food-search errors use value-free messages.
 
 To sanity-check the wiring, search for a common English food name (something like "apple raw") in the Add Meal screen. If you get backend results (rows with an FDC or BLS source chip), the database and the app are talking to each other. If you don't, the most common causes are: the RLS policies aren't in place (the anon role can't see the rows — `schema.sql` sets up public read, service_role write), the `food_summary` materialized view hasn't been refreshed after import (`import_fdc.py` does this automatically at the end of every run), or the full-text-search indexes are missing.
 

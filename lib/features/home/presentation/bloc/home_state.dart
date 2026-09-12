@@ -15,6 +15,7 @@ class HomeLoadingState extends HomeState {
 }
 
 class HomeLoadedState extends HomeState {
+  final DailySteps? dailySteps;
   final bool showDisclaimerDialog;
   final double totalKcalDaily;
   final double totalKcalSupplied;
@@ -67,6 +68,7 @@ class HomeLoadedState extends HomeState {
   final List<WaterIntakeEntity> waterIntakes;
 
   const HomeLoadedState({
+    this.dailySteps,
     required this.showDisclaimerDialog,
     required this.totalKcalDaily,
     required this.totalKcalSupplied,
@@ -110,6 +112,7 @@ class HomeLoadedState extends HomeState {
 
   @override
   List<Object?> get props => [
+    dailySteps,
     breakfastIntakeList,
     lunchIntakeList,
     dinnerIntakeList,

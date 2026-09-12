@@ -15,6 +15,7 @@ class CalendarDayLoading extends CalendarDayState {
 }
 
 class CalendarDayLoaded extends CalendarDayState {
+  final DailySteps? dailySteps;
   final List<WaterIntakeEntity> waterEntries;
   final TrackedDayEntity? trackedDayEntity;
   final List<UserActivityEntity> userActivityList;
@@ -59,12 +60,14 @@ class CalendarDayLoaded extends CalendarDayState {
     this.snackSharePct, {
     this.diarySortPreferences,
     this.waterEntries = const [],
+    this.dailySteps,
   });
 
   @override
   List<Object?> get props => [
     trackedDayEntity,
     waterEntries,
+    dailySteps,
     breakfastKcalTarget,
     lunchKcalTarget,
     dinnerKcalTarget,

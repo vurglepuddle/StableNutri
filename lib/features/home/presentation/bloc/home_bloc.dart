@@ -1,4 +1,7 @@
 import 'package:collection/collection.dart';
+import 'package:opennutritracker/core/data/health/health_steps_sync.dart';
+import 'package:opennutritracker/core/data/repository/daily_steps_repository.dart';
+import 'package:opennutritracker/core/domain/entity/daily_steps.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
@@ -50,6 +53,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetWaterIntakeUsecase _getWaterIntakeUsecase;
   final AddWaterIntakeUsecase _addWaterIntakeUsecase;
   final DeleteWaterIntakeUsecase _deleteWaterIntakeUsecase;
+  final DailyStepsRepository? dailyStepsRepository;
+  final HealthStepsSync? healthStepsSync;
 
   DateTime currentDay = DateTime.now();
 
@@ -68,10 +73,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     this._getUserUsecase,
     this._getWaterIntakeUsecase,
     this._addWaterIntakeUsecase,
-    this._deleteWaterIntakeUsecase,
-  ) : super(HomeInitial()) {
+    this._deleteWaterIntakeUsecase, {
+    this.dailyStepsRepository,
+    this.healthStepsSync,
+  }) : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
+      final stepSync = healthStepsSync?.sync();
 
       final configData = await _getConfigUsecase.getConfig();
       final dayStartOffsetHours = configData.dayStartOffsetHours;
@@ -213,8 +221,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         totalKcalGoal,
       );
 
+      await stepSync;
       emit(
         HomeLoadedState(
+          dailySteps: dailyStepsRepository?.forDay(currentDay),
           showDisclaimerDialog: showDisclaimerDialog,
           totalKcalDaily: totalKcalGoal,
           totalKcalSupplied: totalKcalIntake,

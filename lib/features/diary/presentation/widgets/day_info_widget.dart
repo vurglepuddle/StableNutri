@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/entity/daily_steps.dart';
 import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/day_water_widget.dart';
 import 'package:intl/intl.dart';
@@ -27,6 +28,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
 class DayInfoWidget extends StatefulWidget {
+  final DailySteps? dailySteps;
   final List<WaterIntakeEntity> waterEntries;
   final DateTime selectedDay;
   final TrackedDayEntity? trackedDayEntity;
@@ -90,6 +92,7 @@ class DayInfoWidget extends StatefulWidget {
   const DayInfoWidget({
     super.key,
     this.waterEntries = const [],
+    this.dailySteps,
     required this.selectedDay,
     required this.trackedDayEntity,
     required this.userActivities,
@@ -299,6 +302,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 day: widget.selectedDay,
                 title: S.of(context).activityLabel,
                 userActivityList: widget.userActivities,
+                dailySteps: widget.dailySteps,
                 onItemLongPressedCallback: onActivityItemLongPressed,
                 onItemTappedCallback: widget.onEditActivity,
                 onCopyActivityCallback:

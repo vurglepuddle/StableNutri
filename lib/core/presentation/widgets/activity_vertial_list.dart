@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/entity/daily_steps.dart';
+import 'package:opennutritracker/core/presentation/widgets/daily_steps_card.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
@@ -15,6 +17,7 @@ class ActivityVerticalList extends StatefulWidget {
   final DateTime day;
   final String title;
   final List<UserActivityEntity> userActivityList;
+  final DailySteps? dailySteps;
   final Function(BuildContext, UserActivityEntity) onItemLongPressedCallback;
   final Function(BuildContext, UserActivityEntity)? onItemTappedCallback;
   final Function(bool isDragging)? onItemDragCallback;
@@ -25,6 +28,7 @@ class ActivityVerticalList extends StatefulWidget {
     required this.day,
     required this.title,
     required this.userActivityList,
+    this.dailySteps,
     required this.onItemLongPressedCallback,
     this.onItemTappedCallback,
     this.onItemDragCallback,
@@ -124,6 +128,8 @@ class _ActivityVerticalListState extends State<ActivityVerticalList> {
         ),
         Column(
           children: [
+            if (widget.dailySteps != null)
+              DailyStepsCard(total: widget.dailySteps!),
             for (final userActivity in widget.userActivityList)
               ActivityCard(
                 activityEntity: userActivity,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/data/health/health_connect_service.dart';
+import 'package:opennutritracker/features/settings/presentation/health_connect_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
@@ -429,6 +431,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle: S.of(context).lifesumImportSettingsSubtitle,
                     onTap: () => _openLifesumImportScreen(context),
                   ),
+                  if (HealthConnectService.supportedPlatform)
+                    _SettingsTile(
+                      identifier: 'settings-health-connect',
+                      palette: palette,
+                      icon: Icons.health_and_safety_outlined,
+                      title: S.of(context).healthConnectTitle,
+                      subtitle: S.of(context).healthConnectSubtitle,
+                      onTap: () async {
+                        await Navigator.of(context).push<void>(
+                          MaterialPageRoute(
+                            builder: (_) => const HealthConnectScreen(),
+                          ),
+                        );
+                        _homeBloc.add(const LoadItemsEvent());
+                        _diaryBloc.add(const LoadDiaryYearEvent());
+                        _calendarDayBloc.add(RefreshCalendarDayEvent());
+                        _trendsBloc.add(const LoadTrendsEvent());
+                      },
+                    ),
                   _SettingsTile(
                     identifier: 'settings-import-custom-food',
                     palette: palette,

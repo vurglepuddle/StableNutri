@@ -89,7 +89,11 @@ android {
     }
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            // Stable is sideloaded, not published. Without key.properties,
+            // release builds use the debug key every earlier APK was signed
+            // with, so they update existing installs in place, data intact.
+            // Switching keys later means reinstalling, like an app ID change.
+            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
         }
     }
 

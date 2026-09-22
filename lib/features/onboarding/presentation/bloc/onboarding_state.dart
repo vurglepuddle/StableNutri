@@ -15,6 +15,10 @@ class OnboardingLoadingState extends OnboardingState {
 }
 
 class OnboardingLoadedState extends OnboardingState {
+  final UserDataMaskEntity selection;
+
+  const OnboardingLoadedState(this.selection);
+
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [selection];
 }

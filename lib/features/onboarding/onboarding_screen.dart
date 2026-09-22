@@ -54,6 +54,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     _onboardingBloc = locator<OnboardingBloc>();
+    _onboardingBloc.resetSelection();
+    _onboardingBloc.add(LoadOnboardingEvent());
     super.initState();
   }
 
@@ -71,12 +73,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: BlocBuilder<OnboardingBloc, OnboardingState>(
           bloc: _onboardingBloc,
           builder: (context, state) {
-            if (state is OnboardingInitialState) {
-              _onboardingBloc.add(LoadOnboardingEvent());
-              return _getLoadingContent();
-            } else if (state is OnboardingLoadingState) {
-              return _getLoadingContent();
-            } else if (state is OnboardingLoadedState) {
+            if (state is OnboardingLoadedState &&
+                identical(state.selection, _onboardingBloc.userSelection)) {
               return _getLoadedContent(context);
             }
             return _getLoadingContent();

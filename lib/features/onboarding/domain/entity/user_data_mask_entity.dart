@@ -42,8 +42,8 @@ class UserDataMaskEntity {
 
   /// Per-source enable flags for the food search, keyed by backend
   /// food_source code — same semantics as ConfigEntity.foodSourceToggles
-  /// (absent key = enabled). Left empty when the user doesn't touch the
-  /// switches, which keeps every source on.
+  /// (absent key = enabled). Seeded from saved choices or regional defaults
+  /// when onboarding loads.
   Map<String, bool> foodSourceToggles = <String, bool>{};
 
   /// Whether the user opted into the daily logging reminder. The actual

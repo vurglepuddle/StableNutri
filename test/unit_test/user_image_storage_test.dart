@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
@@ -16,6 +18,49 @@ class _FakePathProvider extends PathProviderPlatform
 
   @override
   Future<String?> getApplicationDocumentsPath() async => documentsPath;
+}
+
+class _RecordingCompressor extends FlutterImageCompressPlatform {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(
+    'Unexpected compression call: ${invocation.memberName}',
+  );
+
+  final calls =
+      <
+        ({
+          String path,
+          int quality,
+          int width,
+          int height,
+          CompressFormat format,
+          bool keepExif,
+        })
+      >[];
+
+  @override
+  Future<Uint8List?> compressWithFile(
+    String path, {
+    int minWidth = 1920,
+    int minHeight = 1080,
+    int inSampleSize = 1,
+    int quality = 95,
+    int rotate = 0,
+    bool autoCorrectionAngle = true,
+    CompressFormat format = CompressFormat.jpeg,
+    bool keepExif = false,
+    int numberOfRetries = 5,
+  }) async {
+    calls.add((
+      path: path,
+      quality: quality,
+      width: minWidth,
+      height: minHeight,
+      format: format,
+      keepExif: keepExif,
+    ));
+    return Uint8List.fromList([10, 20, 30]);
+  }
 }
 
 void main() {
@@ -35,6 +80,39 @@ void main() {
   });
 
   group('UserImageStorage', () {
+    test(
+      'uses the upgraded compression API and preserves the source',
+      () async {
+        final previous = FlutterImageCompressPlatform.instance;
+        final compressor = _RecordingCompressor();
+        FlutterImageCompressPlatform.instance = compressor;
+        addTearDown(() => FlutterImageCompressPlatform.instance = previous);
+        final source = File('${tempRoot.path}/source.jpg');
+        await source.writeAsBytes([1, 2, 3]);
+        final relative = await UserImageStorage.importFrom(
+          kind: UserImageKind.recipe,
+          ownerId: 'dinner',
+          sourcePath: source.path,
+        );
+        expect(relative, 'recipe_images/dinner.webp');
+        expect(
+          await File(
+            await UserImageStorage.absolutePath(relative),
+          ).readAsBytes(),
+          [10, 20, 30],
+        );
+        expect(await source.readAsBytes(), [1, 2, 3]);
+        expect(compressor.calls.single, (
+          path: source.path,
+          quality: 80,
+          width: 1024,
+          height: 1024,
+          format: CompressFormat.webp,
+          keepExif: false,
+        ));
+      },
+    );
+
     test('relativePathFor builds a slug under the right subdir with .webp', () {
       expect(
         UserImageStorage.relativePathFor(UserImageKind.recipe, 'abc'),

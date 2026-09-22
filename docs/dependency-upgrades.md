@@ -34,7 +34,12 @@ References: [sharing migration and Android requirements](https://pub.dev/package
 
 ## Remaining review
 
-Image picker/compression, envied and its generator, UUID, JSON annotations,
+Image picker 1.2.3 and compression 2.5.1 are now applied. Existing photo storage,
+WebP settings, metadata exclusion and source-file preservation remain intact.
+All 1,291 tests pass and the develop debug APK builds; native gallery/camera and
+iOS checks remain pending.
+
+Envied and its generator, UUID, JSON annotations,
 equatable, and build_runner remain. Preserve the exact ZXing pin; exclude Sentry
 and avoid unrelated Supabase changes. Native quick-add widget refinements remain
 a separate working-tree change pending phone verification.

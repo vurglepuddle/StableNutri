@@ -8,5 +8,12 @@ abstract class HomeEvent extends Equatable {
 }
 
 class LoadItemsEvent extends HomeEvent {
-  const LoadItemsEvent();
+  /// Hides the current dashboard until the reload finishes. Only for a
+  /// different or wiped profile, whose old totals must not stay on screen.
+  final bool reset;
+
+  const LoadItemsEvent({this.reset = false});
+
+  @override
+  List<Object?> get props => [reset];
 }

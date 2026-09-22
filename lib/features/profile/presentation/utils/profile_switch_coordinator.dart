@@ -58,7 +58,7 @@ class ProfileSwitchCoordinator {
   /// profile's boxes. Safe to call only once the active profile has user
   /// data (post-onboarding).
   static void reloadTabBlocs() {
-    locator<HomeBloc>().add(const LoadItemsEvent());
+    locator<HomeBloc>().add(const LoadItemsEvent(reset: true));
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
     locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
     locator<ProfileBloc>().add(LoadProfileEvent());

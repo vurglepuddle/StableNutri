@@ -83,7 +83,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final generation = ++_loadGeneration;
       final widgetProfileId = LauncherWidgetService.activeProfileId;
       final widgetRevision = LauncherWidgetService.revision;
-      emit(HomeLoadingState());
+      // A refresh keeps the loaded dashboard mounted. Swapping it for the
+      // spinner, even for one frame, rebuilds every card: a poured cup
+      // appears already full instead of animating, and the list jumps back
+      // to the top. The launcher import below spans frames on its own.
+      if (event.reset || state is! HomeLoadedState) emit(HomeLoadingState());
       final widgetWaterIds = await LauncherWidgetService.importWater();
       final stepSync = healthStepsSync?.sync();
 

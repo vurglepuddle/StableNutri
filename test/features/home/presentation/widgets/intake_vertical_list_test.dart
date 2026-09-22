@@ -16,6 +16,27 @@ import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_det
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 import '../../../../helpers/test_l10n.dart';
+import '../../../../helpers/font_loading.dart';
+import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
+import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_builder_bloc.dart';
+import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
+import 'package:opennutritracker/features/recipes/presentation/screens/recipe_builder_screen.dart';
+
+class _RecipeRepository extends Fake implements RecipeRepository {
+  final saved = <RecipeEntity>[];
+  @override
+  Future<void> saveRecipe(RecipeEntity recipe) async => saved.add(recipe);
+}
+
+class _RecipesBloc extends Fake implements RecipesBloc {
+  int refreshes = 0;
+  @override
+  void add(RecipesEvent event) => refreshes++;
+}
 
 class _FakeMealDetailBloc extends Fake implements MealDetailBloc {}
 
@@ -78,10 +99,21 @@ IntakeEntity _buildIntake({
   );
 }
 
-Widget _wrapWithMaterial(Widget child) {
+Widget _wrapWithMaterial(Widget child, {double scale = 1}) {
   return ChangeNotifierProvider<EnergyUnitProvider>(
     create: (_) => EnergyUnitProvider(),
     child: MaterialApp(
+      theme: ThemeData(fontFamily: 'Commissioner'),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(textScaler: TextScaler.linear(scale)),
+        child: child!,
+      ),
+      routes: {
+        NavigationOptions.recipeBuilderRoute: (_) =>
+            const RecipeBuilderScreen(),
+      },
       localizationsDelegates: const [S.delegate],
       supportedLocales: S.supportedLocales,
       home: Scaffold(body: child),
@@ -90,7 +122,8 @@ Widget _wrapWithMaterial(Widget child) {
 }
 
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
+    await loadAppFont();
     final locator = GetIt.instance;
     locator.registerFactory<MealDetailBloc>(_FakeMealDetailBloc.new);
     locator.registerFactory<HomeBloc>(_FakeHomeBloc.new);
@@ -280,6 +313,7 @@ void main() {
       expect(find.text(l10nEn.deleteAllLabel), findsOneWidget);
       expect(find.text(l10nEn.shareMealLabel), findsOneWidget);
       expect(find.text(l10nEn.importMealLabel), findsOneWidget);
+      expect(find.text(l10nEn.saveMealAsRecipeLabel), findsOneWidget);
     },
   );
 
@@ -313,5 +347,146 @@ void main() {
     expect(find.text(l10nEn.deleteAllLabel), findsNothing);
     expect(find.text(l10nEn.shareMealLabel), findsNothing);
     expect(find.text(l10nEn.importMealLabel), findsOneWidget);
+    expect(find.text(l10nEn.saveMealAsRecipeLabel), findsNothing);
   });
+
+  for (final type in AddMealType.values) {
+    testWidgets(
+      '$type opens a draft, saves to Library and leaves diary alone',
+      (tester) async {
+        final repo = _RecipeRepository();
+        final recipes = _RecipesBloc();
+        final compute = ComputeRecipeNutritionUseCase();
+        final builder = RecipeBuilderBloc(
+          compute,
+          SaveRecipeUseCase(repo, compute),
+        );
+        GetIt.instance.registerSingleton<RecipeBuilderBloc>(builder);
+        GetIt.instance.registerSingleton<RecipesBloc>(recipes);
+        addTearDown(() async {
+          GetIt.instance.unregister<RecipeBuilderBloc>();
+          GetIt.instance.unregister<RecipesBloc>();
+          await builder.close();
+        });
+        await tester.pumpWidget(
+          _wrapWithMaterial(
+            IntakeVerticalList(
+              day: DateTime(2025, 1, 1),
+              title: 'My dinner',
+              listIcon: Icons.restaurant,
+              addMealType: type,
+              intakeList: intakes,
+              usesImperialUnits: false,
+              onDeleteIntakeCallback: (_, _) =>
+                  fail('must not remove diary rows'),
+              onCopyIntakeCallback: (_, _, _) =>
+                  fail('must not add diary rows'),
+            ),
+          ),
+        );
+        await tester.tap(
+          find.byType(PopupMenuButton<VerticalListPopupMenuSelections>),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(l10nEn.saveMealAsRecipeLabel));
+        await tester.pumpAndSettle();
+        expect(find.byType(RecipeBuilderScreen), findsOneWidget);
+        expect(builder.state.name, 'My dinner');
+        expect(builder.state.servingsCount, 1);
+        expect(builder.state.ingredients.single.amount, 100);
+        expect(builder.state.isExistingRecipe, isFalse);
+        expect(builder.state.id, isNotEmpty);
+        expect(repo.saved, isEmpty);
+        await tester.enterText(
+          find.byType(TextField).first,
+          'Weeknight dinner',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(l10nEn.recipeSaveLabel));
+        await tester.pumpAndSettle();
+        expect(repo.saved.single.name, 'Weeknight dinner');
+        expect(repo.saved.single.totalWeightG, 100);
+        expect(repo.saved.single.aggregatedNutrimentsPer100.energyKcal100, 200);
+        expect(repo.saved.single.id, isNot(intakes.single.meal.code));
+        expect(recipes.refreshes, 1);
+        expect(find.byType(RecipeBuilderScreen), findsNothing);
+        expect(intakes.single.amount, 100);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('discarding a prefilled recipe writes nothing', (tester) async {
+    final repo = _RecipeRepository();
+    final recipes = _RecipesBloc();
+    final compute = ComputeRecipeNutritionUseCase();
+    final builder = RecipeBuilderBloc(
+      compute,
+      SaveRecipeUseCase(repo, compute),
+    );
+    GetIt.instance.registerSingleton<RecipeBuilderBloc>(builder);
+    GetIt.instance.registerSingleton<RecipesBloc>(recipes);
+    addTearDown(() async {
+      GetIt.instance.unregister<RecipeBuilderBloc>();
+      GetIt.instance.unregister<RecipesBloc>();
+      await builder.close();
+    });
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        IntakeVerticalList(
+          day: DateTime(2025, 1, 1),
+          title: 'Dinner',
+          listIcon: Icons.restaurant,
+          addMealType: AddMealType.dinnerType,
+          intakeList: intakes,
+          usesImperialUnits: false,
+          onDeleteIntakeCallback: (_, _) => fail('must not delete diary rows'),
+        ),
+      ),
+    );
+    await tester.tap(
+      find.byType(PopupMenuButton<VerticalListPopupMenuSelections>),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.saveMealAsRecipeLabel));
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text(l10nEn.discardChangesTitle), findsOneWidget);
+    await tester.tap(find.text(l10nEn.discardChangesConfirmLabel));
+    await tester.pumpAndSettle();
+    expect(repo.saved, isEmpty);
+    expect(find.byType(RecipeBuilderScreen), findsNothing);
+    expect(intakes.single.amount, 100);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final scale in [1.3, 1.6, 2.0]) {
+    testWidgets('save recipe menu fits 320px at scale $scale', (tester) async {
+      tester.view.physicalSize = const Size(320, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        _wrapWithMaterial(
+          IntakeVerticalList(
+            day: DateTime(2026, 1, 1),
+            title: 'Dinner',
+            listIcon: Icons.restaurant,
+            addMealType: AddMealType.dinnerType,
+            intakeList: intakes,
+            usesImperialUnits: false,
+            onDeleteIntakeCallback: (_, _) {},
+          ),
+          scale: scale,
+        ),
+      );
+      await tester.tap(
+        find.byType(PopupMenuButton<VerticalListPopupMenuSelections>),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(l10nEn.saveMealAsRecipeLabel), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 }

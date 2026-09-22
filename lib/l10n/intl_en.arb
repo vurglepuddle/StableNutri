@@ -1411,6 +1411,8 @@
   "@healthConnectUpdatedAt": {"placeholders": {"time": {"type": "String"}}},
   "customMealsDeleteKeepEntriesLabel": "Keep entries",
   "customMealsDeleteWithEntriesLabel": "Delete entries too",
+  "saveMealAsRecipeLabel": "Save as recipe",
+  "saveMealAsRecipeNeedsWeight": "This meal includes a food without a valid gram or millilitre amount. Recipes need those amounts to calculate nutrition.",
   "customMealsDeleteConfirmNoEntries": "This removes it from your Library.",
   "customMealsDeleteConfirmWithEntries": "This removes it from your Library. Your {count} diary entries using it can be kept or removed with it.",
   "@customMealsDeleteConfirmWithEntries": {

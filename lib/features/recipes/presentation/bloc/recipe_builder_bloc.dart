@@ -54,11 +54,11 @@ class RecipeBuilderBloc extends Bloc<RecipeBuilderEvent, RecipeBuilderState> {
       final r = event.existing!;
       // Empty id is the sentinel used by the duplicate-recipe action: keep
       // the field values but treat the builder as a fresh create so save()
-      // assigns a new uuid.
+      // uses a new uuid, also available for photos before saving.
       final isDuplicate = r.id.isEmpty;
       emit(
-        state.copyWith(
-          id: isDuplicate ? null : r.id,
+        RecipeBuilderState.initial().copyWith(
+          id: isDuplicate ? IdGenerator.getUniqueID() : r.id,
           name: r.name,
           description: r.description,
           servingsCount: r.servingsCount,

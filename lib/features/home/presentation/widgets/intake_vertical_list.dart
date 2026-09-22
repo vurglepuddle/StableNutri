@@ -25,6 +25,9 @@ import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart'
 import 'package:opennutritracker/features/home/presentation/screens/import_meal_scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:opennutritracker/features/recipes/domain/recipe_from_intakes.dart';
+import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
+import 'package:opennutritracker/features/recipes/presentation/screens/recipe_builder_screen.dart';
 
 class IntakeVerticalList extends StatefulWidget {
   final DateTime day;
@@ -103,6 +106,22 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
       0,
       (previousValue, element) => previousValue + element.totalKcal,
     );
+  }
+
+  Future<void> _saveAsRecipe(BuildContext context) async {
+    try {
+      final draft = recipeFromIntakes(widget.intakeList, name: widget.title);
+      await Navigator.of(context).pushNamed(
+        NavigationOptions.recipeBuilderRoute,
+        arguments: RecipeBuilderArguments(existing: draft),
+      );
+      if (!context.mounted) return;
+      locator<RecipesBloc>().add(const LoadRecipesEvent());
+    } on FormatException {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).saveMealAsRecipeNeedsWeight)),
+      );
+    }
   }
 
   double get totalCarbsGram {
@@ -220,6 +239,8 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                   onSelected:
                       (VerticalListPopupMenuSelections selection) async {
                         switch (selection) {
+                          case VerticalListPopupMenuSelections.onSaveRecipe:
+                            await _saveAsRecipe(context);
                           case VerticalListPopupMenuSelections.onCopy:
                             final copyDialog = CopyDialog(
                               initialValue: widget.addMealType,
@@ -294,6 +315,14 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                       },
                   itemBuilder: (BuildContext context) =>
                       <PopupMenuEntry<VerticalListPopupMenuSelections>>[
+                        if (widget.intakeList.isNotEmpty)
+                          PopupMenuItem<VerticalListPopupMenuSelections>(
+                            value: VerticalListPopupMenuSelections.onSaveRecipe,
+                            child: Semantics(
+                              identifier: 'intake-section-save-recipe',
+                              child: Text(S.of(context).saveMealAsRecipeLabel),
+                            ),
+                          ),
                         if (widget.onCopyIntakeCallback != null &&
                             totalKcal > 0)
                           PopupMenuItem<VerticalListPopupMenuSelections>(

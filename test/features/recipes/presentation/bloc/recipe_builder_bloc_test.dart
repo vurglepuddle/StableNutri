@@ -184,7 +184,7 @@ void main() {
         await Future<void>.delayed(Duration.zero);
 
         expect(bloc.state.isExistingRecipe, isFalse);
-        expect(bloc.state.id, isNull);
+        expect(bloc.state.id, isNotEmpty);
         expect(bloc.state.name, 'Cake (copy)');
       },
     );

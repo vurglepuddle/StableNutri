@@ -14,7 +14,7 @@ part 'export_import_event.dart';
 part 'export_import_state.dart';
 
 class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
-  static const exportZipFileName = 'opennutritracker-export.zip';
+  static const exportZipFileName = 'stable-export.zip';
   static const userActivityJsonFileName = 'user_activity.json';
   static const userIntakeJsonFileName = 'user_intake.json';
   static const trackedDayJsonFileName = 'user_tracked_day.json';

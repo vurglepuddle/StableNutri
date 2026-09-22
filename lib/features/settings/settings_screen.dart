@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
-import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
+import 'package:opennutritracker/core/presentation/widgets/privacy_notice_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -20,7 +20,6 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
-import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -525,8 +524,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _SettingsTile(
                     palette: palette,
                     icon: Icons.policy_rounded,
-                    title: S.of(context).settingsPrivacySettings,
-                    onTap: () => _showPrivacyDialog(context),
+                    title: S.of(context).settingsPrivacyNoticeLabel,
+                    onTap: () => showPrivacyNoticeDialog(context),
                   ),
                   _SettingsTile(
                     palette: palette,
@@ -544,20 +543,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   _SettingsTile(
                     palette: palette,
-                    icon: Icons.bug_report_rounded,
-                    title: S.of(context).settingsReportErrorLabel,
-                    onTap: () => _showReportErrorDialog(context),
-                  ),
-                  _SettingsTile(
-                    palette: palette,
-                    icon: Icons.error_outline_rounded,
+                    icon: Icons.info_outline_rounded,
                     title: S.of(context).settingAboutLabel,
                     onTap: () => _showAboutDialog(context),
                   ),
                 ],
               ),
-              const SizedBox(height: Dimens.spacing24),
-              AppBannerVersion(versionNumber: state.versionNumber),
+              const SizedBox(height: Dimens.spacing8),
             ],
           );
         }
@@ -1314,83 +1306,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showReportErrorDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(S.of(context).settingsReportErrorLabel),
-          content: Text(S.of(context).reportErrorDialogText),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(S.of(context).dialogCancelLabel),
-            ),
-            TextButton(
-              onPressed: () async {
-                _reportError(context);
-                Navigator.of(context).pop();
-              },
-              child: Text(S.of(context).dialogOKLabel),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _reportError(BuildContext context) async {
-    final reportUri = Uri.parse(
-      "mailto:${AppConst.reportErrorEmail}?subject=Report_Error",
-    );
-
-    if (await canLaunchUrl(reportUri)) {
-      launchUrl(reportUri);
-    } else {
-      // Cannot open email app, show error snackbar
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).errorOpeningEmail)),
-        );
-      }
-    }
-  }
-
-  void _showPrivacyDialog(BuildContext context) async {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: Dimens.shapeL,
-          title: Text(S.of(context).settingsPrivacySettings),
-          content: Text(S.of(context).privacyNoTelemetryBody),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(S.of(context).dialogOKLabel),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _showAboutDialog(BuildContext context) async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     if (context.mounted) {
       showAboutDialog(
         context: context,
         applicationName: S.of(context).appTitle,
-        applicationIcon: SizedBox(
-          width: 40,
-          child: Image.asset(
-            Theme.of(context).brightness == Brightness.dark
-                ? 'assets/icon/ont_logo_square_color_white_1024x1024.png'
-                : 'assets/icon/ont_logo_square_color_back_1024x1024.png',
-          ),
-        ),
         applicationVersion: packageInfo.version,
         applicationLegalese: S.of(context).appLicenseLabel,
         children: [
@@ -1406,18 +1327,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
-          TextButton(
-            onPressed: () {
-              _launchPrivacyPolicyUrl(context);
-            },
-            child: Row(
-              children: [
-                const Icon(Icons.policy_outlined),
-                const SizedBox(width: 8.0),
-                Text(S.of(context).privacyPolicyLabel),
-              ],
-            ),
-          ),
         ],
       );
     }
@@ -1425,11 +1334,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _launchSourceCodeUrl(BuildContext context) async {
     final sourceCodeUri = Uri.parse(AppConst.sourceCodeUrl);
-    _launchUrl(context, sourceCodeUri);
-  }
-
-  void _launchPrivacyPolicyUrl(BuildContext context) async {
-    final sourceCodeUri = Uri.parse(URLConst.privacyPolicyURLEn);
     _launchUrl(context, sourceCodeUri);
   }
 

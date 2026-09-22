@@ -8,7 +8,6 @@ import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
-import 'package:opennutritracker/core/presentation/main_navigation.dart';
 import 'package:opennutritracker/core/presentation/widgets/calories_profile_info_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -105,7 +104,7 @@ class _ProfilePageState extends State<ProfilePage> {
           bmiValue: userBMIEntity.bmiValue,
           nutritionalStatus: userBMIEntity.nutritionalStatus,
         ),
-        const SizedBox(height: Dimens.spacing32),
+        const SizedBox(height: Dimens.spacing24),
         _SectionHeader(label: S.of(context).goalLabel, palette: palette),
         const SizedBox(height: Dimens.spacing12),
         _ProfileGroup(
@@ -311,31 +310,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   _showCaloriesProfileDialog(context, user);
                 },
               ),
-          ],
-        ),
-        const SizedBox(height: Dimens.spacing24),
-        _SectionHeader(label: S.of(context).libraryLabel, palette: palette),
-        const SizedBox(height: Dimens.spacing12),
-        _ProfileGroup(
-          palette: palette,
-          tiles: [
-            _ProfileTile(
-              identifier: 'profile-recipes',
-              palette: palette,
-              icon: Icons.menu_book_rounded,
-              title: S.of(context).libraryLabel,
-              showChevron: true,
-              onTap: () {
-                final mainNavigation = MainNavigationScope.maybeOf(context);
-                if (mainNavigation != null) {
-                  mainNavigation.selectDestination(MainDestination.library);
-                } else {
-                  Navigator.of(
-                    context,
-                  ).pushNamed(NavigationOptions.recipesRoute);
-                }
-              },
-            ),
           ],
         ),
         const SizedBox(height: Dimens.spacing24),

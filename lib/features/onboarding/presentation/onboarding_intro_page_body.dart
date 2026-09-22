@@ -1,11 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
-import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
-import 'package:opennutritracker/core/utils/app_const.dart';
-import 'package:opennutritracker/core/utils/url_const.dart';
+import 'package:opennutritracker/core/presentation/widgets/privacy_notice_dialog.dart';
+import 'package:opennutritracker/core/presentation/widgets/stable_wordmark.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class OnboardingIntroPageBody extends StatefulWidget {
   const OnboardingIntroPageBody({
@@ -31,72 +29,61 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: AppConst.getVersionNumber(),
-      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        if (snapshot.hasData) {
-          return Column(
-            children: [
-              AppBannerVersion(versionNumber: snapshot.requireData),
-              const SizedBox(height: 32.0),
-              Text(
-                S.of(context).appDescription,
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32.0),
-              Text(
-                S.of(context).onboardingIntroDescription,
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16.0),
-              ListTile(
-                onTap: () => _togglePolicy(),
-                title: Text.rich(
-                  textAlign: TextAlign.center,
-                  TextSpan(
-                    text: S.of(context).readLabel,
-                    style: Theme.of(context).textTheme.bodySmall,
-                    children: [
-                      TextSpan(
-                        text: ' ${S.of(context).privacyPolicyLabel}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          decoration: TextDecoration.underline,
-                        ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            _launchUrl();
-                          },
-                      ),
-                    ],
+    return Column(
+      children: [
+        const StableWordmark(height: 48),
+        const SizedBox(height: 32.0),
+        Text(
+          S.of(context).appDescription,
+          style: Theme.of(context).textTheme.bodyLarge,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 32.0),
+        Text(
+          S.of(context).onboardingIntroDescription,
+          style: Theme.of(context).textTheme.bodyLarge,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16.0),
+        ListTile(
+          onTap: () => _togglePolicy(),
+          title: Text.rich(
+            textAlign: TextAlign.center,
+            TextSpan(
+              text: S.of(context).readLabel,
+              style: Theme.of(context).textTheme.bodySmall,
+              children: [
+                TextSpan(
+                  text: ' ${S.of(context).settingsPrivacyNoticeLabel}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    decoration: TextDecoration.underline,
                   ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => showPrivacyNoticeDialog(context),
                 ),
-                leading: Semantics(
-                  identifier: 'onboarding-checkbox-privacy',
-                  child: Checkbox(
-                    value: _acceptedPolicy,
-                    onChanged: (value) {
-                      if (value != null) {
-                        _togglePolicy();
-                      }
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8.0),
-              TextButton.icon(
-                onPressed: () => _openSources(context),
-                icon: const Icon(Icons.menu_book_outlined),
-                label: Text(S.of(context).onboardingIntroSourcesLinkLabel),
-              ),
-            ],
-          );
-        } else {
-          return const SizedBox();
-        }
-      },
+              ],
+            ),
+          ),
+          leading: Semantics(
+            identifier: 'onboarding-checkbox-privacy',
+            child: Checkbox(
+              value: _acceptedPolicy,
+              onChanged: (value) {
+                if (value != null) {
+                  _togglePolicy();
+                }
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        TextButton.icon(
+          onPressed: () => _openSources(context),
+          icon: const Icon(Icons.menu_book_outlined),
+          label: Text(S.of(context).onboardingIntroSourcesLinkLabel),
+        ),
+      ],
     );
   }
 
@@ -111,12 +98,5 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const SourcesScreen()));
-  }
-
-  Future<void> _launchUrl() async {
-    if (!await launchUrl(
-      Uri.parse(URLConst.privacyPolicyURLEn),
-      mode: LaunchMode.externalApplication,
-    )) {}
   }
 }

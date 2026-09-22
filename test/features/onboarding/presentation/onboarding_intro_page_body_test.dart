@@ -2,21 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 void main() {
-  setUpAll(() {
-    // The widget shows AppConst.getVersionNumber() in a FutureBuilder, which
-    // calls PackageInfo.fromPlatform(). Mock it so the widget renders in tests.
-    PackageInfo.setMockInitialValues(
-      appName: 'OpenNutriTracker',
-      packageName: 'com.example.opennutritracker',
-      version: '1.2.0',
-      buildNumber: '46',
-      buildSignature: '',
-    );
-  });
-
   Future<void> pumpIntroPage(
     WidgetTester tester, {
     required void Function(bool acceptedPolicy, bool acceptedData)
@@ -31,7 +18,6 @@ void main() {
         ),
       ),
     );
-    // Let the version-number FutureBuilder resolve before continuing.
     await tester.pumpAndSettle();
   }
 

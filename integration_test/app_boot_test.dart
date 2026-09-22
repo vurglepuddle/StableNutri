@@ -67,7 +67,7 @@ void main() {
       // Localisation: a verbatim copy of the English ARB entry for
       // appDescription, rendered by the intro page body.
       const appDescription =
-          'OpenNutriTracker is a free and open-source calorie and '
+          'Stable is a free and open-source calorie and '
           'nutrient tracker that respects your privacy.';
       expect(find.text(appDescription), findsOneWidget,
           reason: 'the localised appDescription should render on the intro page');

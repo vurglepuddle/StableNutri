@@ -6,8 +6,8 @@ import 'package:opennutritracker/core/utils/csv_meal_importer.dart';
 import 'package:opennutritracker/core/utils/csv_recipe_importer.dart';
 
 class DownloadSampleCsvUsecase {
-  static const mealsSampleFileName = 'opennutritracker-meals-sample.csv';
-  static const recipesSampleFileName = 'opennutritracker-recipes-sample.csv';
+  static const mealsSampleFileName = 'stable-meals-sample.csv';
+  static const recipesSampleFileName = 'stable-recipes-sample.csv';
 
   /// Writes the bundled custom-meal sample CSV to a user-chosen location.
   /// Returns true when the save was confirmed, false when the user cancelled.

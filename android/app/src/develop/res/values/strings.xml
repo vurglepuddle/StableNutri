@@ -6,5 +6,5 @@
          Combined with the .develop applicationId suffix in
          android/app/build.gradle, both installs can coexist on the same
          device and remain easy to tell apart. -->
-    <string name="app_name">ONT Develop</string>
+    <string name="app_name">Stable Dev</string>
 </resources>

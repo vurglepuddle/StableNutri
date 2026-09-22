@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
@@ -5,6 +8,8 @@ import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/utils/locale_units.dart';
 import 'package:opennutritracker/core/utils/bounds/ranges_const.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
@@ -15,17 +20,56 @@ part 'onboarding_event.dart';
 part 'onboarding_state.dart';
 
 class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
-  final userSelection = UserDataMaskEntity();
+  UserDataMaskEntity userSelection = UserDataMaskEntity();
   final AddUserUsecase _addUserUsecase;
   final AddConfigUsecase _addConfigUsecase;
+  final GetConfigUsecase _getConfigUsecase;
+  final String Function() _localeName;
 
-  OnboardingBloc(this._addUserUsecase, this._addConfigUsecase)
-    : super(OnboardingInitialState()) {
+  OnboardingBloc(
+    this._addUserUsecase,
+    this._addConfigUsecase,
+    this._getConfigUsecase, {
+    String Function()? localeName,
+  }) : _localeName = localeName ?? (() => Platform.localeName),
+       super(OnboardingInitialState()) {
     on<LoadOnboardingEvent>((event, emit) async {
       emit(OnboardingLoadingState());
+      final selection = userSelection;
+      final explicitUnits = await _getConfigUsecase
+          .hasExplicitUnitPreferences();
+      final explicitSources = await _getConfigUsecase
+          .hasExplicitFoodSourceToggles();
+      final config = await _getConfigUsecase.getConfig();
+      // A previous entry can finish reading after a new profile starts setup.
+      if (emit.isDone || !identical(selection, userSelection)) return;
 
-      emit(OnboardingLoadedState());
-    });
+      final locale = _localeName();
+      final defaults = LocaleUnitDefaults.fromLocale(locale);
+      selection.heightUsesImperial = explicitUnits
+          ? config.usesImperialHeightUnits
+          : defaults.heightUsesImperial;
+      selection.bodyWeightUnit = explicitUnits
+          ? config.bodyWeightUnit
+          : defaults.bodyWeightUnit;
+      selection.foodUsesImperial = explicitUnits
+          ? config.usesImperialFoodUnits
+          : defaults.foodUsesImperial;
+      selection.foodSourceToggles = explicitSources
+          ? Map<String, bool>.from(config.foodSourceToggles)
+          : defaultFoodSourceToggles(locale);
+      // These settings are shared by all profiles, so keep their saved values.
+      selection.appTheme = config.appTheme;
+      selection.dailyReminderEnabled = config.notificationsEnabled;
+      selection.useMaterialYou = config.useMaterialYou;
+      selection.accentColor = config.accentColor;
+      emit(OnboardingLoadedState(selection));
+    }, transformer: restartable());
+  }
+
+  /// Clear personal answers synchronously before the screen's first build.
+  void resetSelection() {
+    userSelection = UserDataMaskEntity();
   }
 
   Future<void> saveOnboardingData(

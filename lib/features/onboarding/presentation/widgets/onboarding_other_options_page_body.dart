@@ -9,8 +9,8 @@ import 'package:provider/provider.dart';
 
 /// Onboarding "Other options" page: app theme, the food databases used by
 /// search, and the daily logging reminder. Everything here is optional —
-/// the page is pre-filled with the defaults (system theme, all sources on,
-/// no reminder) and can be skipped by tapping next; each choice can be
+/// the page starts with saved settings and regional food-source defaults
+/// and can be skipped by tapping next; each choice can be
 /// revisited later in Settings.
 class OnboardingOtherOptionsPageBody extends StatefulWidget {
   final Function(

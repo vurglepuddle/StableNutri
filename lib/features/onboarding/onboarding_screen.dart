@@ -50,7 +50,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final _defaultImageWidget = null;
 
-  bool _introPageButtonActive = false;
   bool _firstPageButtonActive = false;
   bool _secondPageButtonActive = false;
   bool _thirdPageButtonActive = false;
@@ -172,16 +171,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         title: S.of(context).onboardingWelcomeLabel,
         decoration: _pageDecoration,
         image: _defaultImageWidget,
-        bodyWidget: OnboardingIntroPageBody(
-          setPageContent: _setIntroPageData,
-          initialAcceptedPolicy: _introPageButtonActive,
-          initialAcceptedDataCollection: selection.acceptDataCollection,
-        ),
+        bodyWidget: const OnboardingIntroPageBody(),
         footer: HighlightButton(
           buttonLabel: S.of(context).buttonStartLabel,
           onButtonPressed: () => _scrollToPage(1),
-          buttonActive: _introPageButtonActive,
-          inactiveMessage: S.of(context).onboardingBlockedPolicySnack,
+          buttonActive: true,
         ),
       ),
       PageViewModel(
@@ -356,15 +350,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } finally {
       _confirmingMeasurements = false;
     }
-  }
-
-  void _setIntroPageData(bool active, bool acceptedDataCollection) {
-    setState(() {
-      _onboardingBloc.userSelection.acceptDataCollection =
-          acceptedDataCollection;
-
-      _introPageButtonActive = active;
-    });
   }
 
   void _setFirstPageData(

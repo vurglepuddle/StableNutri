@@ -10,7 +10,6 @@ import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart
 import 'package:opennutritracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
-import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_first_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_fourth_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_second_page_body.dart';
@@ -34,30 +33,6 @@ void main() {
     supportedLocales: S.supportedLocales,
     home: Scaffold(body: child),
   );
-
-  group('OnboardingIntroPageBody restoration', () {
-    testWidgets('reflects initialAcceptedPolicy in the policy checkbox', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        wrap(
-          OnboardingIntroPageBody(
-            setPageContent: (_, _) {},
-            initialAcceptedPolicy: true,
-            initialAcceptedDataCollection: true,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Only the policy checkbox is rendered now; the data-collection consent
-      // was removed along with the telemetry it gated, and a restored `true`
-      // has nothing left to restore into.
-      final boxes = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
-      expect(boxes, hasLength(1));
-      expect(boxes.single.value, isTrue);
-    });
-  });
 
   group('OnboardingFirstPageBody restoration', () {
     testWidgets('reflects initialGender on the correct ChoiceChip', (
@@ -197,18 +172,6 @@ void main() {
   });
 
   group('Default values (no initial* args)', () {
-    testWidgets('intro page: the policy checkbox starts unchecked', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        wrap(OnboardingIntroPageBody(setPageContent: (_, _) {})),
-      );
-      await tester.pumpAndSettle();
-
-      final boxes = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
-      expect(boxes.every((b) => b.value == false), isTrue);
-    });
-
     testWidgets('first page: no chip selected, date field empty', (
       tester,
     ) async {

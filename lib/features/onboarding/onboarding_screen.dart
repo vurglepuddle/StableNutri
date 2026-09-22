@@ -24,6 +24,9 @@ import 'package:opennutritracker/features/onboarding/presentation/widgets/highli
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_first_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_second_page_body.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:opennutritracker/core/utils/bounds/validator.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/confirm_measurements.dart';
+import 'package:opennutritracker/features/onboarding/domain/entity/onboarding_calorie_breakdown.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -36,6 +39,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   late OnboardingBloc _onboardingBloc;
   final _introKey = GlobalKey<IntroductionScreenState>();
   final _measurementErrors = ValueNotifier<int>(0);
+  final _confirmedMeasurements = <(String, double)>{};
+  bool _confirmingMeasurements = false;
 
   final _pageDecoration = const PageDecoration(
     safeArea: 0,
@@ -158,6 +163,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   List<PageViewModel> _getPageViewModels() {
     final selection = _onboardingBloc.userSelection;
+    final allowBmi =
+        selection.birthday != null &&
+        ValueValidator.ageInYears(selection.birthday!) >= 20;
+    final user = selection.toUserEntity();
     return <PageViewModel>[
       PageViewModel(
         title: S.of(context).onboardingWelcomeLabel,
@@ -199,6 +208,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         decoration: _pageDecoration,
         image: _defaultImageWidget,
         bodyWidget: OnboardingSecondPageBody(
+          showWeightRange: allowBmi,
           showErrorsSignal: _measurementErrors,
           setButtonContent: _setSecondPageData,
           initialHeightCm: selection.height,
@@ -210,7 +220,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         footer: HighlightButton(
           buttonLabel: S.of(context).buttonNextLabel,
-          onButtonPressed: () => _scrollToPage(3),
+          onButtonPressed: _continueFromMeasurements,
           buttonActive: _secondPageButtonActive,
           inactiveMessage: S.of(context).onboardingBlockedBodySnack,
           onBlockedPressed: () => _measurementErrors.value++,
@@ -238,6 +248,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         decoration: _pageDecoration,
         image: _defaultImageWidget,
         bodyWidget: OnboardingFourthPageBody(
+          heightCm: selection.height,
+          weightKg: selection.weight,
+          targetWeightKg: selection.targetWeight,
+          allowBmiSuggestion: allowBmi,
           setButtonContent: _setFourthPageButton,
           initialGoal: selection.goal,
         ),
@@ -275,6 +289,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         decoration: _pageDecoration,
         image: _defaultImageWidget,
         bodyWidget: OnboardingOverviewPageBody(
+          breakdown: user == null
+              ? null
+              : OnboardingCalorieBreakdown.fromUser(user),
           calorieGoalDayString:
               _onboardingBloc.getOverviewCalorieGoal()?.toInt().toString() ??
               "?",
@@ -304,8 +321,41 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _scrollToPage(int page) {
-    FocusScope.of(context).requestFocus(FocusNode()); // Dismiss Keyboard
+    FocusScope.of(context).unfocus();
     _introKey.currentState?.animateScroll(page);
+  }
+
+  Future<void> _continueFromMeasurements() async {
+    if (_confirmingMeasurements || !_secondPageButtonActive) return;
+    final selection = _onboardingBloc.userSelection;
+    final height = selection.height;
+    final weight = selection.weight;
+    final target = selection.targetWeight;
+    if (height == null || weight == null) return;
+    _confirmingMeasurements = true;
+    FocusScope.of(context).unfocus();
+    try {
+      final keep = await confirmOnboardingMeasurements(
+        context,
+        heightCm: height,
+        weightKg: weight,
+        targetWeightKg: target,
+        imperialHeight: selection.heightUsesImperial,
+        weightUnit: selection.bodyWeightUnit,
+        confirmed: _confirmedMeasurements,
+      );
+      if (keep &&
+          mounted &&
+          identical(selection, _onboardingBloc.userSelection) &&
+          selection.height == height &&
+          selection.weight == weight &&
+          selection.targetWeight == target &&
+          _secondPageButtonActive) {
+        _scrollToPage(3);
+      }
+    } finally {
+      _confirmingMeasurements = false;
+    }
   }
 
   void _setIntroPageData(bool active, bool acceptedDataCollection) {

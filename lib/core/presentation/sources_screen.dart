@@ -40,6 +40,12 @@ class SourcesScreen extends StatelessWidget {
                 'classification. WHO Global Health Observatory.',
             url: URLConst.sourceBmiWhoURL,
           ),
+          _SourceLink(
+            citation:
+                'Centers for Disease Control and Prevention. Adult BMI '
+                'Categories (ages 20 and older). BMI is a screening measure.',
+            url: 'https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html',
+          ),
         ],
       ),
       _SourceEntry(

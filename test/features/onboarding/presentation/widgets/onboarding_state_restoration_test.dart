@@ -152,9 +152,7 @@ void main() {
   });
 
   group('OnboardingThirdPageBody restoration', () {
-    testWidgets('reflects initialActivity on the correct ChoiceChip', (
-      tester,
-    ) async {
+    testWidgets('reflects initialActivity on the correct card', (tester) async {
       await tester.pumpWidget(
         wrap(
           OnboardingThirdPageBody(
@@ -165,14 +163,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final chips = tester
-          .widgetList<ChoiceChip>(find.byType(ChoiceChip))
-          .toList();
-      // Order is sedentary, lowActive, active, veryActive.
-      expect(chips[0].selected, isFalse);
-      expect(chips[1].selected, isFalse);
-      expect(chips[2].selected, isTrue);
-      expect(chips[3].selected, isFalse);
+      for (final suffix in ['sedentary', 'low', 'active', 'very']) {
+        final card = tester.widget<Semantics>(
+          find.bySemanticsIdentifier('onboarding-activity-$suffix'),
+        );
+        expect(card.properties.selected, suffix == 'active');
+      }
     });
   });
 

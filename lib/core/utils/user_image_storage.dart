@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -63,12 +63,28 @@ class UserImageStorage {
   static bool isUserImagePath(String relative) =>
       sanitizeRelative(relative) != null;
 
+  /// The documents directory, resolved once per launch. Asking the platform
+  /// for it on every list row made each photo thumbnail wait a frame or more
+  /// before it could appear. It only changes between launches (iOS).
+  static String? _documentsPath;
+
+  @visibleForTesting
+  static void resetDocumentsPathCache() => _documentsPath = null;
+
   /// Absolute path that corresponds to `relativePath` inside the
   /// app's private documents directory. Use this for `File(...)`
   /// operations.
   static Future<String> absolutePath(String relativePath) async {
-    final dir = await getApplicationDocumentsDirectory();
-    return '${dir.path}/$relativePath';
+    final base = _documentsPath ??=
+        (await getApplicationDocumentsDirectory()).path;
+    return '$base/$relativePath';
+  }
+
+  /// [absolutePath] without waiting, once the documents directory is known;
+  /// null before the first [absolutePath] call has resolved it.
+  static String? absolutePathIfReady(String relativePath) {
+    final base = _documentsPath;
+    return base == null ? null : '$base/$relativePath';
   }
 
   /// Absolute path to the relevant images directory itself. Created

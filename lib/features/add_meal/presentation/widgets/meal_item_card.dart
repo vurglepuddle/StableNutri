@@ -1,12 +1,10 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
+import 'package:opennutritracker/core/presentation/widgets/thumbnail_image.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
@@ -111,18 +109,31 @@ class MealItemCard extends StatelessWidget {
     String? emoji,
   ) {
     final radius = BorderRadius.circular(Dimens.radiusM);
+    final fallback = _fallbackThumbnail(
+      radius,
+      palette,
+      accent,
+      isRecipe,
+      emoji,
+    );
     if (mealEntity.thumbnailImageUrl != null) {
-      return ClipRRect(
+      return ThumbnailImage(
+        url: mealEntity.thumbnailImageUrl,
+        size: Dimens.mealThumb,
         borderRadius: radius,
-        child: CachedNetworkImage(
-          cacheManager: locator<CacheManager>(),
-          fit: BoxFit.cover,
-          width: Dimens.mealThumb,
-          height: Dimens.mealThumb,
-          imageUrl: mealEntity.thumbnailImageUrl ?? "",
-        ),
+        fallback: fallback,
       );
     }
+    return fallback;
+  }
+
+  Widget _fallbackThumbnail(
+    BorderRadius radius,
+    AppPalette palette,
+    Color accent,
+    bool isRecipe,
+    String? emoji,
+  ) {
     return Container(
       width: Dimens.mealThumb,
       height: Dimens.mealThumb,

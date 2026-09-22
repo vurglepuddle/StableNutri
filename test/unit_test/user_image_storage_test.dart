@@ -71,6 +71,7 @@ void main() {
   setUp(() async {
     tempRoot = await Directory.systemTemp.createTemp('ont_user_img_test_');
     PathProviderPlatform.instance = _FakePathProvider(tempRoot.path);
+    UserImageStorage.resetDocumentsPathCache();
   });
 
   tearDown(() async {

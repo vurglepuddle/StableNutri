@@ -76,7 +76,7 @@ dependencies:
   # deliberately mirrors flutter_zxing's own so the two can't diverge.
   camera: ">=0.11.0 <0.13.0"
   qr_flutter: ^4.1.0
-  share_plus: ^10.0.0
+  share_plus: ^12.0.2
   image_picker: ^1.1.2
   flutter_image_compress: ^2.4.0
 
@@ -108,6 +108,8 @@ dev_dependencies:
   # can stub PathProviderPlatform.instance for filesystem round-trips.
   path_provider_platform_interface: ^2.1.2
   plugin_platform_interface: ^2.1.8
+  # Exercise Android/iOS share payloads independently of the desktop test host.
+  share_plus_platform_interface: ^6.1.0
 
 flutter:
   generate: true

@@ -120,13 +120,17 @@ class _ShareQrDialogState extends State<ShareQrDialog> {
       final tempDir = await getTemporaryDirectory();
       final file = File('${tempDir.path}/${widget.fileBaseName}.png');
       await file.writeAsBytes(qrBytes);
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: widget.code,
-        sharePositionOrigin: origin,
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: widget.code,
+          sharePositionOrigin: origin,
+        ),
       );
     } catch (_) {
-      await Share.share(widget.code, sharePositionOrigin: origin);
+      await SharePlus.instance.share(
+        ShareParams(text: widget.code, sharePositionOrigin: origin),
+      );
     }
   }
 

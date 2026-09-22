@@ -26,8 +26,8 @@ class NotificationService {
   Future<void> initialize() async {
     if (_initialized) return;
     tz.initializeTimeZones();
-    final String timeZoneName = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(timeZoneName));
+    final timeZone = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(timeZone.identifier));
 
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
@@ -42,7 +42,7 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _plugin.initialize(initSettings);
+    await _plugin.initialize(settings: initSettings);
     _initialized = true;
     _log.fine('NotificationService initialized');
   }
@@ -82,7 +82,7 @@ class NotificationService {
     required String channelDescription,
   }) async {
     await _ensureInitialized();
-    await _plugin.cancel(_dailyReminderId);
+    await _plugin.cancel(id: _dailyReminderId);
 
     final androidDetails = AndroidNotificationDetails(
       _channelId,
@@ -104,11 +104,11 @@ class NotificationService {
     );
 
     await _plugin.zonedSchedule(
-      _dailyReminderId,
-      title,
-      body,
-      scheduledDate,
-      details,
+      id: _dailyReminderId,
+      title: title,
+      body: body,
+      scheduledDate: scheduledDate,
+      notificationDetails: details,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
     );
@@ -118,7 +118,7 @@ class NotificationService {
   /// Cancels any pending daily reminder.
   Future<void> cancelDailyReminder() async {
     await _ensureInitialized();
-    await _plugin.cancel(_dailyReminderId);
+    await _plugin.cancel(id: _dailyReminderId);
     _log.fine('Daily reminder cancelled');
   }
 
@@ -134,7 +134,7 @@ class NotificationService {
     required String channelDescription,
   }) async {
     await _ensureInitialized();
-    await _plugin.cancel(_fastingCompleteId);
+    await _plugin.cancel(id: _fastingCompleteId);
 
     final scheduled = tz.TZDateTime.from(when, tz.local);
     final androidDetails = AndroidNotificationDetails(
@@ -151,11 +151,11 @@ class NotificationService {
     );
 
     await _plugin.zonedSchedule(
-      _fastingCompleteId,
-      title,
-      body,
-      scheduled,
-      details,
+      id: _fastingCompleteId,
+      title: title,
+      body: body,
+      scheduledDate: scheduled,
+      notificationDetails: details,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
     );
     _log.fine('Fasting-complete notification scheduled for $scheduled');
@@ -164,7 +164,7 @@ class NotificationService {
   /// Cancels any pending fasting-complete notification.
   Future<void> cancelFastingComplete() async {
     await _ensureInitialized();
-    await _plugin.cancel(_fastingCompleteId);
+    await _plugin.cancel(id: _fastingCompleteId);
     _log.fine('Fasting-complete notification cancelled');
   }
 

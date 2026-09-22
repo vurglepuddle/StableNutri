@@ -1,10 +1,10 @@
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 
 class Ranges {
-  static const Duration maxDurationForBirthdayIntoTheFuture = Duration(
-    days: -1,
-  );
-  static const Duration maxAge = Duration(days: 365 * 130);
+  // Birthday limits adopted from the upstream onboarding flow.
+  static const int minAgeYears = 13;
+  static const int maxAgeYears = 130;
+  static const int adultAgeYears = 18;
 
   static const double maxHeight = 300;
   static const double minHeight = 30;

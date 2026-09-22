@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/presentation/widgets/calories_profile_info
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/core/utils/bounds/validator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
@@ -512,13 +513,15 @@ class _ProfilePageState extends State<ProfilePage> {
     BuildContext context,
     UserEntity userEntity,
   ) async {
+    final now = DateTime.now();
     final selectedDate = await showDatePicker(
       context: context,
-      initialDate: userEntity.birthday,
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
+      initialDatePickerMode: DatePickerMode.year,
+      initialDate: ValueValidator.clampBirthday(userEntity.birthday, now: now),
+      firstDate: ValueValidator.getFirstDate(now: now),
+      lastDate: ValueValidator.getLastDate(now: now),
     );
-    if (selectedDate != null) {
+    if (selectedDate != null && mounted) {
       userEntity.birthday = selectedDate;
       _profileBloc.updateUser(userEntity);
     }

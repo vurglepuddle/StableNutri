@@ -35,6 +35,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   late OnboardingBloc _onboardingBloc;
   final _introKey = GlobalKey<IntroductionScreenState>();
+  final _measurementErrors = ValueNotifier<int>(0);
 
   final _pageDecoration = const PageDecoration(
     safeArea: 0,
@@ -57,6 +58,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _onboardingBloc.resetSelection();
     _onboardingBloc.add(LoadOnboardingEvent());
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _measurementErrors.dispose();
+    super.dispose();
   }
 
   @override
@@ -165,6 +172,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           buttonLabel: S.of(context).buttonStartLabel,
           onButtonPressed: () => _scrollToPage(1),
           buttonActive: _introPageButtonActive,
+          inactiveMessage: S.of(context).onboardingBlockedPolicySnack,
         ),
       ),
       PageViewModel(
@@ -182,6 +190,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           buttonLabel: S.of(context).buttonNextLabel,
           onButtonPressed: () => _scrollToPage(2),
           buttonActive: _firstPageButtonActive,
+          inactiveMessage: S.of(context).onboardingBlockedProfileSnack,
         ),
       ),
       PageViewModel(
@@ -190,6 +199,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         decoration: _pageDecoration,
         image: _defaultImageWidget,
         bodyWidget: OnboardingSecondPageBody(
+          showErrorsSignal: _measurementErrors,
           setButtonContent: _setSecondPageData,
           initialHeightCm: selection.height,
           initialWeightKg: selection.weight,
@@ -202,6 +212,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           buttonLabel: S.of(context).buttonNextLabel,
           onButtonPressed: () => _scrollToPage(3),
           buttonActive: _secondPageButtonActive,
+          inactiveMessage: S.of(context).onboardingBlockedBodySnack,
+          onBlockedPressed: () => _measurementErrors.value++,
         ),
       ),
       PageViewModel(
@@ -217,6 +229,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           buttonLabel: S.of(context).buttonNextLabel,
           onButtonPressed: () => _scrollToPage(4),
           buttonActive: _thirdPageButtonActive,
+          inactiveMessage: S.of(context).onboardingBlockedActivitySnack,
         ),
       ),
       PageViewModel(
@@ -232,6 +245,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           buttonLabel: S.of(context).buttonNextLabel,
           onButtonPressed: () => _scrollToPage(5),
           buttonActive: _fourthPageButtonActive,
+          inactiveMessage: S.of(context).onboardingBlockedGoalSnack,
         ),
       ),
       PageViewModel(
@@ -283,6 +297,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             _onOverviewStartButtonPressed(context);
           },
           buttonActive: _overviewPageButtonActive,
+          inactiveMessage: S.of(context).onboardingBlockedOverviewSnack,
         ),
       ),
     ];

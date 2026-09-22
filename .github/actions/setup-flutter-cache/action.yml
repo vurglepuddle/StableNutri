@@ -2,9 +2,9 @@ name: Setup Flutter
 description: Installs Flutter via subosito/flutter-action and uses its built-in SDK cache.
 inputs:
   flutter-version:
-    description: Flutter SDK version.
+    description: Flutter SDK version. Defaults to the pin in .fvmrc.
     required: false
-    default: '3.41.7'
+    default: ''
   channel:
     description: Flutter channel.
     required: false
@@ -12,9 +12,18 @@ inputs:
 runs:
   using: composite
   steps:
+    # .fvmrc is the only place the version is written, so CI cannot drift
+    # from what developers use.
+    - name: Read pinned Flutter version
+      id: pin
+      shell: bash
+      run: |
+        version='${{ inputs.flutter-version }}'
+        if [ -z "$version" ]; then version=$(jq -r .flutter .fvmrc); fi
+        echo "version=$version" >> "$GITHUB_OUTPUT"
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: ${{ inputs.flutter-version }}
+        flutter-version: ${{ steps.pin.outputs.version }}
         channel: ${{ inputs.channel }}
         cache: true

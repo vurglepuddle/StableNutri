@@ -33,7 +33,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     this._getKcalGoalUsecase,
   ) : super(ProfileInitial()) {
     on<LoadProfileEvent>((event, emit) async {
-      emit(ProfileLoadingState());
+      // A refresh keeps You on screen; the spinner replaced the whole page
+      // and sent it back to the top.
+      if (event.reset || state is! ProfileLoadedState) {
+        emit(ProfileLoadingState());
+      }
 
       final user = await _getUserUsecase.getUserData();
       final userBMIValue = BMICalc.getBMI(user);

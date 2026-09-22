@@ -61,9 +61,9 @@ class ProfileSwitchCoordinator {
     locator<HomeBloc>().add(const LoadItemsEvent(reset: true));
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
     locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
-    locator<ProfileBloc>().add(LoadProfileEvent());
+    locator<ProfileBloc>().add(LoadProfileEvent(reset: true));
     locator<RecipesBloc>().add(LoadRecipesEvent());
     locator<CustomMealsBloc>().add(LoadCustomMealsEvent());
-    locator<SettingsBloc>().add(LoadSettingsEvent());
+    locator<SettingsBloc>().add(const LoadSettingsEvent(reset: true));
   }
 }

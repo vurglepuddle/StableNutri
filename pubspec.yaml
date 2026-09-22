@@ -77,8 +77,8 @@ dependencies:
   camera: ">=0.11.0 <0.13.0"
   qr_flutter: ^4.1.0
   share_plus: ^12.0.2
-  image_picker: ^1.1.2
-  flutter_image_compress: ^2.4.0
+  image_picker: ^1.2.3
+  flutter_image_compress: ^2.5.1
 
   hive_ce: ^2.19.3
   hive_ce_flutter: ^2.3.4

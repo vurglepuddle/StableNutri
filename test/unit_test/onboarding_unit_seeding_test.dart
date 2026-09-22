@@ -17,6 +17,7 @@ import 'package:opennutritracker/core/utils/locale_units.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/onboarding/onboarding_screen.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_first_page_body.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -326,12 +327,10 @@ void main() {
       expect(bloc.state, isA<OnboardingLoadedState>());
       expect(bloc.userSelection.foodSourceToggles, isNotEmpty);
       expect(tester.takeException(), isNull);
+      // Nothing to accept any more: Start opens the first question, blank.
       await tester.tap(find.bySemanticsIdentifier('onboarding-button'));
       await tester.pumpAndSettle();
-      expect(
-        find.text('Accept the privacy policy to continue'),
-        findsOneWidget,
-      );
+      expect(find.byType(OnboardingFirstPageBody), findsOneWidget);
       expect(bloc.userSelection.gender, isNull);
       await tester.pumpWidget(const SizedBox());
     });

@@ -76,6 +76,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
             state.usesImperialUnits,
             state.showMealMacros,
             state.showActivityTracking,
+            state.showWaterTracking,
           );
         }
         return const SizedBox();
@@ -101,6 +102,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     bool usesImperialUnits,
     bool showMealMacros,
     bool showActivityTracking,
+    bool showWaterTracking,
   ) {
     return ListView(
       padding: const EdgeInsets.only(bottom: Dimens.spacing16),
@@ -154,6 +156,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
                   usesImperialUnits: usesImperialUnits,
                   showMealMacros: showMealMacros,
                   showActivityTracking: showActivityTracking,
+                  showWaterTracking: showWaterTracking,
                   breakfastKcalTarget: state.breakfastKcalTarget,
                   lunchKcalTarget: state.lunchKcalTarget,
                   dinnerKcalTarget: state.dinnerKcalTarget,

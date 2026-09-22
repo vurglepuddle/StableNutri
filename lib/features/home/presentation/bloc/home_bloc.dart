@@ -258,6 +258,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           bodyWeightUnit: bodyWeightUnit,
           usesImperialLengthUnits: usesImperialLengthUnits,
           showActivityTracking: showActivityTracking,
+          showWaterTracking: configData.showWaterTracking,
           showMealMacros: showMealMacros,
           userWeightKg: user.weightKG,
           breakfastKcalTarget: breakfastKcalTarget,

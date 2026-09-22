@@ -23,6 +23,7 @@ class SettingsLoadedState extends SettingsState {
   final bool usesImperialHeightUnits;
   final BodyWeightUnit bodyWeightUnit;
   final bool showActivityTracking;
+  final bool showWaterTracking;
   final bool showMealMacros;
   final bool usesRangeGauge;
   final bool notificationsEnabled;
@@ -51,6 +52,7 @@ class SettingsLoadedState extends SettingsState {
     this.usesImperialHeightUnits = false,
     this.bodyWeightUnit = BodyWeightUnit.kg,
     this.showActivityTracking = true,
+    this.showWaterTracking = true,
     this.showMealMacros = true,
     this.usesRangeGauge = true,
     this.notificationsEnabled = false,
@@ -81,6 +83,7 @@ class SettingsLoadedState extends SettingsState {
     usesImperialHeightUnits,
     bodyWeightUnit,
     showActivityTracking,
+    showWaterTracking,
     showMealMacros,
     usesRangeGauge,
     notificationsEnabled,

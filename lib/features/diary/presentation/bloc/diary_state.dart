@@ -19,12 +19,14 @@ class DiaryLoadedState extends DiaryState {
   final bool usesImperialUnits;
   final bool showMealMacros;
   final bool showActivityTracking;
+  final bool showWaterTracking;
 
   const DiaryLoadedState(
     this.trackedDayMap,
     this.usesImperialUnits, {
     this.showMealMacros = true,
     this.showActivityTracking = true,
+    this.showWaterTracking = true,
   });
 
   @override
@@ -33,5 +35,6 @@ class DiaryLoadedState extends DiaryState {
     usesImperialUnits,
     showMealMacros,
     showActivityTracking,
+    showWaterTracking,
   ];
 }

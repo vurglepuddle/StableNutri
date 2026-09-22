@@ -41,6 +41,7 @@ class HomeLoadedState extends HomeState {
   final BodyWeightUnit bodyWeightUnit;
   final bool usesImperialLengthUnits;
   final bool showActivityTracking; // #277
+  final bool showWaterTracking;
   final bool showMealMacros;
   final double userWeightKg;
   // #150: recommended kcal target for each meal section, derived from the
@@ -107,6 +108,7 @@ class HomeLoadedState extends HomeState {
     this.waterQuickAddMl = 250,
     required this.waterIntakes,
     this.showActivityTracking = true,
+    this.showWaterTracking = true,
     this.showMealMacros = true,
   });
 
@@ -133,5 +135,6 @@ class HomeLoadedState extends HomeState {
     waterQuickAddMl,
     waterIntakes,
     showActivityTracking,
+    showWaterTracking,
   ];
 }

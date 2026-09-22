@@ -80,6 +80,10 @@ class ConfigRepository {
     await _configDataSource.setConfigShowActivityTracking(show);
   }
 
+  Future<void> setConfigShowWaterTracking(bool show) async {
+    await _configDataSource.setConfigShowWaterTracking(show);
+  }
+
   Future<void> setConfigUsesRangeGauge(bool usesRangeGauge) async {
     await _configDataSource.setConfigUsesRangeGauge(usesRangeGauge);
   }

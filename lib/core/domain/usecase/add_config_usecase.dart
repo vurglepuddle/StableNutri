@@ -64,6 +64,10 @@ class AddConfigUsecase {
     _configRepository.setConfigShowActivityTracking(show);
   }
 
+  Future<void> setConfigShowWaterTracking(bool show) async {
+    await _configRepository.setConfigShowWaterTracking(show);
+  }
+
   Future<void> setConfigUsesRangeGauge(bool usesRangeGauge) async {
     _configRepository.setConfigUsesRangeGauge(usesRangeGauge);
   }

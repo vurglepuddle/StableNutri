@@ -137,6 +137,12 @@ class ConfigDBO extends HiveObject {
   @HiveField(36)
   bool? usesRangeGauge;
 
+  // Hides water tracking everywhere it shows, like showActivityTracking; null
+  // means shown. Fork-only: upstream's ConfigDBO has used 36-38 and grows
+  // upward, so this skips ahead to stay clear of its next fields.
+  @HiveField(45)
+  bool? showWaterTracking;
+
   ConfigDBO(
     this.hasAcceptedDisclaimer,
     this.hasAcceptedPolicy,
@@ -172,6 +178,7 @@ class ConfigDBO extends HiveObject {
     this.weightCorridorLowerKg,
     this.weightCorridorUpperKg,
     this.usesRangeGauge,
+    this.showWaterTracking,
   });
 
   factory ConfigDBO.empty() =>

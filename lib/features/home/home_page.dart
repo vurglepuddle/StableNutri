@@ -88,6 +88,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             state.userActivityList,
             state.usesImperialUnits,
             state.showActivityTracking,
+            state.showWaterTracking,
             state.showMealMacros,
             state.breakfastKcalTarget,
             state.lunchKcalTarget,
@@ -145,6 +146,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     List<UserActivityEntity> userActivities,
     bool usesImperialUnits,
     bool showActivityTracking,
+    bool showWaterTracking,
     bool showMealMacros,
     double breakfastKcalTarget,
     double lunchKcalTarget,
@@ -166,11 +168,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       children: [
         ListView(
           children: [
-            WaterCard(
-              waterMlToday: waterMlToday,
-              waterGoalMl: waterGoalMl,
-              amountMl: waterQuickAddMl,
-            ),
+            if (showWaterTracking)
+              WaterCard(
+                waterMlToday: waterMlToday,
+                waterGoalMl: waterGoalMl,
+                amountMl: waterQuickAddMl,
+              ),
             const FastingHomeChip(),
             const SizedBox(height: Dimens.dashboardItemGap),
             DashboardWidget(

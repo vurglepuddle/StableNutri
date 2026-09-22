@@ -53,6 +53,7 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
           usesImperialUnits,
           showMealMacros: showMealMacros,
           showActivityTracking: showActivityTracking,
+          showWaterTracking: config.showWaterTracking,
         ),
       );
     });

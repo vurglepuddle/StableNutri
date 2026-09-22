@@ -266,6 +266,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   _SettingsSwitchTile(
                     palette: palette,
+                    icon: Icons.water_drop_rounded,
+                    title: S.of(context).settingsShowWaterTracking,
+                    value: state.showWaterTracking,
+                    onChanged: (bool value) async {
+                      // Saved first: every reload below reads it back.
+                      await _settingsBloc.setShowWaterTracking(value);
+                      _settingsBloc.add(LoadSettingsEvent());
+                      // Water shows on Today (and the launcher widget, which
+                      // Home republishes), in Diary, Trends and You.
+                      _homeBloc.add(const LoadItemsEvent());
+                      _diaryBloc.add(const LoadDiaryYearEvent());
+                      _profileBloc.add(LoadProfileEvent());
+                      final trendsState = _trendsBloc.state;
+                      _trendsBloc.add(
+                        LoadTrendsEvent(
+                          rangeDays: trendsState is TrendsLoaded
+                              ? trendsState.rangeDays
+                              : 7,
+                        ),
+                      );
+                    },
+                  ),
+                  _SettingsSwitchTile(
+                    palette: palette,
                     icon: Icons.bar_chart_rounded,
                     title: S.of(context).settingsShowMealMacros,
                     value: state.showMealMacros,

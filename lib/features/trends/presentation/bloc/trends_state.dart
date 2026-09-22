@@ -28,6 +28,7 @@ class TrendsLoaded extends TrendsState {
   final double weightCorridorUpperKg;
   final Map<DateTime, int> waterByDay; // ml logged per calendar day
   final int waterGoalMl;
+  final bool showWaterTracking;
 
   const TrendsLoaded({
     required this.rangeDays,
@@ -42,6 +43,7 @@ class TrendsLoaded extends TrendsState {
     required this.weightCorridorUpperKg,
     required this.waterByDay,
     required this.waterGoalMl,
+    this.showWaterTracking = true,
   });
 
   @override
@@ -58,6 +60,7 @@ class TrendsLoaded extends TrendsState {
     weightCorridorUpperKg,
     waterByDay,
     waterGoalMl,
+    showWaterTracking,
   ];
 }
 

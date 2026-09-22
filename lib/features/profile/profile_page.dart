@@ -67,6 +67,7 @@ class _ProfilePageState extends State<ProfilePage> {
             state.bodyWeightUnit,
             state.usesImperialHeightUnits,
             state.effectiveWaterGoalMl,
+            state.showWaterTracking,
           );
         } else {
           return _getLoadingContent();
@@ -86,6 +87,7 @@ class _ProfilePageState extends State<ProfilePage> {
     BodyWeightUnit bodyWeightUnit,
     bool usesImperialHeightUnits,
     int effectiveWaterGoalMl,
+    bool showWaterTracking,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
@@ -233,25 +235,27 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ],
         ),
-        const SizedBox(height: Dimens.spacing24),
-        _SectionHeader(
-          label: S.of(context).settingsWaterGoalLabel,
-          palette: palette,
-        ),
-        const SizedBox(height: Dimens.spacing12),
-        _ProfileGroup(
-          palette: palette,
-          tiles: [
-            _ProfileTile(
-              identifier: 'profile-water-goal',
-              palette: palette,
-              icon: Icons.water_drop_rounded,
-              title: S.of(context).settingsWaterGoalLabel,
-              subtitle: '$effectiveWaterGoalMl ${S.of(context).mlLabel}',
-              onTap: () => _showWaterGoalDialog(context),
-            ),
-          ],
-        ),
+        if (showWaterTracking) ...[
+          const SizedBox(height: Dimens.spacing24),
+          _SectionHeader(
+            label: S.of(context).settingsWaterGoalLabel,
+            palette: palette,
+          ),
+          const SizedBox(height: Dimens.spacing12),
+          _ProfileGroup(
+            palette: palette,
+            tiles: [
+              _ProfileTile(
+                identifier: 'profile-water-goal',
+                palette: palette,
+                icon: Icons.water_drop_rounded,
+                title: S.of(context).settingsWaterGoalLabel,
+                subtitle: '$effectiveWaterGoalMl ${S.of(context).mlLabel}',
+                onTap: () => _showWaterGoalDialog(context),
+              ),
+            ],
+          ),
+        ],
         const SizedBox(height: Dimens.spacing24),
         _SectionHeader(label: S.of(context).profileLabel, palette: palette),
         const SizedBox(height: Dimens.spacing12),

@@ -88,13 +88,15 @@ class _TrendsView extends StatelessWidget {
             const SizedBox(height: Dimens.spacing16),
             _MacrosTrendCard(days: state.days, palette: palette),
             const SizedBox(height: Dimens.spacing16),
-            _WaterTrendCard(
-              waterByDay: state.waterByDay,
-              goalMl: state.waterGoalMl,
-              rangeDays: state.windowDays,
-              palette: palette,
-            ),
-            const SizedBox(height: Dimens.spacing16),
+            if (state.showWaterTracking) ...[
+              _WaterTrendCard(
+                waterByDay: state.waterByDay,
+                goalMl: state.waterGoalMl,
+                rangeDays: state.windowDays,
+                palette: palette,
+              ),
+              const SizedBox(height: Dimens.spacing16),
+            ],
             _WeightCard(
               entries: state.weight,
               bodyWeightUnit: state.bodyWeightUnit,

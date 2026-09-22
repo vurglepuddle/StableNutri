@@ -27,6 +27,7 @@ class ProfileLoadedState extends ProfileState {
   // profile entry subtitle shows this so the user sees the value the
   // home chip is using without opening the dialog.
   final int effectiveWaterGoalMl;
+  final bool showWaterTracking;
 
   const ProfileLoadedState({
     required this.userBMI,
@@ -34,6 +35,7 @@ class ProfileLoadedState extends ProfileState {
     required this.bodyWeightUnit,
     required this.usesImperialHeightUnits,
     required this.effectiveWaterGoalMl,
+    this.showWaterTracking = true,
   });
 
   @override
@@ -43,5 +45,6 @@ class ProfileLoadedState extends ProfileState {
     bodyWeightUnit,
     usesImperialHeightUnits,
     effectiveWaterGoalMl,
+    showWaterTracking,
   ];
 }

@@ -99,8 +99,11 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
               ),
             );
           }
-          for (final k in waterByDay.keys) {
-            consider(k);
+          // Hidden water must not stretch the charts that are shown.
+          if (config.showWaterTracking) {
+            for (final k in waterByDay.keys) {
+              consider(k);
+            }
           }
           windowDays = earliest == null
               ? 30 // no data yet: a sensible empty-chart width
@@ -126,6 +129,7 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
               user.gender,
               caloriesProfile: user.caloriesProfile,
             ),
+            showWaterTracking: config.showWaterTracking,
           ),
         );
       } catch (e) {

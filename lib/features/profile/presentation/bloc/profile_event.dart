@@ -6,5 +6,12 @@ abstract class ProfileEvent extends Equatable {
 }
 
 class LoadProfileEvent extends ProfileEvent {
-  LoadProfileEvent();
+  /// Hides the current profile until the reload finishes. Only for another
+  /// or wiped profile, whose old details must not stay on screen.
+  final bool reset;
+
+  LoadProfileEvent({this.reset = false});
+
+  @override
+  List<Object?> get props => [reset];
 }

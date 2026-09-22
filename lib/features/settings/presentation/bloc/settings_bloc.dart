@@ -41,7 +41,12 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     this._getTrackedDayUsecase,
   ) : super(SettingsInitial()) {
     on<LoadSettingsEvent>((event, emit) async {
-      emit(SettingsLoadingState());
+      // A refresh keeps the loaded settings on screen. Swapping them for the
+      // spinner collapsed the list embedded in You, which then scrolled the
+      // page up away from the switch just changed.
+      if (event.reset || state is! SettingsLoadedState) {
+        emit(SettingsLoadingState());
+      }
 
       final userConfig = await _getConfigUsecase.getConfig();
       final appVersion = await AppConst.getVersionNumber();

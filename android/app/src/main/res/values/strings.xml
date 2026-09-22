@@ -5,5 +5,5 @@
          src/develop/res/values/strings.xml so a sideloaded debug build is
          visually distinguishable on the home screen from a Play Store
          install. -->
-    <string name="app_name">OpenNutriTracker</string>
+    <string name="app_name">Stable</string>
 </resources>

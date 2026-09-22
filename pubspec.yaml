@@ -119,11 +119,6 @@ flutter:
   assets:
     - assets/icon/logo_stable_light.svg
     - assets/icon/logo_stable_dark.svg
-    - assets/icon/ont_logo_square.svg
-    - assets/icon/ont_logo_square_color_back_1024x1024.png
-    - assets/icon/ont_logo_square_color_white_1024x1024.png
-    - assets/icon/ont_banner_top.png
-    - assets/icon/ont_banner_top_light.png
     - assets/icon/nonbinary_symbol.svg
 
   fonts:

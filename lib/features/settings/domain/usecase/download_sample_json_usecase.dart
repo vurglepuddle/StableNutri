@@ -9,8 +9,8 @@ import 'package:opennutritracker/core/utils/json_recipe_importer.dart';
 /// location. Mirrors [DownloadSampleCsvUsecase] which holds both the
 /// meals and recipes CSV samples in a single class for the same reason.
 class DownloadSampleJsonUsecase {
-  static const mealsSampleFileName = 'opennutritracker-meals-sample.json';
-  static const recipesSampleFileName = 'opennutritracker-recipes-sample.json';
+  static const mealsSampleFileName = 'stable-meals-sample.json';
+  static const recipesSampleFileName = 'stable-recipes-sample.json';
 
   /// Writes [JsonMealImporter.sampleJson] to a user-chosen path.
   /// Returns true when the save was confirmed, false when the user cancelled.

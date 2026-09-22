@@ -42,18 +42,18 @@ import 'package:flutter_test/flutter_test.dart';
 /// bottom UI or a body region that reaches the bottom edge of the screen.
 /// Paths are relative to the package root (where `flutter test` runs).
 ///
-/// All five entries here were touched by the #156 fix and are the load-
-/// bearing rule the test exists to enforce.
+/// These entries were touched by the #156 fix and are the load-bearing rule
+/// the test exists to enforce.
 const _screensWithStickyBottomUi = <String>[
   // Search screen — the list of MealItemCard rows (each row has its own
   // "Add" button) runs to the bottom edge. SafeArea(top: false) wraps the
   // body so the last row stays above the gesture-nav strip.
   'lib/features/add_meal/presentation/add_meal_screen.dart',
 
-  // Scaffolds with a `bottomSheet:` — the bottom sheet sticks to the very
-  // bottom of the screen with no scroll padding.
-  'lib/features/activity_detail/activity_detail_screen.dart',
-  'lib/features/meal_detail/meal_detail_screen.dart',
+  // The meal and activity detail screens are not listed: their bottom
+  // sheets (below) carry the SafeArea. Wrapping the whole Scaffold as well
+  // left the system bar strips unpainted, so they showed the dark window
+  // behind the light app.
 
   // The bottom-sheet widgets themselves — these are the widgets actually
   // hosting the "Add" button. They wrap their content in

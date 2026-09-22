@@ -32,13 +32,17 @@ class MealDetailMacroNutrients extends StatelessWidget {
           ),
           const SizedBox(height: Dimens.spacing8),
         ],
-        Text(
-          '${value?.roundToPrecision(1) ?? "?"} g',
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            '${value?.roundToPrecision(1) ?? "?"} g',
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          ),
         ),
         const SizedBox(height: Dimens.spacing4),
         Text(
           typeString,
+          textAlign: TextAlign.center,
           style: textTheme.bodyMedium?.copyWith(color: palette.textMuted),
         ),
       ],

@@ -48,12 +48,15 @@ extension Round on double {
 }
 
 extension DisplayDouble on double? {
+  /// The value for a text field, or "" for null. Float noise from unit
+  /// conversions is trimmed (2.000000000000004 shows as "2") while tiny
+  /// micronutrient amounts keep their significant digits, which rounding to
+  /// fixed decimals would zero.
   String toStringOrEmpty() {
-    if (this == null) {
-      return "";
-    } else {
-      return toString();
-    }
+    final value = this;
+    if (value == null) return "";
+    final text = double.parse(value.toStringAsPrecision(12)).toString();
+    return text.endsWith('.0') ? text.substring(0, text.length - 2) : text;
   }
 }
 

@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -29,25 +30,33 @@ class _AccentColourScreenState extends State<AccentColourScreen> {
     super.initState();
   }
 
-  void _selectMaterialYou() {
-    _settingsBloc.setUseMaterialYou(true);
-    _settingsBloc.setAccentColor(null);
+  Future<void> _selectMaterialYou() async {
     final theme = Provider.of<ThemeModeProvider>(context, listen: false);
     theme.updateUseMaterialYou(true);
     theme.updateAccentColor(null);
-    _settingsBloc.add(LoadSettingsEvent());
+    // One save at a time: each rewrites the whole config, so overlapping
+    // saves can drop the other's change.
+    await _settingsBloc.setUseMaterialYou(true);
+    await _settingsBloc.setAccentColor(null);
+    _reload();
   }
 
-  void _selectColor(Color color) {
+  Future<void> _selectColor(Color color) async {
     final argb = color.toARGB32();
-    _settingsBloc.setAccentColor(argb);
-    // A custom colour should win over Material You; otherwise the picked
-    // shade silently does nothing on Android 12+.
-    _settingsBloc.setUseMaterialYou(false);
     final theme = Provider.of<ThemeModeProvider>(context, listen: false);
     theme.updateAccentColor(argb);
     theme.updateUseMaterialYou(false);
+    await _settingsBloc.setAccentColor(argb);
+    // A custom colour should win over Material You; otherwise the picked
+    // shade silently does nothing on Android 12+.
+    await _settingsBloc.setUseMaterialYou(false);
+    _reload();
+  }
+
+  void _reload() {
     _settingsBloc.add(LoadSettingsEvent());
+    // Home republishes the launcher widget, whose food tile uses the accent.
+    locator<HomeBloc>().add(const LoadItemsEvent());
   }
 
   @override

@@ -95,68 +95,53 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     );
   }
 
-  void setAppTheme(AppThemeEntity appTheme) async {
-    await _addConfigUsecase.setConfigAppTheme(appTheme);
-  }
+  Future<void> setAppTheme(AppThemeEntity appTheme) =>
+      _addConfigUsecase.setConfigAppTheme(appTheme);
 
-  void setUsesImperialUnits(bool usesImperialUnits) {
-    _addConfigUsecase.setConfigUsesImperialUnits(usesImperialUnits);
-  }
+  Future<void> setUsesImperialUnits(bool usesImperialUnits) =>
+      _addConfigUsecase.setConfigUsesImperialUnits(usesImperialUnits);
 
-  void setUsesImperialFoodUnits(bool usesImperial) {
-    _addConfigUsecase.setConfigUsesImperialFoodUnits(usesImperial);
-  }
+  Future<void> setUsesImperialFoodUnits(bool usesImperial) =>
+      _addConfigUsecase.setConfigUsesImperialFoodUnits(usesImperial);
 
-  void setUsesImperialHeightUnits(bool usesImperial) {
-    _addConfigUsecase.setConfigUsesImperialHeightUnits(usesImperial);
-  }
+  Future<void> setUsesImperialHeightUnits(bool usesImperial) =>
+      _addConfigUsecase.setConfigUsesImperialHeightUnits(usesImperial);
 
-  void setBodyWeightUnit(BodyWeightUnit unit) {
-    _addConfigUsecase.setConfigBodyWeightUnit(unit);
-  }
+  Future<void> setBodyWeightUnit(BodyWeightUnit unit) =>
+      _addConfigUsecase.setConfigBodyWeightUnit(unit);
 
-  void setShowActivityTracking(bool showActivityTracking) {
-    _addConfigUsecase.setConfigShowActivityTracking(showActivityTracking);
-  }
+  Future<void> setShowActivityTracking(bool showActivityTracking) =>
+      _addConfigUsecase.setConfigShowActivityTracking(showActivityTracking);
 
   Future<void> setShowWaterTracking(bool showWaterTracking) =>
       _addConfigUsecase.setConfigShowWaterTracking(showWaterTracking);
 
-  void setUsesRangeGauge(bool usesRangeGauge) {
-    _addConfigUsecase.setConfigUsesRangeGauge(usesRangeGauge);
-  }
+  Future<void> setUsesRangeGauge(bool usesRangeGauge) =>
+      _addConfigUsecase.setConfigUsesRangeGauge(usesRangeGauge);
 
-  void setShowMealMacros(bool showMealMacros) {
-    _addConfigUsecase.setConfigShowMealMacros(showMealMacros);
-  }
+  Future<void> setShowMealMacros(bool showMealMacros) =>
+      _addConfigUsecase.setConfigShowMealMacros(showMealMacros);
 
-  void setNotificationsEnabled(bool enabled) {
-    _addConfigUsecase.setNotificationsEnabled(enabled);
-  }
+  Future<void> setNotificationsEnabled(bool enabled) =>
+      _addConfigUsecase.setNotificationsEnabled(enabled);
 
-  void setNotificationTime(int hour, int minute) {
-    _addConfigUsecase.setNotificationTime(hour, minute);
-  }
+  Future<void> setNotificationTime(int hour, int minute) =>
+      _addConfigUsecase.setNotificationTime(hour, minute);
 
-  void setSelectedLocale(String? locale) {
-    _addConfigUsecase.setSelectedLocale(locale);
-  }
+  Future<void> setSelectedLocale(String? locale) =>
+      _addConfigUsecase.setSelectedLocale(locale);
 
-  void setShowMicronutrients(bool show) {
-    _addConfigUsecase.setConfigShowMicronutrients(show);
-  }
+  Future<void> setShowMicronutrients(bool show) =>
+      _addConfigUsecase.setConfigShowMicronutrients(show);
 
-  void setUsesKilojoules(bool usesKilojoules) {
-    _addConfigUsecase.setConfigUsesKilojoules(usesKilojoules);
-  }
+  Future<void> setUsesKilojoules(bool usesKilojoules) =>
+      _addConfigUsecase.setConfigUsesKilojoules(usesKilojoules);
 
-  void setUseMaterialYou(bool useMaterialYou) {
-    _addConfigUsecase.setConfigUseMaterialYou(useMaterialYou);
-  }
+  Future<void> setUseMaterialYou(bool useMaterialYou) =>
+      _addConfigUsecase.setConfigUseMaterialYou(useMaterialYou);
 
-  void setAccentColor(int? value) {
-    _addConfigUsecase.setConfigAccentColor(value);
-  }
+  Future<void> setAccentColor(int? value) =>
+      _addConfigUsecase.setConfigAccentColor(value);
 
   Future<Map<String, int>?> getDiarySortPreferences() async {
     final config = await _getConfigUsecase.getConfig();

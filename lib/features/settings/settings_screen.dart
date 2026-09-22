@@ -253,8 +253,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.directions_run_rounded,
                     title: S.of(context).settingsShowActivityTracking,
                     value: state.showActivityTracking,
-                    onChanged: (bool value) {
-                      _settingsBloc.setShowActivityTracking(value);
+                    onChanged: (bool value) async {
+                      // Saved before reloading: a reload that starts first
+                      // reads the old value and flips the switch back.
+                      await _settingsBloc.setShowActivityTracking(value);
                       _settingsBloc.add(LoadSettingsEvent());
                       _homeBloc.add(LoadItemsEvent());
                       // DiaryBloc is a lazy singleton so its loaded state
@@ -270,7 +272,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: S.of(context).settingsShowWaterTracking,
                     value: state.showWaterTracking,
                     onChanged: (bool value) async {
-                      // Saved first: every reload below reads it back.
                       await _settingsBloc.setShowWaterTracking(value);
                       _settingsBloc.add(LoadSettingsEvent());
                       // Water shows on Today (and the launcher widget, which
@@ -293,8 +294,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.bar_chart_rounded,
                     title: S.of(context).settingsShowMealMacros,
                     value: state.showMealMacros,
-                    onChanged: (bool value) {
-                      _settingsBloc.setShowMealMacros(value);
+                    onChanged: (bool value) async {
+                      await _settingsBloc.setShowMealMacros(value);
                       _settingsBloc.add(LoadSettingsEvent());
                       _homeBloc.add(LoadItemsEvent());
                     },
@@ -304,8 +305,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.science_rounded,
                     title: S.of(context).settingsShowMicronutrientsLabel,
                     value: state.showMicronutrients,
-                    onChanged: (bool value) {
-                      _settingsBloc.setShowMicronutrients(value);
+                    onChanged: (bool value) async {
+                      await _settingsBloc.setShowMicronutrients(value);
                       _settingsBloc.add(LoadSettingsEvent());
                     },
                   ),
@@ -337,11 +338,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.linear_scale_rounded,
                     title: S.of(context).settingsRangeGaugeLabel,
                     value: state.usesRangeGauge,
-                    onChanged: (bool value) {
-                      _settingsBloc.setUsesRangeGauge(value);
+                    onChanged: (bool value) async {
                       context.read<CalorieGaugeProvider>().updateUsesRangeGauge(
                         value,
                       );
+                      await _settingsBloc.setUsesRangeGauge(value);
                       _settingsBloc.add(LoadSettingsEvent());
                     },
                   ),
@@ -627,7 +628,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } else {
       await notificationService.cancelDailyReminder();
     }
-    _settingsBloc.setNotificationsEnabled(enabled);
+    await _settingsBloc.setNotificationsEnabled(enabled);
     _settingsBloc.add(LoadSettingsEvent());
   }
 
@@ -638,7 +639,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l10n = S.of(context);
     final picked = await showTimePicker(context: context, initialTime: current);
     if (picked == null) return;
-    _settingsBloc.setNotificationTime(picked.hour, picked.minute);
+    await _settingsBloc.setNotificationTime(picked.hour, picked.minute);
     final notificationService = locator<NotificationService>();
     await notificationService.scheduleDailyReminder(
       hour: picked.hour,
@@ -705,7 +706,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
     if (shouldUpdate == true) {
-      _settingsBloc.setUsesImperialFoodUnits(selectedUsesImperial);
+      await _settingsBloc.setUsesImperialFoodUnits(selectedUsesImperial);
       _settingsBloc.add(LoadSettingsEvent());
       _homeBloc.add(LoadItemsEvent());
       _diaryBloc.add(const LoadDiaryYearEvent());
@@ -768,7 +769,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
     if (shouldUpdate == true) {
-      _settingsBloc.setUsesImperialHeightUnits(selectedUsesImperial);
+      await _settingsBloc.setUsesImperialHeightUnits(selectedUsesImperial);
       _settingsBloc.add(LoadSettingsEvent());
       _profileBloc.add(LoadProfileEvent());
     }
@@ -832,7 +833,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
     if (shouldUpdate == true) {
-      _settingsBloc.setBodyWeightUnit(selectedUnit);
+      await _settingsBloc.setBodyWeightUnit(selectedUnit);
       _settingsBloc.add(LoadSettingsEvent());
       // Body weight shows on the profile card, the home weight chip, and the
       // Trends weight chart, so all three need to re-read the new unit. Keep
@@ -906,7 +907,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
     if (shouldUpdate == true) {
-      _settingsBloc.setUsesKilojoules(selectedUsesKilojoules);
+      await _settingsBloc.setUsesKilojoules(selectedUsesKilojoules);
       _settingsBloc.add(LoadSettingsEvent());
       if (context.mounted) {
         Provider.of<EnergyUnitProvider>(
@@ -1206,8 +1207,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             TextButton(
               onPressed: () async {
-                _settingsBloc.setAppTheme(selectedTheme);
-                _settingsBloc.add(LoadSettingsEvent());
                 setState(() {
                   // Update Theme
                   Provider.of<ThemeModeProvider>(
@@ -1216,6 +1215,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ).updateTheme(selectedTheme);
                 });
                 Navigator.of(context).pop();
+                await _settingsBloc.setAppTheme(selectedTheme);
+                _settingsBloc.add(LoadSettingsEvent());
               },
               child: Text(S.of(context).dialogOKLabel),
             ),
@@ -1286,15 +1287,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text(S.of(context).dialogCancelLabel),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 final locale = selectedCode.isEmpty ? null : selectedCode;
-                _settingsBloc.setSelectedLocale(locale);
-                _settingsBloc.add(LoadSettingsEvent());
                 Provider.of<LocaleProvider>(
                   context,
                   listen: false,
                 ).updateLocale(locale != null ? Locale(locale) : null);
                 Navigator.of(context).pop();
+                await _settingsBloc.setSelectedLocale(locale);
+                _settingsBloc.add(LoadSettingsEvent());
               },
               child: Text(S.of(context).dialogOKLabel),
             ),

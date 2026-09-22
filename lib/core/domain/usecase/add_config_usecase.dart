@@ -9,11 +9,11 @@ class AddConfigUsecase {
   AddConfigUsecase(this._configRepository);
 
   Future<void> addConfig(ConfigEntity configEntity) async {
-    _configRepository.updateConfig(configEntity);
+    await _configRepository.updateConfig(configEntity);
   }
 
   Future<void> setConfigDisclaimer(bool hasAcceptedDisclaimer) async {
-    _configRepository.setConfigDisclaimer(hasAcceptedDisclaimer);
+    await _configRepository.setConfigDisclaimer(hasAcceptedDisclaimer);
   }
 
   Future<void> setConfigHasAcceptedAnonymousData(
@@ -61,7 +61,7 @@ class AddConfigUsecase {
   }
 
   Future<void> setConfigShowActivityTracking(bool show) async {
-    _configRepository.setConfigShowActivityTracking(show);
+    await _configRepository.setConfigShowActivityTracking(show);
   }
 
   Future<void> setConfigShowWaterTracking(bool show) async {
@@ -69,27 +69,27 @@ class AddConfigUsecase {
   }
 
   Future<void> setConfigUsesRangeGauge(bool usesRangeGauge) async {
-    _configRepository.setConfigUsesRangeGauge(usesRangeGauge);
+    await _configRepository.setConfigUsesRangeGauge(usesRangeGauge);
   }
 
   Future<void> setConfigShowMealMacros(bool show) async {
-    _configRepository.setConfigShowMealMacros(show);
+    await _configRepository.setConfigShowMealMacros(show);
   }
 
   Future<void> setNotificationsEnabled(bool enabled) async {
-    _configRepository.setNotificationsEnabled(enabled);
+    await _configRepository.setNotificationsEnabled(enabled);
   }
 
   Future<void> setNotificationTime(int hour, int minute) async {
-    _configRepository.setNotificationTime(hour, minute);
+    await _configRepository.setNotificationTime(hour, minute);
   }
 
   Future<void> setSelectedLocale(String? locale) async {
-    _configRepository.setSelectedLocale(locale);
+    await _configRepository.setSelectedLocale(locale);
   }
 
   Future<void> setConfigShowMicronutrients(bool show) async {
-    _configRepository.setConfigShowMicronutrients(show);
+    await _configRepository.setConfigShowMicronutrients(show);
   }
 
   Future<void> setConfigUsesKilojoules(bool usesKilojoules) async {
@@ -115,7 +115,7 @@ class AddConfigUsecase {
   }
 
   Future<void> setConfigDayStartOffsetMinutes(int minutes) async {
-    _configRepository.setConfigDayStartOffsetMinutes(minutes);
+    await _configRepository.setConfigDayStartOffsetMinutes(minutes);
   }
 
   Future<void> setConfigDailyWaterGoalMl(int goalMl) async {

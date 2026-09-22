@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/body_weight_input.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/feet_inches_input.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:opennutritracker/features/onboarding/presentation/widgets/weight_range_hint.dart';
 
 class OnboardingSecondPageBody extends StatefulWidget {
   final Function(
@@ -37,6 +38,7 @@ class OnboardingSecondPageBody extends StatefulWidget {
   final bool initialHeightImperial;
   final BodyWeightUnit initialBodyWeightUnit;
   final bool initialFoodImperial;
+  final bool showWeightRange;
 
   /// Ticked by the parent when the user taps a blocked "Next", so the page
   /// paints its errors for fields the user never left. Without it, someone
@@ -53,6 +55,7 @@ class OnboardingSecondPageBody extends StatefulWidget {
     this.initialHeightImperial = false,
     this.initialBodyWeightUnit = BodyWeightUnit.kg,
     this.initialFoodImperial = false,
+    this.showWeightRange = false,
     this.showErrorsSignal,
   });
 
@@ -91,6 +94,19 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
   bool _showHeightError = false;
   bool _showWeightError = false;
   bool _showTargetError = false;
+  int _targetInputVersion = 0;
+
+  void _applySuggestedTarget(double kg) {
+    setState(() {
+      _parsedTargetWeight = kg;
+      _targetHasInput = true;
+      _targetInputVersion++;
+      _targetWeightController.text = _formatRestoredNumber(
+        _isWeightLb ? UnitCalc.kgToLbs(kg) : kg,
+      );
+    });
+    checkCorrectInput();
+  }
 
   bool get _isWeightLb => _bodyWeightUnit == BodyWeightUnit.lb;
   bool get _isWeightSt => _bodyWeightUnit == BodyWeightUnit.st;
@@ -517,6 +533,7 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
                         checkCorrectInput();
                       },
                       identifierPrefix: 'onboarding-target-weight',
+                      key: ValueKey(_targetInputVersion),
                     ),
                   )
                 : Form(
@@ -569,6 +586,21 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
                     ),
                   ),
             const SizedBox(height: 32.0),
+            if (widget.showWeightRange &&
+                _parsedHeight != null &&
+                _parsedHeight! >= 120 &&
+                _parsedHeight! <= 230 &&
+                _parsedWeight != null &&
+                _parsedWeight! >= 30 &&
+                _parsedWeight! <= 300) ...[
+              WeightRangeHint(
+                heightCm: _parsedHeight!,
+                weightKg: _parsedWeight!,
+                unit: _bodyWeightUnit,
+                onApply: _applySuggestedTarget,
+              ),
+              const SizedBox(height: 24),
+            ],
             // Food units are chosen explicitly rather than inferred from the
             // height toggle, so a UK user on feet and stones can still log
             // food in grams.

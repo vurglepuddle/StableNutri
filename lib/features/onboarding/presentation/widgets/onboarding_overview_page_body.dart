@@ -5,6 +5,8 @@ import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
+import 'package:opennutritracker/core/utils/energy_display.dart';
+import 'package:opennutritracker/features/onboarding/domain/entity/onboarding_calorie_breakdown.dart';
 
 class OnboardingOverviewPageBody extends StatelessWidget {
   final String calorieGoalDayString;
@@ -15,6 +17,7 @@ class OnboardingOverviewPageBody extends StatelessWidget {
   final double? totalKcalCalculated;
   final bool showLowKcalWarning;
   final double lowKcalWarningThreshold;
+  final OnboardingCalorieBreakdown? breakdown;
 
   const OnboardingOverviewPageBody({
     super.key,
@@ -26,6 +29,7 @@ class OnboardingOverviewPageBody extends StatelessWidget {
     required this.proteinGoalString,
     this.showLowKcalWarning = false,
     this.lowKcalWarningThreshold = 0,
+    this.breakdown,
   });
 
   @override
@@ -40,122 +44,181 @@ class OnboardingOverviewPageBody extends StatelessWidget {
     final perDayLabel = usesKilojoules
         ? S.of(context).onboardingKjPerDayLabel
         : S.of(context).onboardingKcalPerDayLabel;
-    return SizedBox(
-      width: double.infinity,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            S.of(context).onboardingOverviewLabel,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 32.0),
-          Text(
-            S.of(context).onboardingYourGoalLabel,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 8.0),
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  displayGoalString,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                Text(
-                  perDayLabel,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
+    return SingleChildScrollView(
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              S.of(context).onboardingOverviewLabel,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
-          ),
-          if (showLowKcalWarning) ...[
+            const SizedBox(height: 32.0),
+            Text(
+              S.of(context).onboardingYourGoalLabel,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 8.0),
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    displayGoalString,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  Text(
+                    perDayLabel,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (breakdown != null) ...[
+              const SizedBox(height: 16),
+              _buildBreakdown(context, breakdown!),
+            ],
+            if (showLowKcalWarning) ...[
+              const SizedBox(height: 24.0),
+              LowKcalWarningCard(
+                thresholdKcal: lowKcalWarningThreshold,
+                margin: EdgeInsets.zero,
+              ),
+            ],
+            const SizedBox(height: 32.0),
+            Text(
+              S.of(context).onboardingYourMacrosGoalLabel,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 16.0),
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '$carbsGoalString g',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    S.of(context).carbsLabel,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    '$fatGoalString g',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                  Text(
+                    S.of(context).fatLabel,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    '$proteinGoalString g',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                  Text(
+                    S.of(context).proteinLabel,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24.0),
-            LowKcalWarningCard(
-              thresholdKcal: lowKcalWarningThreshold,
-              margin: EdgeInsets.zero,
+            Center(
+              child: TextButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SourcesScreen()),
+                ),
+                icon: const Icon(Icons.menu_book_outlined),
+                label: Text(S.of(context).settingsSourcesLabel),
+              ),
             ),
           ],
-          const SizedBox(height: 32.0),
-          Text(
-            S.of(context).onboardingYourMacrosGoalLabel,
-            style: Theme.of(context).textTheme.bodyLarge,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBreakdown(
+    BuildContext context,
+    OnboardingCalorieBreakdown value,
+  ) {
+    final s = S.of(context);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _breakdownRow(
+            context,
+            s.onboardingMaintenanceLabel,
+            EnergyDisplay.formatWithUnit(context, value.maintenanceKcal),
           ),
-          const SizedBox(height: 16.0),
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '$carbsGoalString g',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                Text(
-                  S.of(context).carbsLabel,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                Text(
-                  '$fatGoalString g',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                ),
-                Text(
-                  S.of(context).fatLabel,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                Text(
-                  '$proteinGoalString g',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                ),
-                Text(
-                  S.of(context).proteinLabel,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
-            ),
+          const SizedBox(height: 8),
+          _breakdownRow(
+            context,
+            s.onboardingAdjustmentLabel,
+            '${value.adjustmentKcal > 0 ? '+' : ''}'
+            '${EnergyDisplay.formatWithUnit(context, value.adjustmentKcal)}',
           ),
-          const SizedBox(height: 24.0),
-          Center(
-            child: TextButton.icon(
-              onPressed: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const SourcesScreen())),
-              icon: const Icon(Icons.menu_book_outlined),
-              label: Text(S.of(context).settingsSourcesLabel),
-            ),
+          const Divider(height: 20),
+          _breakdownRow(
+            context,
+            s.onboardingResultLabel,
+            EnergyDisplay.formatWithUnit(context, value.totalKcal),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _breakdownRow(BuildContext context, String label, String value) {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 4,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        Text(
+          value,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+      ],
     );
   }
 }

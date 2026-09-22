@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_quantity_units.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class IngredientQuantitySelection {
@@ -58,7 +59,13 @@ class _IngredientQuantitySheetState extends State<_IngredientQuantitySheet> {
           ? widget.initialAmount!.toString()
           : '',
     );
-    _unit = widget.initialUnit ?? _defaultUnit(widget.meal);
+    final units = MealQuantityUnits(widget.meal, forRecipe: true);
+    final selection = units.reconcile(
+      widget.initialUnit ?? units.defaultUnit(),
+      _amountController.text,
+    );
+    _unit = selection.unit;
+    _amountController.text = selection.amount;
   }
 
   @override
@@ -67,37 +74,10 @@ class _IngredientQuantitySheetState extends State<_IngredientQuantitySheet> {
     super.dispose();
   }
 
-  String _defaultUnit(MealEntity meal) {
-    // Gated on a serving the recipe maths can actually scale, not on
-    // hasServingValues: the latter is true for unparseable serving text,
-    // and convertAmountToGrams returns null for those, which the builder
-    // stores as 0 g.
-    if (meal.scalableServingQuantity != null) return 'serving';
-    if (meal.isLiquid) return 'ml';
-    return 'g';
-  }
-
-  List<DropdownMenuItem<String>> _unitItems(BuildContext context) {
-    final items = <DropdownMenuItem<String>>[];
-    // Same gate as _defaultUnit: offering a serving nothing can scale puts
-    // a unit in the list that silently contributes no weight.
-    if (widget.meal.scalableServingQuantity != null) {
-      items.add(_unitItem('serving'));
-    }
-    if (widget.meal.isSolid ||
-        (!widget.meal.isLiquid && !widget.meal.isSolid)) {
-      items.add(_unitItem('g'));
-      items.add(_unitItem('kg'));
-      items.add(_unitItem('oz'));
-    }
-    if (widget.meal.isLiquid ||
-        (!widget.meal.isLiquid && !widget.meal.isSolid)) {
-      items.add(_unitItem('ml'));
-      items.add(_unitItem('l'));
-      items.add(_unitItem('fl.oz'));
-    }
-    return items;
-  }
+  List<DropdownMenuItem<String>> _unitItems(BuildContext context) => [
+    for (final unit in MealQuantityUnits(widget.meal, forRecipe: true).values)
+      _unitItem(unit),
+  ];
 
   DropdownMenuItem<String> _unitItem(String unit) {
     return DropdownMenuItem(

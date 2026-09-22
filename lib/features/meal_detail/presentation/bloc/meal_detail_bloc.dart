@@ -17,6 +17,7 @@ import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_quantity_units.dart';
 
 part 'meal_detail_event.dart';
 
@@ -48,22 +49,27 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       ) {
     on<UpdateKcalEvent>((event, emit) async {
       try {
-        final selectedTotalQuantity =
-            event.totalQuantity ?? state.totalQuantityConverted;
-        final selectedUnit = event.selectedUnit ?? state.selectedUnit;
-
-        if (selectedUnit.isEmpty || selectedTotalQuantity.isEmpty) {
-          return;
-        }
+        final selection = MealQuantityUnits(event.meal).reconcile(
+          event.selectedUnit ?? state.selectedUnit,
+          event.totalQuantity ?? state.totalQuantity,
+        );
+        final selectedTotalQuantity = selection.amount;
+        final selectedUnit = selection.unit;
 
         final energyPerUnit = (event.meal.nutriments.energyPerUnit ?? 0);
         final carbsPerUnit = (event.meal.nutriments.carbohydratesPerUnit ?? 0);
         final fatPerUnit = (event.meal.nutriments.fatPerUnit ?? 0);
         final proteinPerUnit = (event.meal.nutriments.proteinsPerUnit ?? 0);
 
-        final quantity = double.parse(
+        final parsedQuantity = double.tryParse(
           selectedTotalQuantity.replaceAll(',', '.'),
         );
+        final quantity =
+            parsedQuantity != null &&
+                parsedQuantity.isFinite &&
+                parsedQuantity > 0
+            ? parsedQuantity
+            : 0.0;
 
         // Convert quantity based on selected unit
         double convertedQuantity = quantity;
@@ -84,6 +90,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
 
         emit(
           state.copyWith(
+            totalQuantity: selectedTotalQuantity,
             totalQuantityConverted: convertedQuantity.toString(),
             totalKcal: convertedQuantity * energyPerUnit,
             totalCarbs: convertedQuantity * carbsPerUnit,

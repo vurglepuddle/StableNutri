@@ -12,6 +12,12 @@ abstract final class Dimens {
   static const double spacing20 = 20;
   static const double spacing24 = 24;
   static const double spacing32 = 32;
+  static const double spacing48 = 48;
+
+  // Dashboard rhythm. Keeping these here prevents individual cards from
+  // gradually acquiring incompatible outer gaps.
+  static const double dashboardItemGap = spacing4;
+  static const double dashboardMacroGap = spacing8;
 
   static const double radiusS = 14;
   static const double radiusM = 20;

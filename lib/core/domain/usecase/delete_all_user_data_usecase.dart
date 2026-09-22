@@ -2,6 +2,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
+import 'package:opennutritracker/core/utils/launcher_widget_service.dart';
 
 /// Wipes the **active profile's** data, returning that profile to a
 /// fresh, un-onboarded state. Used by the Settings "delete all my data"
@@ -26,6 +27,7 @@ class DeleteAllUserDataUsecase {
   );
 
   Future<void> deleteAll() async {
+    await LauncherWidgetService.clear(discardWater: true);
     _log.info('Clearing the active profile\'s Hive boxes on user request');
 
     // Before the boxes, not after, and in two halves — either alone leaves

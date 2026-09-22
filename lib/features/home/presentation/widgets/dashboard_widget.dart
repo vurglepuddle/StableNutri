@@ -92,9 +92,9 @@ class _DashboardWidgetState extends State<DashboardWidget> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         Dimens.spacing16,
-        Dimens.spacing8,
+        Dimens.dashboardItemGap,
         Dimens.spacing16,
-        Dimens.spacing4,
+        Dimens.dashboardItemGap,
       ),
       child: Column(
         children: [
@@ -189,7 +189,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                     ],
                   ),
           ),
-          const SizedBox(height: Dimens.spacing12),
+          const SizedBox(height: Dimens.dashboardMacroGap),
           Row(
             children: [
               Expanded(

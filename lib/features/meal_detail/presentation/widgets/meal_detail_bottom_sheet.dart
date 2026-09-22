@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/utils/serving_label_localizer.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_quantity_units.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -150,21 +151,11 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                                 ),
                                 labelText: S.of(context).unitLabel,
                               ),
-                              items: <DropdownMenuItem<String>>[
-                                // A serving the app cannot scale is a
-                                // no-op dressed as a unit.
-                                if (widget.product.scalableServingQuantity !=
-                                    null)
-                                  _getServingDropdownItem(context),
-                                if (widget.product.isSolid ||
-                                    !widget.product.isLiquid &&
-                                        !widget.product.isSolid)
-                                  ..._getSolidUnitDropdownItems(context),
-                                if (widget.product.isLiquid ||
-                                    !widget.product.isLiquid &&
-                                        !widget.product.isSolid)
-                                  ..._getLiquidUnitDropdownItems(context),
-                                ..._getOtherDropdownItems(context),
+                              items: [
+                                for (final unit in MealQuantityUnits(
+                                  widget.product,
+                                ).values)
+                                  _unitItem(context, unit),
                               ],
                               onChanged: (value) {
                                 widget.onQuantityOrUnitChanged(
@@ -400,62 +391,19 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     );
   }
 
-  List<DropdownMenuItem<String>> _getSolidUnitDropdownItems(
-    BuildContext context,
-  ) {
-    return [
-      DropdownMenuItem(
-        value: UnitDropdownItem.g.toString(),
-        child: Text(
-          S.of(context).gramUnit,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-      ),
-      DropdownMenuItem(
-        value: UnitDropdownItem.oz.toString(),
-        child: Text(
-          S.of(context).ozUnit,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-      ),
-    ];
-  }
-
-  List<DropdownMenuItem<String>> _getLiquidUnitDropdownItems(
-    BuildContext context,
-  ) {
-    return [
-      DropdownMenuItem(
-        value: UnitDropdownItem.ml.toString(),
-        child: Text(
-          S.of(context).milliliterUnit,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-      ),
-      DropdownMenuItem(
-        value: UnitDropdownItem.flOz.toString(),
-        child: Text(
-          S.of(context).flOzUnit,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-      ),
-    ];
-  }
-
-  List<DropdownMenuItem<String>> _getOtherDropdownItems(BuildContext context) {
-    return [
-      DropdownMenuItem(
-        value: UnitDropdownItem.gml.toString(),
-        child: Text(
-          "${S.of(context).notAvailableLabel} (${S.of(context).gramMilliliterUnit})",
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-      ),
-    ];
+  DropdownMenuItem<String> _unitItem(BuildContext context, String unit) {
+    if (unit == 'serving') return _getServingDropdownItem(context);
+    final s = S.of(context);
+    final label = switch (unit) {
+      'g' => s.gramUnit,
+      'oz' => s.ozUnit,
+      'ml' => s.milliliterUnit,
+      'fl.oz' => s.flOzUnit,
+      _ => '${s.notAvailableLabel} (${s.gramMilliliterUnit})',
+    };
+    return DropdownMenuItem(
+      value: unit,
+      child: Text(label, overflow: TextOverflow.ellipsis, maxLines: 1),
+    );
   }
 }

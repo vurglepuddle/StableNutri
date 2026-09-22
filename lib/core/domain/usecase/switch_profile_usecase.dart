@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
 import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
+import 'package:opennutritracker/core/utils/launcher_widget_service.dart';
 
 /// Makes [profile] the active profile: swaps the open box-set, persists
 /// the active pointer, and seeds the target's config if it's brand new.
@@ -22,6 +23,8 @@ class SwitchProfileUsecase {
   );
 
   Future<void> switchProfile(ProfileEntity profile) async {
+    await LauncherWidgetService.importWater();
+    await LauncherWidgetService.clear();
     await _hiveDBProvider.switchProfile(profile.id, profile.boxSuffix);
     await _secureAppStorageProvider.setActiveProfileId(profile.id);
     await ensureConfigInitialized(_configDataSource);

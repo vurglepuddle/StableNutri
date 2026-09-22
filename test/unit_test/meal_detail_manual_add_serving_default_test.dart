@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_quantity_units.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
@@ -16,13 +17,6 @@ import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_det
 // "serving" when the product carries serving data — matching what the
 // barcode-scan path already does on feature/scan-default-serving-158.
 //
-// The screen layer (`MealDetailScreen.didChangeDependencies`) branches
-// on `MealEntity.hasServingValues` to pick the initial unit and then
-// fires `UpdateKcalEvent` to seed the bloc. This test mirrors that
-// wiring directly, asserting that the resulting state's `selectedUnit`
-// reflects the screen's choice — that is, that the bloc honours the
-// load-time selection rather than collapsing it back to gml.
-
 class _FakeAddIntakeUsecase extends Fake implements AddIntakeUsecase {}
 
 class _FakeAddTrackedDayUsecase extends Fake implements AddTrackedDayUsecase {}
@@ -75,25 +69,72 @@ MealEntity _meal({
   );
 }
 
-// Mirrors `MealDetailScreen.didChangeDependencies` exactly so the test
-// guards the contract the screen relies on: any meal with serving data
-// should resolve to the "serving" dropdown choice on first frame, and
-// fall through to gml otherwise. Keeping the resolver in the test rather
-// than importing it means the screen and the test can drift only with
-// an explicit code change here.
-String _initialUnitForManualAdd(MealEntity meal) {
-  if (meal.scalableServingQuantity != null) {
-    return UnitDropdownItem.serving.toString();
-  } else if (meal.isLiquid) {
-    return UnitDropdownItem.ml.toString();
-  } else if (meal.isSolid) {
-    return UnitDropdownItem.g.toString();
-  } else {
-    return UnitDropdownItem.gml.toString();
-  }
-}
+String _initialUnitForManualAdd(MealEntity meal) =>
+    MealQuantityUnits(meal).defaultUnit();
 
 void main() {
+  test('recalculating a serving does not convert its amount twice', () async {
+    final meal = _meal(servingQuantity: 30);
+    final bloc = _buildBloc();
+    addTearDown(bloc.close);
+    bloc.add(
+      UpdateKcalEvent(meal: meal, selectedUnit: 'serving', totalQuantity: '2'),
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(bloc.state.totalQuantityConverted, '60.0');
+    bloc.add(UpdateKcalEvent(meal: meal));
+    await Future<void>.delayed(Duration.zero);
+    expect(bloc.state.totalQuantityConverted, '60.0');
+    expect(bloc.state.totalKcal, 60);
+  });
+
+  test(
+    'clearing quantity still updates the selected unit and totals',
+    () async {
+      final bloc = _buildBloc();
+      addTearDown(bloc.close);
+      bloc.add(
+        UpdateKcalEvent(meal: _meal(), selectedUnit: 'oz', totalQuantity: ''),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(bloc.state.selectedUnit, 'oz');
+      expect(bloc.state.totalQuantityConverted, '0.0');
+      expect(bloc.state.totalKcal, 0);
+    },
+  );
+
+  test(
+    'invalid external selections are reconciled in calculation state',
+    () async {
+      final bloc = _buildBloc();
+      addTearDown(bloc.close);
+      bloc.add(
+        UpdateKcalEvent(
+          meal: _meal(),
+          selectedUnit: 'fl oz',
+          totalQuantity: '2',
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(bloc.state.selectedUnit, 'fl.oz');
+      expect(
+        double.parse(bloc.state.totalQuantityConverted),
+        closeTo(59.147, .01),
+      );
+      bloc.add(
+        UpdateKcalEvent(
+          meal: _meal(),
+          selectedUnit: 'missing',
+          totalQuantity: '2',
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(bloc.state.selectedUnit, 'g');
+      expect(bloc.state.totalQuantity, isEmpty);
+      expect(bloc.state.totalKcal, 0);
+    },
+  );
+
   group('Meal detail — manual-add default unit (issue #34)', () {
     test(
       'defaults to "serving" when an OFF search result carries servingSize',

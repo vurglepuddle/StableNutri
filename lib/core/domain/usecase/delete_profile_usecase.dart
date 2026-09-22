@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/switch_profile_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
+import 'package:opennutritracker/core/utils/launcher_widget_service.dart';
 
 class DeleteProfileUsecase {
   final ProfileRepository _profileRepository;
@@ -32,6 +33,7 @@ class DeleteProfileUsecase {
     }
 
     await _hiveDBProvider.deleteProfileBoxes(profile.boxSuffix);
+    await LauncherWidgetService.discardProfile(profile.id);
     final imagePath = profile.imagePath;
     if (imagePath != null) {
       await UserImageStorage.delete(imagePath);

@@ -9,7 +9,7 @@
   <a href="LICENSE" alt="License">
     <img src="https://img.shields.io/badge/license-GPLv3-blue" />
   </a>
-  <img src="https://img.shields.io/badge/Flutter-3.41.7-02569B?logo=flutter&logoColor=white" alt="Flutter 3.41.7" />
+  <img src="https://img.shields.io/badge/Flutter-3.44.8-02569B?logo=flutter&logoColor=white" alt="Flutter 3.44.8" />
   <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20Android-lightgrey" alt="Platforms" />
   <img src="https://img.shields.io/badge/telemetry-none-brightgreen" alt="No telemetry" />
 </p>
@@ -123,7 +123,7 @@ The reference backend is based on [OpenNutriTracker-Backend](https://github.com/
 
 ## Building from source
 
-Stable currently targets **Flutter 3.41.7**, pinned in `.fvmrc`.
+Stable currently targets **Flutter 3.44.8**, pinned in `.fvmrc`.
 
 Using another Flutter version may resolve different package versions, so using the pinned SDK is recommended.
 

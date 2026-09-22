@@ -7,12 +7,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.icu.text.PluralRules
 import android.os.Build
 import android.os.Bundle
 import android.util.SizeF
 import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
+import java.math.BigDecimal
 import java.text.NumberFormat
 import java.math.RoundingMode
 import java.util.Locale
@@ -53,12 +55,12 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
         private const val EXERCISE_COLOR = 0xFFD05536.toInt()
         private const val DARK_INK = 0xFF1B1A18.toInt()
 
-        private val WATER = TileIds(R.id.water_tile, R.id.water_background, R.id.water_label,
-            R.id.water_number, R.id.water_unit, R.id.water_add)
-        private val FOOD = TileIds(R.id.food_tile, R.id.food_background, R.id.food_label,
-            R.id.food_number, R.id.food_unit, R.id.food_add)
-        private val EXERCISE = TileIds(R.id.exercise_tile, R.id.exercise_background, R.id.exercise_label,
-            R.id.exercise_number, R.id.exercise_unit, R.id.exercise_add)
+        private val WATER = TileIds(R.id.water_tile, R.id.water_background, R.id.water_press,
+            R.id.water_label, R.id.water_number, R.id.water_unit, R.id.water_add)
+        private val FOOD = TileIds(R.id.food_tile, R.id.food_background, R.id.food_press,
+            R.id.food_label, R.id.food_number, R.id.food_unit, R.id.food_add)
+        private val EXERCISE = TileIds(R.id.exercise_tile, R.id.exercise_background, R.id.exercise_press,
+            R.id.exercise_label, R.id.exercise_number, R.id.exercise_unit, R.id.exercise_add)
 
         fun updateAll(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
@@ -110,6 +112,12 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
             val fresh = data?.optString("day") == today
             val pending = WidgetWaterMath.pendingMl(QuickAddWidgetStore.pending(context), profile, today, offset)
             val water = (if (fresh) data?.optInt("waterMl") ?: 0 else 0) + pending
+            // Rounded as displayed, so "1 litre" and "1.2 litres" agree with
+            // the number shown. Stable sends a form per plural category.
+            val litres = BigDecimal(water).movePointLeft(3).setScale(1, RoundingMode.HALF_UP).toDouble()
+            val waterUnit = data?.optJSONObject("waterUnits")?.let { forms ->
+                forms.optString(PluralRules.forLocale(locale).select(litres)).ifEmpty { forms.optString("other") }
+            }.orEmpty().ifEmpty { "l" }
             val cupMl = data?.optInt("cupMl", 250) ?: 250
             val waterLabel = data?.optString("waterLabel") ?: context.getString(R.string.widget_water)
             val foodLabel = data?.optString("foodLabel") ?: context.getString(R.string.widget_food)
@@ -122,14 +130,19 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
                 context, 0, Intent(context, QuickAddWidgetProvider::class.java).setAction(WATER_ACTION),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
+            // The app's Show water / activity tracking settings. Food always
+            // shows, so the widget is never empty.
+            val showWater = data?.optBoolean("showWater", true) ?: true
+            val showExercise = data?.optBoolean("showExercise", true) ?: true
             return Content(
                 open = data?.optString("openLabel") ?: context.getString(R.string.widget_open_stable),
                 tiles = listOf(
-                    Tile(WATER, waterLabel, if (fresh || pending > 0) format.format(water / 1000.0) else "", "l",
+                    Tile(WATER, showWater, waterLabel,
+                        if (fresh || pending > 0) format.format(litres) else "", waterUnit,
                         "$add: $cupMl ml $waterLabel", waterAction, WATER_COLOR),
-                    Tile(FOOD, foodLabel, energy("foodAmount"), energyUnit,
+                    Tile(FOOD, true, foodLabel, energy("foodAmount"), energyUnit,
                         "$add: $foodLabel", launch(context, "food"), accent),
-                    Tile(EXERCISE, exerciseLabel, energy("exerciseAmount"), energyUnit,
+                    Tile(EXERCISE, showExercise, exerciseLabel, energy("exerciseAmount"), energyUnit,
                         "$add: $exerciseLabel", launch(context, "exercise"), EXERCISE_COLOR),
                 ),
             )
@@ -144,8 +157,19 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
             val shrink = minOf(1f, (if (tall) 1.5f else 1.2f) / resources.configuration.fontScale)
             fun size(view: Int, dimen: Int) =
                 views.setTextViewTextSize(view, TypedValue.COMPLEX_UNIT_PX, resources.getDimension(dimen) * shrink)
-            for (tile in content.tiles) {
+            val (shown, hidden) = content.tiles.partition { it.visible }
+            hidden.forEach { views.setViewVisibility(it.ids.tile, View.GONE) }
+            for ((index, tile) in shown.withIndex()) {
                 val ids = tile.ids
+                // Outer corners stay rounded whichever tiles remain.
+                val (shape, press) = when {
+                    shown.size == 1 -> R.drawable.widget_tile_single to R.drawable.widget_press_single
+                    index == 0 -> R.drawable.widget_tile_start to R.drawable.widget_press_start
+                    index == shown.lastIndex -> R.drawable.widget_tile_end to R.drawable.widget_press_end
+                    else -> R.drawable.widget_tile_middle to R.drawable.widget_press_middle
+                }
+                views.setImageViewResource(ids.background, shape)
+                views.setImageViewResource(ids.press, press)
                 // White reads best on the deep palette tones; a light custom
                 // accent gets dark ink instead.
                 val ink = if (Color.luminance(tile.color) > 0.3f) DARK_INK else Color.WHITE
@@ -174,12 +198,12 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
             return views
         }
 
-        private class TileIds(val tile: Int, val background: Int, val label: Int, val number: Int,
-            val unit: Int, val add: Int)
+        private class TileIds(val tile: Int, val background: Int, val press: Int, val label: Int,
+            val number: Int, val unit: Int, val add: Int)
 
         /** An empty [number] means there is no current value to show. */
-        private class Tile(val ids: TileIds, val label: String, val number: String, val unit: String,
-            val description: String, val action: PendingIntent, val color: Int)
+        private class Tile(val ids: TileIds, val visible: Boolean, val label: String, val number: String,
+            val unit: String, val description: String, val action: PendingIntent, val color: Int)
 
         private class Content(val open: String, val tiles: List<Tile>)
     }

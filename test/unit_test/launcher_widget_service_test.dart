@@ -83,6 +83,7 @@ void main() {
       false,
       AppThemeEntity.dark,
       usesKilojoules: true,
+      showWaterTracking: false,
       selectedLocale: 'en',
       dayStartOffsetHours: 4,
       dayStartOffsetMinutes: 30,
@@ -117,6 +118,9 @@ void main() {
       expect(snapshot['foodAmount'], '1423');
       expect(snapshot['exerciseAmount'], '502');
       expect(snapshot['energyUnit'], 'kJ');
+      expect(snapshot['showWater'], false);
+      expect(snapshot['showExercise'], true);
+      expect(snapshot['waterUnits'], {'one': 'litre', 'other': 'litres'});
     },
   );
 
@@ -154,6 +158,18 @@ void main() {
     expect((calls.last.arguments as Map)['appliedWaterIds'], [
       'widget-water-one',
     ]);
+  });
+
+  test('plural forms cover every category a language uses', () {
+    // Russian distinguishes one, few, many and other (fractions); the widget
+    // selects among them with Android's rules for its own water total.
+    final forms = LauncherWidgetService.pluralForms('ru', (n) => 'form $n');
+    expect(forms, {
+      'many': 'form 0',
+      'one': 'form 1',
+      'few': 'form 2',
+      'other': 'form 0.5',
+    });
   });
 
   test('cold-start action is read through the native bridge', () async {

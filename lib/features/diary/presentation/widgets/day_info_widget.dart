@@ -57,6 +57,8 @@ class DayInfoWidget extends StatefulWidget {
   // When the user disables Show Activity Tracking in Settings, the diary's
   // per-day Activity section is hidden alongside the home one.
   final bool showActivityTracking;
+  // Show Water Tracking off hides the day's water history the same way.
+  final bool showWaterTracking;
   // Persisted per-meal sort preference loaded by [CalendarDayBloc]. Keys are
   // meal-type strings (breakfast / lunch / dinner / snack) and values are
   // [DiarySortType] enum indices. Null when the user has never picked a
@@ -103,6 +105,7 @@ class DayInfoWidget extends StatefulWidget {
     required this.usesImperialUnits,
     this.showMealMacros = true,
     this.showActivityTracking = true,
+    this.showWaterTracking = true,
     this.diarySortPreferences,
     required this.onDeleteIntake,
     required this.onDeleteActivity,
@@ -413,7 +416,8 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onSortTypeChanged: (sort) =>
                     _setSortFor(IntakeTypeEntity.snack, sort),
               ),
-            DayWaterWidget(entries: widget.waterEntries),
+            if (widget.showWaterTracking)
+              DayWaterWidget(entries: widget.waterEntries),
             const SizedBox(height: Dimens.spacing16),
           ],
         ),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
@@ -137,11 +138,43 @@ class LauncherWidgetService {
       'foodAmount': energy(foodKcal),
       'exerciseAmount': energy(exerciseKcal),
       'energyUnit': config.usesKilojoules ? s.kjLabel : s.kcalLabel,
+      'waterUnits': pluralForms(s.localeName, s.widgetWaterUnit),
+      // Food always stays, so the widget is never empty.
+      'showWater': config.showWaterTracking,
+      'showExercise': config.showActivityTracking,
       'addLabel': s.addLabel,
       'openLabel': s.widgetOpenStableLabel,
       'appliedWaterIds': applied,
     });
     if (published == true) _imported[profile.id]?.removeAll(applied);
+  }
+
+  /// Every form of a plural [message], keyed by CLDR category (one, few,
+  /// other...). The widget adds cups while Stable is closed, so it picks the
+  /// form for its own total with Android's plural rules for the same locale.
+  @visibleForTesting
+  static Map<String, String> pluralForms(
+    String locale,
+    String Function(num count) message,
+  ) {
+    // Enough numbers to land in every category CLDR defines.
+    const samples = <num>[0, 1, 2, 3, 5, 7, 11, 21, 100, 0.5, 1.5];
+    final forms = <String, String>{};
+    for (final count in samples) {
+      final category = Intl.pluralLogic(
+        count,
+        locale: locale,
+        zero: 'zero',
+        one: 'one',
+        two: 'two',
+        few: 'few',
+        many: 'many',
+        other: 'other',
+        useExplicitNumberCases: false,
+      );
+      forms.putIfAbsent(category, () => message(count));
+    }
+    return forms;
   }
 
   /// A switch invalidates displayed totals but retains taps for their owner.

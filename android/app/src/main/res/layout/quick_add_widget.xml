@@ -4,8 +4,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="horizontal" android:baselineAligned="false">
-    <FrameLayout android:id="@+id/water_tile" style="@style/WidgetTile"
-        android:foreground="@drawable/widget_press_start">
+    <FrameLayout android:id="@+id/water_tile" style="@style/WidgetTile">
         <ImageView android:id="@+id/water_background" style="@style/WidgetTileBackground"
             android:src="@drawable/widget_tile_start" />
         <LinearLayout style="@style/WidgetTileContent">
@@ -20,9 +19,10 @@
             <ImageView android:id="@+id/water_add" style="@style/WidgetAdd"
                 android:layout_marginTop="4dp" />
         </LinearLayout>
+        <ImageView android:id="@+id/water_press" style="@style/WidgetTilePress"
+            android:src="@drawable/widget_press_start" />
     </FrameLayout>
-    <FrameLayout android:id="@+id/food_tile" style="@style/WidgetTile"
-        android:foreground="@drawable/widget_press_middle">
+    <FrameLayout android:id="@+id/food_tile" style="@style/WidgetTile">
         <ImageView android:id="@+id/food_background" style="@style/WidgetTileBackground"
             android:src="@drawable/widget_tile_middle" />
         <LinearLayout style="@style/WidgetTileContent">
@@ -37,9 +37,10 @@
             <ImageView android:id="@+id/food_add" style="@style/WidgetAdd"
                 android:layout_marginTop="4dp" />
         </LinearLayout>
+        <ImageView android:id="@+id/food_press" style="@style/WidgetTilePress"
+            android:src="@drawable/widget_press_middle" />
     </FrameLayout>
-    <FrameLayout android:id="@+id/exercise_tile" style="@style/WidgetTile"
-        android:foreground="@drawable/widget_press_end">
+    <FrameLayout android:id="@+id/exercise_tile" style="@style/WidgetTile">
         <ImageView android:id="@+id/exercise_background" style="@style/WidgetTileBackground"
             android:src="@drawable/widget_tile_end" />
         <LinearLayout style="@style/WidgetTileContent">
@@ -54,5 +55,7 @@
             <ImageView android:id="@+id/exercise_add" style="@style/WidgetAdd"
                 android:layout_marginTop="4dp" />
         </LinearLayout>
+        <ImageView android:id="@+id/exercise_press" style="@style/WidgetTilePress"
+            android:src="@drawable/widget_press_end" />
     </FrameLayout>
 </LinearLayout>

@@ -162,6 +162,10 @@ class ConfigDataSource {
     await _update((c) => c.showActivityTracking = show);
   }
 
+  Future<void> setConfigShowWaterTracking(bool show) async {
+    await _update((c) => c.showWaterTracking = show);
+  }
+
   Future<void> setConfigUsesRangeGauge(bool usesRangeGauge) async {
     await _update((c) => c.usesRangeGauge = usesRangeGauge);
   }

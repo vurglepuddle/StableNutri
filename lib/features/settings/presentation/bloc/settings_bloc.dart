@@ -60,6 +60,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           usesImperialHeightUnits: userConfig.usesImperialHeightUnits,
           bodyWeightUnit: userConfig.bodyWeightUnit,
           showActivityTracking: userConfig.showActivityTracking,
+          showWaterTracking: userConfig.showWaterTracking,
           showMealMacros: userConfig.showMealMacros,
           usesRangeGauge: userConfig.usesRangeGauge,
           notificationsEnabled: userConfig.notificationsEnabled,
@@ -117,6 +118,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   void setShowActivityTracking(bool showActivityTracking) {
     _addConfigUsecase.setConfigShowActivityTracking(showActivityTracking);
   }
+
+  Future<void> setShowWaterTracking(bool showWaterTracking) =>
+      _addConfigUsecase.setConfigShowWaterTracking(showWaterTracking);
 
   void setUsesRangeGauge(bool usesRangeGauge) {
     _addConfigUsecase.setConfigUsesRangeGauge(usesRangeGauge);

@@ -18,7 +18,14 @@ The widget follows the active profile, energy units, locale and accent. Tiles
 use the palette's deep water blue, the accent (or Material You accent) for food,
 and coral for exercise, in both themes; a light custom accent gets dark text.
 Text follows the system font scale up to 1.2× in one row and 1.5× in two.
-Each tile's description names the action and includes its value.
+Each tile's description names the action and includes its value. Water spells
+its unit out ("1 litre", "1.2 litres"): Stable sends every plural form of the
+translated unit, and the widget picks the one for its own total with Android's
+plural rules, because cups tapped while Stable is closed change that total.
+
+Settings → Display → Show Water Tracking and Show Activity Tracking also hide
+the water and exercise tiles. The remaining tiles widen and keep the widget's
+rounded outer corners; food always shows, so the widget is never empty.
 
 The resize limit is the launcher grid, not a dp width: launchers take the
 smallest span across portrait and landscape, and landscape cells are wide
@@ -37,8 +44,6 @@ unrefreshed values say “Open Stable” instead of showing yesterday's totals.
 Profile switches clear the displayed snapshot; deleting a profile also removes
 its pending widget entries.
 
-Phone checks: add/resize the widget in the launcher; tap water with Stable
-closed, then reopen and verify one timestamped entry per tap; launch food and
-exercise from both cold and warm starts; check 4 × 1, 5 × 1, 4 × 2 and 5 × 2, the
-device's large-font setting, a custom accent, and profile switching. No Android device was connected during the
-implementation session.
+Checked on the user's phone: the tile design, all three tiles, and water taps
+with Stable closed. Still to check: 5 × 1 and 5 × 2, the large-font setting, a
+custom accent, profile switching, and hiding water and exercise in Settings.

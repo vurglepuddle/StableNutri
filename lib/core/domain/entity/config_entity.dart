@@ -42,6 +42,9 @@ class ConfigEntity extends Equatable {
   final double? userProteinGoalPct;
   final double? userFatGoalPct;
   final bool showActivityTracking;
+
+  /// Water cards, history, goal and the widget tile; off hides all of them.
+  final bool showWaterTracking;
   final bool showMealMacros;
 
   /// Today's calorie gauge as a linear range bar rather than the ring.
@@ -151,6 +154,7 @@ class ConfigEntity extends Equatable {
     this.userProteinGoalPct,
     this.userFatGoalPct,
     this.showActivityTracking = true,
+    this.showWaterTracking = true,
     this.showMealMacros = true,
     this.usesRangeGauge = true,
     this.notificationsEnabled = false,
@@ -254,6 +258,7 @@ class ConfigEntity extends Equatable {
     userProteinGoalPct: dbo.userProteinGoalPct,
     userFatGoalPct: dbo.userFatGoalPct,
     showActivityTracking: dbo.showActivityTracking ?? true,
+    showWaterTracking: dbo.showWaterTracking ?? true,
     showMealMacros: dbo.showMealMacros ?? true,
     usesRangeGauge: dbo.usesRangeGauge ?? true,
     notificationsEnabled: dbo.notificationsEnabled ?? false,
@@ -388,6 +393,7 @@ class ConfigEntity extends Equatable {
     userProteinGoalPct,
     userFatGoalPct,
     showActivityTracking,
+    showWaterTracking,
     showMealMacros,
     usesRangeGauge,
     notificationsEnabled,

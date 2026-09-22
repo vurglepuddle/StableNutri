@@ -53,6 +53,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
             user.gender,
             caloriesProfile: user.caloriesProfile,
           ),
+          showWaterTracking: userConfig.showWaterTracking,
         ),
       );
     });

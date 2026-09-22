@@ -1,0 +1,5 @@
+<!-- Food alone, when water and exercise are hidden. Tinted at runtime. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#0E7A4D" />
+    <corners android:radius="@dimen/widget_radius" />
+</shape>

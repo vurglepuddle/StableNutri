@@ -30,6 +30,11 @@
         <item name="android:scaleType">fitXY</item>
         <item name="android:importantForAccessibility">no</item>
     </style>
+    <!-- Press ripple drawn over the tile. It takes the tile's pressed state, and
+         unlike a foreground its shape can change when a neighbour is hidden. -->
+    <style name="WidgetTilePress" parent="WidgetTileBackground">
+        <item name="android:duplicateParentState">true</item>
+    </style>
     <style name="WidgetTileContent">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">match_parent</item>

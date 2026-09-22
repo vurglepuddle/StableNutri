@@ -1,13 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/presentation/widgets/thumbnail_image.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
@@ -531,9 +529,7 @@ class CustomMealsTab extends StatelessWidget {
 
 /// Leading avatar for a custom meal row. Shows the user-attached photo
 /// when one exists, otherwise a soft fallback icon matching the recipe
-/// list's visual rhythm. Resolution is async because the absolute path
-/// is recomposed against the documents directory at render time —
-/// see [UserImageStorage.absolutePath] for the reasoning.
+/// list's visual rhythm.
 class _MealLeadingThumbnail extends StatelessWidget {
   final MealEntity meal;
 
@@ -544,33 +540,17 @@ class _MealLeadingThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
-    final relative = meal.localImagePath;
-    final fallback = Container(
-      width: _size,
-      height: _size,
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.14),
-        borderRadius: Dimens.borderRadiusS,
-      ),
-      child: Icon(Icons.restaurant_rounded, color: accent, size: 24),
-    );
-    if (relative == null) return fallback;
-    return FutureBuilder<String>(
-      future: UserImageStorage.absolutePath(relative),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return fallback;
-        final file = File(snapshot.data!);
-        if (!file.existsSync()) return fallback;
-        return ClipRRect(
+    return ThumbnailImage(
+      localPath: meal.localImagePath,
+      size: _size,
+      borderRadius: Dimens.borderRadiusS,
+      fallback: Container(
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.14),
           borderRadius: Dimens.borderRadiusS,
-          child: Image.file(
-            file,
-            width: _size,
-            height: _size,
-            fit: BoxFit.cover,
-          ),
-        );
-      },
+        ),
+        child: Icon(Icons.restaurant_rounded, color: accent, size: 24),
+      ),
     );
   }
 }

@@ -1,10 +1,9 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
+import 'package:opennutritracker/core/presentation/widgets/thumbnail_image.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -303,32 +302,24 @@ class _PickableMealCard extends StatelessWidget {
             padding: const EdgeInsets.all(Dimens.spacing12),
             child: Row(
               children: [
-                meal.thumbnailImageUrl != null
-                    ? ClipRRect(
-                        borderRadius: Dimens.borderRadiusS,
-                        child: CachedNetworkImage(
-                          cacheManager: locator<CacheManager>(),
-                          fit: BoxFit.cover,
-                          width: 52,
-                          height: 52,
-                          imageUrl: meal.thumbnailImageUrl ?? '',
-                        ),
-                      )
-                    : Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: accent.withValues(alpha: 0.14),
-                          borderRadius: Dimens.borderRadiusS,
-                        ),
-                        child: Icon(
-                          meal.source == MealSourceEntity.recipe
-                              ? Icons.menu_book_rounded
-                              : Icons.restaurant_rounded,
-                          color: accent,
-                          size: 24,
-                        ),
-                      ),
+                ThumbnailImage(
+                  url: meal.thumbnailImageUrl,
+                  size: 52,
+                  borderRadius: Dimens.borderRadiusS,
+                  fallback: Container(
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.14),
+                      borderRadius: Dimens.borderRadiusS,
+                    ),
+                    child: Icon(
+                      meal.source == MealSourceEntity.recipe
+                          ? Icons.menu_book_rounded
+                          : Icons.restaurant_rounded,
+                      color: accent,
+                      size: 24,
+                    ),
+                  ),
+                ),
                 const SizedBox(width: Dimens.spacing12),
                 Expanded(
                   child: AutoSizeText.rich(

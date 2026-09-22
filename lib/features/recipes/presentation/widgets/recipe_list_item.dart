@@ -1,15 +1,10 @@
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/presentation/widgets/thumbnail_image.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class RecipeListItem extends StatelessWidget {
@@ -155,23 +150,13 @@ class RecipeListItem extends StatelessWidget {
     Color accent,
     String? thumbnailUrl,
   ) {
-    if (recipe.imagePath != null) {
-      return _UserImageThumbnail(relativePath: recipe.imagePath!);
-    }
-    if (thumbnailUrl != null) {
-      return ClipRRect(
-        borderRadius: Dimens.borderRadiusS,
-        child: CachedNetworkImage(
-          cacheManager: locator<CacheManager>(),
-          fit: BoxFit.cover,
-          width: _thumbSize,
-          height: _thumbSize,
-          imageUrl: thumbnailUrl,
-          errorWidget: (context, url, error) => _fallbackThumb(palette, accent),
-        ),
-      );
-    }
-    return _fallbackThumb(palette, accent);
+    return ThumbnailImage(
+      localPath: recipe.imagePath,
+      url: thumbnailUrl,
+      size: _thumbSize,
+      borderRadius: Dimens.borderRadiusS,
+      fallback: _fallbackThumb(palette, accent),
+    );
   }
 
   static Widget _fallbackThumb(AppPalette palette, Color accent) {
@@ -183,36 +168,6 @@ class RecipeListItem extends StatelessWidget {
         borderRadius: Dimens.borderRadiusS,
       ),
       child: Icon(Icons.menu_book_rounded, color: accent, size: 24),
-    );
-  }
-}
-
-class _UserImageThumbnail extends StatelessWidget {
-  final String relativePath;
-
-  const _UserImageThumbnail({required this.relativePath});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final palette = isDark ? AppPalette.dark : AppPalette.light;
-    final accent = Theme.of(context).colorScheme.primary;
-    return FutureBuilder<String>(
-      future: UserImageStorage.absolutePath(relativePath),
-      builder: (context, snapshot) {
-        final fallback = RecipeListItem._fallbackThumb(palette, accent);
-        if (!snapshot.hasData) return fallback;
-        return ClipRRect(
-          borderRadius: Dimens.borderRadiusS,
-          child: Image.file(
-            File(snapshot.data!),
-            fit: BoxFit.cover,
-            width: RecipeListItem._thumbSize,
-            height: RecipeListItem._thumbSize,
-            errorBuilder: (_, error, stack) => fallback,
-          ),
-        );
-      },
     );
   }
 }

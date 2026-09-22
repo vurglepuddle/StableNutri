@@ -1,5 +1,6 @@
+<!-- Rounded plus, matching the app's add_rounded icon. Tinted at runtime. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="28dp" android:height="28dp"
+    android:width="24dp" android:height="24dp"
     android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="#0E7A4D" android:pathData="M11,5L13,5L13,11L19,11L19,13L13,13L13,19L11,19L11,13L5,13L5,11L11,11Z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M18,13h-5v5c0,0.55 -0.45,1 -1,1s-1,-0.45 -1,-1v-5H6c-0.55,0 -1,-0.45 -1,-1s0.45,-1 1,-1h5V6c0,-0.55 0.45,-1 1,-1s1,0.45 1,1v5h5c0.55,0 1,0.45 1,1s-0.45,1 -1,1z" />
 </vector>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Two rows: the same tiles with room for a large number and its unit on
+     separate lines. The provider switches layouts by height. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="horizontal" android:baselineAligned="false">
+    <FrameLayout android:id="@+id/water_tile" style="@style/WidgetTile"
+        android:foreground="@drawable/widget_press_start">
+        <ImageView android:id="@+id/water_background" style="@style/WidgetTileBackground"
+            android:src="@drawable/widget_tile_start" />
+        <LinearLayout style="@style/WidgetTileContent" android:paddingVertical="14dp">
+            <TextView android:id="@+id/water_label" style="@style/WidgetLabel"
+                android:textSize="@dimen/widget_label_text_tall" android:text="@string/widget_water" />
+            <FrameLayout style="@style/WidgetGap" />
+            <TextView android:id="@+id/water_number" style="@style/WidgetNumber"
+                android:textSize="@dimen/widget_number_text_tall" />
+            <TextView android:id="@+id/water_unit" style="@style/WidgetUnit"
+                android:layout_marginTop="2dp" android:textSize="@dimen/widget_unit_text_tall" />
+            <FrameLayout style="@style/WidgetGap" />
+            <ImageView android:id="@+id/water_add" style="@style/WidgetAdd"
+                android:layout_height="26dp" />
+        </LinearLayout>
+    </FrameLayout>
+    <FrameLayout android:id="@+id/food_tile" style="@style/WidgetTile"
+        android:foreground="@drawable/widget_press_middle">
+        <ImageView android:id="@+id/food_background" style="@style/WidgetTileBackground"
+            android:src="@drawable/widget_tile_middle" />
+        <LinearLayout style="@style/WidgetTileContent" android:paddingVertical="14dp">
+            <TextView android:id="@+id/food_label" style="@style/WidgetLabel"
+                android:textSize="@dimen/widget_label_text_tall" android:text="@string/widget_food" />
+            <FrameLayout style="@style/WidgetGap" />
+            <TextView android:id="@+id/food_number" style="@style/WidgetNumber"
+                android:textSize="@dimen/widget_number_text_tall" />
+            <TextView android:id="@+id/food_unit" style="@style/WidgetUnit"
+                android:layout_marginTop="2dp" android:textSize="@dimen/widget_unit_text_tall" />
+            <FrameLayout style="@style/WidgetGap" />
+            <ImageView android:id="@+id/food_add" style="@style/WidgetAdd"
+                android:layout_height="26dp" />
+        </LinearLayout>
+    </FrameLayout>
+    <FrameLayout android:id="@+id/exercise_tile" style="@style/WidgetTile"
+        android:foreground="@drawable/widget_press_end">
+        <ImageView android:id="@+id/exercise_background" style="@style/WidgetTileBackground"
+            android:src="@drawable/widget_tile_end" />
+        <LinearLayout style="@style/WidgetTileContent" android:paddingVertical="14dp">
+            <TextView android:id="@+id/exercise_label" style="@style/WidgetLabel"
+                android:textSize="@dimen/widget_label_text_tall" android:text="@string/widget_exercise" />
+            <FrameLayout style="@style/WidgetGap" />
+            <TextView android:id="@+id/exercise_number" style="@style/WidgetNumber"
+                android:textSize="@dimen/widget_number_text_tall" />
+            <TextView android:id="@+id/exercise_unit" style="@style/WidgetUnit"
+                android:layout_marginTop="2dp" android:textSize="@dimen/widget_unit_text_tall" />
+            <FrameLayout style="@style/WidgetGap" />
+            <ImageView android:id="@+id/exercise_add" style="@style/WidgetAdd"
+                android:layout_height="26dp" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

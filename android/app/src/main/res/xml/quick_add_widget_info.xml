@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 4 x 1 by default, resizable up to 5 x 2. Launchers cap the span by the
+     smallest grid they support, including landscape, where cells are much
+     wider: a dp width limit that means five phone columns rounds down to four
+     there. The phone grid is the width limit instead; 180dp is two rows. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="250dp"
-    android:minHeight="180dp"
+    android:minHeight="40dp"
     android:minResizeWidth="250dp"
-    android:minResizeHeight="180dp"
+    android:minResizeHeight="40dp"
+    android:maxResizeHeight="180dp"
     android:targetCellWidth="4"
-    android:targetCellHeight="2"
+    android:targetCellHeight="1"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/quick_add_widget"

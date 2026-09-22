@@ -1,0 +1,7 @@
+<!-- Water: the rounded start edge of the widget. Tinted at runtime. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#2E74B5" />
+    <corners
+        android:topLeftRadius="0dp" android:bottomLeftRadius="0dp"
+        android:topRightRadius="@dimen/widget_radius" android:bottomRightRadius="@dimen/widget_radius" />
+</shape>

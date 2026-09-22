@@ -89,7 +89,6 @@ void main() {
     ),
     day: DateTime(2026, 9, 21),
     waterMl: 300,
-    waterGoalMl: 2100,
     cupMl: 300,
     foodKcal: 340,
     exerciseKcal: 120,
@@ -115,9 +114,9 @@ void main() {
       expect(snapshot['waterMl'], 300);
       expect(snapshot['day'], '2026-9-21');
       expect(snapshot['offsetMinutes'], 270);
-      expect(snapshot['foodValue'], '1423 kJ');
-      expect(snapshot['exerciseValue'], '502 kJ');
-      expect(snapshot['theme'], 'dark');
+      expect(snapshot['foodAmount'], '1423');
+      expect(snapshot['exerciseAmount'], '502');
+      expect(snapshot['energyUnit'], 'kJ');
     },
   );
 

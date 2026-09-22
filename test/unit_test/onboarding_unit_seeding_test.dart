@@ -326,6 +326,13 @@ void main() {
       expect(bloc.state, isA<OnboardingLoadedState>());
       expect(bloc.userSelection.foodSourceToggles, isNotEmpty);
       expect(tester.takeException(), isNull);
+      await tester.tap(find.bySemanticsIdentifier('onboarding-button'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Accept the privacy policy to continue'),
+        findsOneWidget,
+      );
+      expect(bloc.userSelection.gender, isNull);
       await tester.pumpWidget(const SizedBox());
     });
 

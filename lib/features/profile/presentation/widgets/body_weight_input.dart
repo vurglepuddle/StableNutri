@@ -17,11 +17,18 @@ class BodyWeightInput extends StatefulWidget {
   final double? initialKg;
   final BodyWeightUnit unit;
   final ValueChanged<double?> onChangedKg;
+  final ValueChanged<bool>? onInputPresenceChanged;
 
   /// Prefix for the `Semantics(identifier:)` handles so each call site stays
   /// distinct for UI drivers, e.g. 'weight-history' -> 'weight-history-stones'.
   final String identifierPrefix;
   final bool autofocus;
+
+  /// Error to display. The widget has no validator of its own. It reports
+  /// null upward and leaves the caller to decide when an invalid entry is
+  /// worth complaining about, which is how the onboarding page stays quiet
+  /// until the user leaves the field.
+  final String? errorText;
 
   const BodyWeightInput({
     super.key,
@@ -29,7 +36,9 @@ class BodyWeightInput extends StatefulWidget {
     required this.unit,
     required this.onChangedKg,
     required this.identifierPrefix,
+    this.onInputPresenceChanged,
     this.autofocus = false,
+    this.errorText,
   });
 
   @override
@@ -61,8 +70,6 @@ class _BodyWeightInputState extends State<BodyWeightInput> {
       case BodyWeightUnit.lb:
         _singleController.text = _trim(UnitCalc.kgToLbs(kg));
       case BodyWeightUnit.st:
-        // _trim prints one decimal, so ask for the split at that precision
-        // rather than seeding the field with a full stone of pounds.
         final (stones, pounds) = UnitCalc.kgToStLb(kg, poundsDecimals: 1);
         _stonesController.text = stones.toString();
         _poundsController.text = _trim(pounds);
@@ -98,6 +105,7 @@ class _BodyWeightInputState extends State<BodyWeightInput> {
   }
 
   void _emitSingle(String text) {
+    widget.onInputPresenceChanged?.call(text.trim().isNotEmpty);
     final parsed = double.tryParse(text.replaceAll(',', '.'));
     final kg = ValueValidator.parseWeightInKg(
       parsed,
@@ -107,10 +115,13 @@ class _BodyWeightInputState extends State<BodyWeightInput> {
   }
 
   void _emitStLb() {
-    final stones = int.tryParse(_stonesController.text.trim());
-    final pounds = double.tryParse(
-      _poundsController.text.trim().replaceAll(',', '.'),
+    final stonesText = _stonesController.text.trim();
+    final poundsText = _poundsController.text.trim();
+    widget.onInputPresenceChanged?.call(
+      stonesText.isNotEmpty || poundsText.isNotEmpty,
     );
+    final stones = int.tryParse(stonesText);
+    final pounds = double.tryParse(poundsText.replaceAll(',', '.'));
     widget.onChangedKg(ValueValidator.parseStLbWeightInKg(stones, pounds));
   }
 
@@ -135,13 +146,36 @@ class _BodyWeightInputState extends State<BodyWeightInput> {
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(r'^\d+([.,]\d{0,1})?$')),
         ],
-        decoration: InputDecoration(labelText: label),
+        decoration: InputDecoration(
+          labelText: label,
+          errorText: widget.errorText,
+        ),
         onChanged: _emitSingle,
       ),
     );
   }
 
   Widget _buildStLbFields(BuildContext context) {
+    final errorText = widget.errorText;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildStLbRow(context),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 8),
+            child: Text(
+              errorText,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildStLbRow(BuildContext context) {
     return Row(
       children: [
         Expanded(

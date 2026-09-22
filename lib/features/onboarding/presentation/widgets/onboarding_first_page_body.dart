@@ -58,6 +58,12 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
     }
   }
 
+  @override
+  void dispose() {
+    _dateInput.dispose();
+    super.dispose();
+  }
+
   UserGenderEntity _toEntity(UserGenderSelectionEntity selection) {
     switch (selection) {
       case UserGenderSelectionEntity.genderMale:
@@ -87,7 +93,7 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
             _selectedCaloriesProfile ?? CaloriesProfileEntity.averaged,
       ),
     );
-    if (selected == null) return;
+    if (selected == null || !mounted) return;
     setState(() {
       _selectedCaloriesProfile = selected;
       checkCorrectInput();
@@ -205,6 +211,14 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
               onTap: onDateInputClicked,
             ),
           ),
+          if (_selectedDate != null &&
+              ValueValidator.isUnderAdultAge(_selectedDate!)) ...[
+            const SizedBox(height: 12),
+            Text(
+              S.of(context).onboardingAdultEquationNotice,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
         ],
       ),
     );
@@ -224,11 +238,15 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
   }
 
   void onDateInputClicked() async {
+    final now = DateTime.now();
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: ValueValidator.getLastDate(),
-      firstDate: ValueValidator.getFirstDate(),
-      lastDate: ValueValidator.getLastDate(),
+      initialDatePickerMode: DatePickerMode.year,
+      initialDate: _selectedDate == null
+          ? ValueValidator.getInitialBirthdayDate(now: now)
+          : ValueValidator.clampBirthday(_selectedDate!, now: now),
+      firstDate: ValueValidator.getFirstDate(now: now),
+      lastDate: ValueValidator.getLastDate(now: now),
     );
     if (pickedDate == null || !mounted) return;
     final localizations = MaterialLocalizations.of(context);
@@ -241,7 +259,9 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
   }
 
   void checkCorrectInput() {
-    if (_selectedGender != null && _selectedDate != null) {
+    if (_selectedGender != null &&
+        _selectedDate != null &&
+        ValueValidator.isValidBirthday(_selectedDate!)) {
       widget.setPageContent(
         true,
         _selectedGender,

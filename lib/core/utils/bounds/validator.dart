@@ -39,7 +39,7 @@ class ValueValidator {
   }
 
   static double? parseHeightInCm(double? height, {bool isImperial = false}) {
-    if (height == null) return null;
+    if (height == null || !height.isFinite) return null;
     final belowMin = isImperial
         ? height < Ranges.minHeightInFeet
         : height < Ranges.minHeight;
@@ -51,7 +51,7 @@ class ValueValidator {
   }
 
   static double? parseWeightInKg(double? weight, {bool isImperial = false}) {
-    if (weight == null) return null;
+    if (weight == null || !weight.isFinite) return null;
     final belowMin = isImperial
         ? weight < Ranges.minWeightInLbs
         : weight < Ranges.minWeight;
@@ -66,7 +66,7 @@ class ValueValidator {
   /// Returns null when the parts are missing or the combined height falls
   /// outside the same cm range the metric path uses.
   static double? parseFeetInchesHeightInCm(int? feet, double? inches) {
-    if (feet == null || inches == null) return null;
+    if (feet == null || inches == null || !inches.isFinite) return null;
     if (feet < 0 || inches < 0) return null;
     final cm = UnitCalc.feetInchesToCm(feet, inches.round());
     if (cm < Ranges.minHeight || cm > Ranges.maxHeight) return null;
@@ -79,15 +79,72 @@ class ValueValidator {
   /// stone is NOT enforced here — a user typing "0 st 200 lb" still resolves to
   /// a valid weight, the bounds check is what guards the extremes.
   static double? parseStLbWeightInKg(int? stones, double? pounds) {
-    if (stones == null || pounds == null) return null;
+    if (stones == null || pounds == null || !pounds.isFinite) return null;
     if (stones < 0 || pounds < 0) return null;
     final kg = UnitCalc.stLbToKg(stones, pounds);
     if (kg < Ranges.minWeight || kg > Ranges.maxWeight) return null;
     return kg;
   }
 
-  static DateTime getFirstDate() => DateTime.now().subtract(Ranges.maxAge);
+  static DateTime getFirstDate({DateTime? now}) =>
+      _yearsBefore(now ?? DateTime.now(), Ranges.maxAgeYears);
 
-  static DateTime getLastDate() =>
-      DateTime.now().add(Ranges.maxDurationForBirthdayIntoTheFuture);
+  /// The same calendar day [years] earlier, with Feb 29 pulled back to Feb 28
+  /// when the target year isn't a leap year. Dart would otherwise roll that
+  /// date forward to Mar 1, which on a leap day would push the boundary a day
+  /// past the birthday [ageInYears] counts from.
+  static DateTime _yearsBefore(DateTime date, int years) {
+    final year = date.year - years;
+    final lastDayOfMonth = DateTime(year, date.month + 1, 0).day;
+    final day = date.day <= lastDayOfMonth ? date.day : lastDayOfMonth;
+    return DateTime(year, date.month, day);
+  }
+
+  /// Latest birthday the app accepts, [Ranges.minAgeYears] before today.
+  /// Walks the calendar so leap years can't drift the boundary.
+  static DateTime getLastDate({DateTime? now}) =>
+      _yearsBefore(now ?? DateTime.now(), Ranges.minAgeYears);
+
+  /// Where the birthday picker opens when the user hasn't chosen yet.
+  /// A birthday is picked year-first, and 30 years back sits near the middle
+  /// of the plausible range, the shortest average travel to a real answer.
+  static DateTime getInitialBirthdayDate({DateTime? now}) =>
+      _yearsBefore(now ?? DateTime.now(), 30);
+
+  /// Completed years between [birthday] and today, counted on the calendar
+  /// (a birthday that hasn't come round yet this year doesn't count).
+  static int ageInYears(DateTime birthday, {DateTime? now}) {
+    final today = now ?? DateTime.now();
+    var age = today.year - birthday.year;
+    final hadBirthdayThisYear =
+        today.month > birthday.month ||
+        (today.month == birthday.month && today.day >= birthday.day);
+    if (!hadBirthdayThisYear) age--;
+    return age;
+  }
+
+  /// Whether the goal for this birthday should carry the adult-equation
+  /// notice. Ages below [Ranges.minAgeYears] can't be picked, so in practice
+  /// this covers 13 to 17.
+  static bool isUnderAdultAge(DateTime birthday, {DateTime? now}) =>
+      ageInYears(birthday, now: now) < Ranges.adultAgeYears;
+
+  /// Clamps a stored birthday into the accepted range so it can be handed to
+  /// `showDatePicker` as `initialDate`. The picker asserts when that falls
+  /// outside first/last, and older builds allowed dates today's bounds
+  /// reject.
+  static DateTime clampBirthday(DateTime birthday, {DateTime? now}) {
+    final today = now ?? DateTime.now();
+    final date = DateTime(birthday.year, birthday.month, birthday.day);
+    final first = getFirstDate(now: today);
+    final last = getLastDate(now: today);
+    if (date.isBefore(first)) return first;
+    if (date.isAfter(last)) return last;
+    return date;
+  }
+
+  static bool isValidBirthday(DateTime birthday, {DateTime? now}) {
+    final date = DateTime(birthday.year, birthday.month, birthday.day);
+    return clampBirthday(date, now: now) == date;
+  }
 }

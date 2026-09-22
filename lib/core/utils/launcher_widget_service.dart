@@ -101,7 +101,6 @@ class LauncherWidgetService {
     required ConfigEntity config,
     required DateTime day,
     required int waterMl,
-    required int waterGoalMl,
     required int cupMl,
     required double foodKcal,
     required double exerciseKcal,
@@ -118,29 +117,26 @@ class LauncherWidgetService {
       WidgetsBinding.instance.platformDispatcher.locale,
     ], S.supportedLocales);
     final s = lookupS(locale);
-    final energyUnit = config.usesKilojoules ? s.kjLabel : s.kcalLabel;
+    // Number and unit travel separately: the taller widget stacks them.
     String energy(double kcal) =>
-        '${(config.usesKilojoules ? UnitCalc.kcalToKj(kcal) : kcal).round()} $energyUnit';
+        '${(config.usesKilojoules ? UnitCalc.kcalToKj(kcal) : kcal).round()}';
     final applied = appliedWaterIds;
     final published = await _call<bool>('publish', {
       'profileId': profile.id,
       'profileName': profile.name,
       'locale': locale.toLanguageTag(),
-      'theme': config.appTheme.name,
       'accent': config.accentColor,
       'materialYou': config.useMaterialYou,
       'day': '${day.year}-${day.month}-${day.day}',
       'offsetMinutes': config.dayStartOffsetTotalMinutes,
       'waterMl': waterMl,
-      'waterGoalMl': waterGoalMl,
       'cupMl': cupMl > 0 ? cupMl : 250,
       'waterLabel': s.trendsWaterLabel,
       'foodLabel': s.quickAddFoodLabel,
       'exerciseLabel': s.quickAddExerciseLabel,
-      'foodValue': energy(foodKcal),
-      'foodStatus': s.suppliedLabel,
-      'exerciseValue': energy(exerciseKcal),
-      'exerciseStatus': s.burnedLabel,
+      'foodAmount': energy(foodKcal),
+      'exerciseAmount': energy(exerciseKcal),
+      'energyUnit': config.usesKilojoules ? s.kjLabel : s.kcalLabel,
       'addLabel': s.addLabel,
       'openLabel': s.widgetOpenStableLabel,
       'appliedWaterIds': applied,

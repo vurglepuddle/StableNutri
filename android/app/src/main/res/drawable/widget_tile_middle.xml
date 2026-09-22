@@ -1,0 +1,7 @@
+<!-- Food: square between its neighbours. Tinted with the accent at runtime. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#0E7A4D" />
+    <corners
+        android:topLeftRadius="0dp" android:bottomLeftRadius="0dp"
+        android:topRightRadius="0dp" android:bottomRightRadius="0dp" />
+</shape>

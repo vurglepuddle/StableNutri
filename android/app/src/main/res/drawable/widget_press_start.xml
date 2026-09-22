@@ -1,0 +1,4 @@
+<!-- Press feedback clipped to the tile's own corners. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="#33FFFFFF">
+    <item android:id="@android:id/mask" android:drawable="@drawable/widget_tile_start" />
+</ripple>

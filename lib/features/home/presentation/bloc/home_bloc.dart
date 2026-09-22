@@ -291,10 +291,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           config: configData,
           day: currentDay,
           waterMl: totalWaterMl,
-          waterGoalMl: configData.effectiveDailyWaterGoalMl(
-            user.gender,
-            caloriesProfile: user.caloriesProfile,
-          ),
           cupMl: waterQuickAddMl,
           foodKcal: totalKcalIntake,
           exerciseKcal: totalKcalActivities,

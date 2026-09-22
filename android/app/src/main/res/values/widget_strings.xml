@@ -7,22 +7,73 @@
     <string name="widget_exercise">Exercise</string>
     <string name="widget_open_stable">Open Stable</string>
     <string name="widget_add">Add</string>
-    <style name="WidgetLabel">
-        <item name="android:fontFamily">@font/commissioner_semibold</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:textColor">#2B2A27</item>
+    <!-- Shown in the widget picker and until the first update. -->
+    <string name="widget_no_value" translatable="false">–</string>
+
+    <!-- The provider caps these at large font scales so a row still fits. -->
+    <dimen name="widget_label_text">10sp</dimen>
+    <dimen name="widget_number_text">19sp</dimen>
+    <dimen name="widget_unit_text">11sp</dimen>
+    <dimen name="widget_label_text_tall">11sp</dimen>
+    <dimen name="widget_number_text_tall">30sp</dimen>
+    <dimen name="widget_unit_text_tall">12sp</dimen>
+    <dimen name="widget_message_text">12sp</dimen>
+
+    <style name="WidgetTile">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+    </style>
+    <style name="WidgetTileBackground">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:scaleType">fitXY</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+    <style name="WidgetTileContent">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:orientation">vertical</item>
         <item name="android:gravity">center</item>
-        <item name="android:maxLines">2</item>
+        <item name="android:paddingHorizontal">6dp</item>
+    </style>
+    <style name="WidgetText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/commissioner_semibold</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:maxLines">1</item>
         <item name="android:ellipsize">end</item>
         <item name="android:includeFontPadding">false</item>
         <item name="android:importantForAccessibility">no</item>
     </style>
-    <style name="WidgetValue" parent="WidgetLabel">
-        <item name="android:textSize">18sp</item>
+    <style name="WidgetLabel" parent="WidgetText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/widget_label_text</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textColor">#D9FFFFFF</item>
     </style>
-    <style name="WidgetStatus" parent="WidgetLabel">
-        <item name="android:textSize">12sp</item>
-        <item name="android:textColor">#6E685E</item>
-        <item name="android:maxLines">1</item>
+    <style name="WidgetNumber" parent="WidgetText">
+        <item name="android:textSize">@dimen/widget_number_text</item>
+        <item name="android:text">@string/widget_no_value</item>
+    </style>
+    <style name="WidgetUnit" parent="WidgetText">
+        <item name="android:textSize">@dimen/widget_unit_text</item>
+        <item name="android:textColor">#D9FFFFFF</item>
+    </style>
+    <style name="WidgetAdd">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">20dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:src">@drawable/widget_add</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+    <!-- Flexible gap in the tall layout. -->
+    <style name="WidgetGap">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_weight">1</item>
     </style>
 </resources>

@@ -1,64 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- One row: three joined tiles, each a label, today's value and a plus.
+     The whole tile is the tap target. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:background="@drawable/widget_surface" android:padding="12dp">
-    <TextView android:id="@+id/widget_profile" style="@style/WidgetStatus"
-        android:layout_width="match_parent" android:layout_height="16dp"
-        android:gravity="start|center_vertical" android:text="Stable"
-        android:importantForAccessibility="yes" />
-    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
-        android:layout_weight="1" android:baselineAligned="false"
-        android:orientation="horizontal">
-        <LinearLayout android:id="@+id/widget_water" android:layout_width="0dp" android:layout_height="match_parent"
-            android:layout_weight="1" android:orientation="vertical"
-            android:gravity="center" android:paddingHorizontal="8dp" android:paddingVertical="4dp" android:baselineAligned="false">
+    android:orientation="horizontal" android:baselineAligned="false">
+    <FrameLayout android:id="@+id/water_tile" style="@style/WidgetTile"
+        android:foreground="@drawable/widget_press_start">
+        <ImageView android:id="@+id/water_background" style="@style/WidgetTileBackground"
+            android:src="@drawable/widget_tile_start" />
+        <LinearLayout style="@style/WidgetTileContent">
             <TextView android:id="@+id/water_label" style="@style/WidgetLabel"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="@string/widget_water" />
-            <TextView android:id="@+id/water_value" style="@style/WidgetValue"
-                android:layout_width="match_parent" android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="@string/widget_open_stable" />
-            <TextView android:id="@+id/water_status" style="@style/WidgetStatus"
-                android:layout_width="match_parent" android:layout_height="wrap_content" />
-            <ImageButton android:id="@+id/water_add" android:layout_width="match_parent" android:layout_height="52dp"
-                android:layout_marginTop="4dp" android:padding="12dp" android:scaleType="centerInside"
-                android:background="@drawable/widget_button" android:src="@drawable/widget_add"
-                android:contentDescription="@string/widget_water" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="2dp" android:orientation="horizontal">
+                <TextView android:id="@+id/water_number" style="@style/WidgetNumber" />
+                <TextView android:id="@+id/water_unit" style="@style/WidgetUnit"
+                    android:layout_marginStart="3dp" />
+            </LinearLayout>
+            <ImageView android:id="@+id/water_add" style="@style/WidgetAdd"
+                android:layout_marginTop="4dp" />
         </LinearLayout>
-        <LinearLayout android:id="@+id/widget_food" android:layout_width="0dp" android:layout_height="match_parent"
-            android:layout_weight="1" android:orientation="vertical"
-            android:gravity="center" android:paddingHorizontal="8dp" android:paddingVertical="4dp" android:baselineAligned="false">
+    </FrameLayout>
+    <FrameLayout android:id="@+id/food_tile" style="@style/WidgetTile"
+        android:foreground="@drawable/widget_press_middle">
+        <ImageView android:id="@+id/food_background" style="@style/WidgetTileBackground"
+            android:src="@drawable/widget_tile_middle" />
+        <LinearLayout style="@style/WidgetTileContent">
             <TextView android:id="@+id/food_label" style="@style/WidgetLabel"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="@string/widget_food" />
-            <TextView android:id="@+id/food_value" style="@style/WidgetValue"
-                android:layout_width="match_parent" android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="@string/widget_open_stable" />
-            <TextView android:id="@+id/food_status" style="@style/WidgetStatus"
-                android:layout_width="match_parent" android:layout_height="wrap_content" />
-            <ImageButton android:id="@+id/food_add" android:layout_width="match_parent" android:layout_height="52dp"
-                android:layout_marginTop="4dp" android:padding="12dp" android:scaleType="centerInside"
-                android:background="@drawable/widget_button" android:src="@drawable/widget_add"
-                android:contentDescription="@string/widget_food" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="2dp" android:orientation="horizontal">
+                <TextView android:id="@+id/food_number" style="@style/WidgetNumber" />
+                <TextView android:id="@+id/food_unit" style="@style/WidgetUnit"
+                    android:layout_marginStart="3dp" />
+            </LinearLayout>
+            <ImageView android:id="@+id/food_add" style="@style/WidgetAdd"
+                android:layout_marginTop="4dp" />
         </LinearLayout>
-        <LinearLayout android:id="@+id/widget_exercise" android:layout_width="0dp" android:layout_height="match_parent"
-            android:layout_weight="1" android:orientation="vertical"
-            android:gravity="center" android:paddingHorizontal="8dp" android:paddingVertical="4dp" android:baselineAligned="false">
+    </FrameLayout>
+    <FrameLayout android:id="@+id/exercise_tile" style="@style/WidgetTile"
+        android:foreground="@drawable/widget_press_end">
+        <ImageView android:id="@+id/exercise_background" style="@style/WidgetTileBackground"
+            android:src="@drawable/widget_tile_end" />
+        <LinearLayout style="@style/WidgetTileContent">
             <TextView android:id="@+id/exercise_label" style="@style/WidgetLabel"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="@string/widget_exercise" />
-            <TextView android:id="@+id/exercise_value" style="@style/WidgetValue"
-                android:layout_width="match_parent" android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="@string/widget_open_stable" />
-            <TextView android:id="@+id/exercise_status" style="@style/WidgetStatus"
-                android:layout_width="match_parent" android:layout_height="wrap_content" />
-            <ImageButton android:id="@+id/exercise_add" android:layout_width="match_parent" android:layout_height="52dp"
-                android:layout_marginTop="4dp" android:padding="12dp" android:scaleType="centerInside"
-                android:background="@drawable/widget_button" android:src="@drawable/widget_add"
-                android:contentDescription="@string/widget_exercise" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="2dp" android:orientation="horizontal">
+                <TextView android:id="@+id/exercise_number" style="@style/WidgetNumber" />
+                <TextView android:id="@+id/exercise_unit" style="@style/WidgetUnit"
+                    android:layout_marginStart="3dp" />
+            </LinearLayout>
+            <ImageView android:id="@+id/exercise_add" style="@style/WidgetAdd"
+                android:layout_marginTop="4dp" />
         </LinearLayout>
-    </LinearLayout>
+    </FrameLayout>
 </LinearLayout>

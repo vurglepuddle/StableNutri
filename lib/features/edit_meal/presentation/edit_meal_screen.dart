@@ -245,59 +245,57 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _maybeReinterpretKcalField(usesKj);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
+      backgroundColor: palette.canvas,
+      appBar: AppBar(
         backgroundColor: palette.canvas,
-        appBar: AppBar(
-          backgroundColor: palette.canvas,
-          surfaceTintColor: Colors.transparent,
-          toolbarHeight: appBarHeightForTitle(context, titleLines: 2),
-          title: Text(
-            S.of(context).editMealLabel,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                Dimens.spacing16,
-                0,
-                Dimens.spacing16,
-                0,
-              ),
-              child: Semantics(
-                identifier: 'edit-meal-save',
-                child: FilledButton(
-                  onPressed: () => _onSavePressed(_usesImperialUnits),
-                  style: FilledButton.styleFrom(
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: Dimens.borderRadiusM,
-                    ),
+        surfaceTintColor: Colors.transparent,
+        toolbarHeight: appBarHeightForTitle(context, titleLines: 2),
+        title: Text(
+          S.of(context).editMealLabel,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Dimens.spacing16,
+              0,
+              Dimens.spacing16,
+              0,
+            ),
+            child: Semantics(
+              identifier: 'edit-meal-save',
+              child: FilledButton(
+                onPressed: () => _onSavePressed(_usesImperialUnits),
+                style: FilledButton.styleFrom(
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: Dimens.borderRadiusM,
                   ),
-                  child: Text(S.of(context).buttonSaveLabel),
                 ),
+                child: Text(S.of(context).buttonSaveLabel),
               ),
             ),
-          ],
-        ),
-        body: BlocBuilder<EditMealBloc, EditMealState>(
-          bloc: _editMealBloc,
-          builder: (BuildContext context, EditMealState state) {
-            if (state is EditMealLoadingState) {
-              return _getLoadingContent();
-            } else if (state is EditMealLoadedState) {
-              if (!_formModeHydrated) {
-                _formMode = state.formMode;
-                _formModeHydrated = true;
-              }
-              return _getLoadedContent(state.usesImperialUnits, usesKj);
+          ),
+        ],
+      ),
+      body: BlocBuilder<EditMealBloc, EditMealState>(
+        bloc: _editMealBloc,
+        builder: (BuildContext context, EditMealState state) {
+          if (state is EditMealLoadingState) {
+            return _getLoadingContent();
+          } else if (state is EditMealLoadedState) {
+            if (!_formModeHydrated) {
+              _formMode = state.formMode;
+              _formModeHydrated = true;
             }
-            return const SizedBox.shrink();
-          },
-        ),
+            return _getLoadedContent(state.usesImperialUnits, usesKj);
+          }
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
@@ -360,7 +358,14 @@ class _EditMealScreenState extends State<EditMealScreen> {
     // perQtyHelper is the advanced-mode helper, passed to the micronutrient fields.
     final String? perQtyHelper = isSimple ? null : advancedHelper;
     return ListView(
-      padding: const EdgeInsets.all(16),
+      // The screen draws behind the navigation bar, so the last field
+      // scrolls clear of it.
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        16 + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         // Custom meals get the same picker tile recipes use — a single
         // tappable circle with an overlay camera icon, "Add a photo"

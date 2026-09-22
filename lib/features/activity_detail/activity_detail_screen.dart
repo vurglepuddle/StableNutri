@@ -77,30 +77,28 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: palette.canvas,
-        body: BlocBuilder<ActivityDetailBloc, ActivityDetailState>(
-          bloc: _activityDetailBloc,
-          builder: (context, state) {
-            if (state is ActivityDetailInitial) {
-              _activityDetailBloc.add(LoadActivityDetailEvent(activityEntity));
-              return getLoadingContent();
-            } else if (state is ActivityDetailLoadingState) {
-              return getLoadingContent();
-            } else if (state is ActivityDetailLoadedState) {
-              return getLoadedContent(state.totalKcalBurned, state.userEntity);
-            } else {
-              return const SizedBox();
-            }
-          },
-        ),
-        bottomSheet: ActivityDetailBottomSheet(
-          onAddButtonPressed: onAddButtonPressed,
-          quantityTextController: quantityTextController,
-          activityEntity: activityEntity,
-          activityDetailBloc: _activityDetailBloc,
-        ),
+    return Scaffold(
+      backgroundColor: palette.canvas,
+      body: BlocBuilder<ActivityDetailBloc, ActivityDetailState>(
+        bloc: _activityDetailBloc,
+        builder: (context, state) {
+          if (state is ActivityDetailInitial) {
+            _activityDetailBloc.add(LoadActivityDetailEvent(activityEntity));
+            return getLoadingContent();
+          } else if (state is ActivityDetailLoadingState) {
+            return getLoadingContent();
+          } else if (state is ActivityDetailLoadedState) {
+            return getLoadedContent(state.totalKcalBurned, state.userEntity);
+          } else {
+            return const SizedBox();
+          }
+        },
+      ),
+      bottomSheet: ActivityDetailBottomSheet(
+        onAddButtonPressed: onAddButtonPressed,
+        quantityTextController: quantityTextController,
+        activityEntity: activityEntity,
+        activityDetailBloc: _activityDetailBloc,
       ),
     );
   }

@@ -3,9 +3,15 @@
 install:
   flutter pub get
 
-# Build OpenNutriTracker
+# Generate code (Hive adapters, JSON, mocks)
 build:
   dart run build_runner build
+
+# Everyday APK: an optimised release build. Signed with the same debug key as
+# every earlier build, so it updates existing installs in place, data intact.
+# Output: build/app/outputs/flutter-apk/app-develop-release.apk
+apk:
+  flutter build apk --release --flavor develop
 
 # Format dart code (excludes lib/generated/ — gitignored gen-l10n output with its own style)
 format *OPTIONS:

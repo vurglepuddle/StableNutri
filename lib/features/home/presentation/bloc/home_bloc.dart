@@ -30,6 +30,7 @@ import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/calc/water_trim_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/launcher_widget_service.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 
@@ -57,6 +58,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final HealthStepsSync? healthStepsSync;
 
   DateTime currentDay = DateTime.now();
+  int _loadGeneration = 0;
 
   HomeBloc(
     this._getConfigUsecase,
@@ -78,7 +80,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     this.healthStepsSync,
   }) : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
+      final generation = ++_loadGeneration;
+      final widgetProfileId = LauncherWidgetService.activeProfileId;
+      final widgetRevision = LauncherWidgetService.revision;
       emit(HomeLoadingState());
+      final widgetWaterIds = await LauncherWidgetService.importWater();
       final stepSync = healthStepsSync?.sync();
 
       final configData = await _getConfigUsecase.getConfig();
@@ -273,6 +279,23 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           waterIntakes: waterIntakes,
         ),
       );
+      if (generation == _loadGeneration) {
+        await LauncherWidgetService.publish(
+          expectedProfileId: widgetProfileId,
+          expectedRevision: widgetRevision,
+          appliedWaterIds: widgetWaterIds,
+          config: configData,
+          day: currentDay,
+          waterMl: totalWaterMl,
+          waterGoalMl: configData.effectiveDailyWaterGoalMl(
+            user.gender,
+            caloriesProfile: user.caloriesProfile,
+          ),
+          cupMl: waterQuickAddMl,
+          foodKcal: totalKcalIntake,
+          exerciseKcal: totalKcalActivities,
+        );
+      }
     });
   }
 

@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dar
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/launcher_widget_service.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -44,6 +45,7 @@ import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  LauncherWidgetService.initialize();
   LoggerConfig.intiLogger();
   await initLocator();
 
@@ -68,10 +70,11 @@ Future<void> main() async {
   // they surface in the OS settings, so this keeps them in the user's
   // language instead of reverting to English on each launch.
   if (config.notificationsEnabled) {
-    final s = lookupS(basicLocaleListResolution(
-      [savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale],
-      S.supportedLocales,
-    ));
+    final s = lookupS(
+      basicLocaleListResolution([
+        savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale,
+      ], S.supportedLocales),
+    );
     final notificationService = locator<NotificationService>();
     await notificationService.initialize();
     await notificationService.scheduleDailyReminder(

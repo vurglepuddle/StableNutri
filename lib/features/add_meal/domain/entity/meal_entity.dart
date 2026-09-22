@@ -62,13 +62,18 @@ class MealEntity extends Equatable {
   /// the caller falls back to a weight the user can see.
   double? get scalableServingQuantity {
     final parsed = servingQuantity;
-    if (parsed != null) return parsed;
+    if (parsed != null && parsed.isFinite && parsed > 0) return parsed;
 
     final text = servingSize;
     if (text == null) return null;
     final matches = _servingSizeMetric.allMatches(text);
     if (matches.isEmpty) return null;
-    return double.tryParse(matches.last.group(1)!.replaceAll(',', '.'));
+    final quantity = double.tryParse(
+      matches.last.group(1)!.replaceAll(',', '.'),
+    );
+    return quantity != null && quantity.isFinite && quantity > 0
+        ? quantity
+        : null;
   }
 
   final MealSourceEntity source;
@@ -108,9 +113,9 @@ class MealEntity extends Equatable {
   /// hydration step in MealDetailBloc.
   final bool detailed;
 
-  bool get isLiquid => liquidUnits.contains(mealUnit);
+  bool get isLiquid => liquidUnits.contains(mealUnit?.trim().toLowerCase());
 
-  bool get isSolid => solidUnits.contains(mealUnit);
+  bool get isSolid => solidUnits.contains(mealUnit?.trim().toLowerCase());
 
   const MealEntity({
     required this.code,

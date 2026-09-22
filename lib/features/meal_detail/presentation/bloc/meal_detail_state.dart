@@ -1,6 +1,7 @@
 part of 'meal_detail_bloc.dart';
 
 abstract class MealDetailState extends Equatable {
+  final String totalQuantity;
   final String totalQuantityConverted;
   final double totalKcal;
   final double totalCarbs;
@@ -21,6 +22,7 @@ abstract class MealDetailState extends Equatable {
   final bool isHydrating;
 
   const MealDetailState({
+    this.totalQuantity = '100',
     required this.totalQuantityConverted,
     this.totalKcal = 0,
     this.totalCarbs = 0,
@@ -35,6 +37,7 @@ abstract class MealDetailState extends Equatable {
 
   @override
   List<Object?> get props => [
+    totalQuantity,
     totalQuantityConverted,
     totalKcal,
     totalCarbs,
@@ -48,6 +51,7 @@ abstract class MealDetailState extends Equatable {
   ];
 
   MealDetailInitial copyWith({
+    String? totalQuantity,
     String? totalQuantityConverted,
     double? totalKcal,
     double? totalCarbs,
@@ -60,6 +64,7 @@ abstract class MealDetailState extends Equatable {
     bool? isHydrating,
   }) {
     return MealDetailInitial(
+      totalQuantity: totalQuantity ?? this.totalQuantity,
       totalQuantityConverted:
           totalQuantityConverted ?? this.totalQuantityConverted,
       totalKcal: totalKcal ?? this.totalKcal,
@@ -77,6 +82,7 @@ abstract class MealDetailState extends Equatable {
 
 class MealDetailInitial extends MealDetailState {
   const MealDetailInitial({
+    super.totalQuantity,
     required super.totalQuantityConverted,
     super.totalKcal,
     super.totalCarbs,

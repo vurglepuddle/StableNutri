@@ -1,9 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/main_navigation.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/launcher_widget_service.dart';
+import 'package:opennutritracker/core/utils/meal_time_slot.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
+import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/core/presentation/widgets/home_appbar.dart';
 import 'package:opennutritracker/features/home/home_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/main_appbar.dart';
@@ -19,14 +29,91 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   MainDestination _selectedDestination = MainDestination.today;
 
   late List<Widget> _bodyPages;
   late List<PreferredSizeWidget?> _appbarPages;
+  StreamSubscription<void>? _widgetEvents;
+  bool _handlingWidget = false;
+  bool _widgetEventPending = false;
+  bool _dependenciesReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _widgetEvents = LauncherWidgetService.events.listen(
+      (_) => _openWidgetAction(),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _openWidgetAction());
+  }
+
+  @override
+  void dispose() {
+    _widgetEvents?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _openWidgetAction();
+  }
+
+  Future<void> _openWidgetAction() async {
+    if (!mounted || !LauncherWidgetService.supported) return;
+    if (_handlingWidget) {
+      _widgetEventPending = true;
+      return;
+    }
+    _handlingWidget = true;
+    try {
+      locator<HomeBloc>().add(const LoadItemsEvent());
+      final action = await LauncherWidgetService.consumeAction();
+      if (!mounted || action == null) return;
+      final config = await locator<GetConfigUsecase>().getConfig();
+      if (!mounted) return;
+      // Return through the existing root so repeated launcher taps cannot
+      // accumulate add screens or leave a modal over the requested flow.
+      Navigator.of(context).popUntil(
+        (route) =>
+            route.isFirst || route.settings.name == NavigationOptions.mainRoute,
+      );
+      _setDestination(MainDestination.today);
+      final now = DateTime.now();
+      if (action == 'food') {
+        Navigator.of(context).pushNamed(
+          NavigationOptions.addMealRoute,
+          arguments: AddMealScreenArguments(
+            MealTimeSlot.at(now, config.mealKcalSharesPct),
+            now,
+          ),
+        );
+      } else if (action == 'exercise') {
+        Navigator.of(context).pushNamed(
+          NavigationOptions.addActivityRoute,
+          arguments: AddActivityScreenArguments(day: now),
+        );
+      }
+    } finally {
+      _handlingWidget = false;
+      if (_widgetEventPending) {
+        _widgetEventPending = false;
+        unawaited(_openWidgetAction());
+      }
+    }
+  }
 
   @override
   void didChangeDependencies() {
+    context.watch<EnergyUnitProvider>();
+    if (_dependenciesReady && LauncherWidgetService.supported) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) locator<HomeBloc>().add(const LoadItemsEvent());
+      });
+    }
+    _dependenciesReady = true;
     _bodyPages = [
       const HomePage(),
       const TrendsPage(),

@@ -9,12 +9,14 @@ class EmptyHint extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? subtitle;
+  final bool compact;
 
   const EmptyHint({
     super.key,
     required this.icon,
     required this.title,
     this.subtitle,
+    this.compact = false,
   });
 
   @override
@@ -23,21 +25,22 @@ class EmptyHint extends StatelessWidget {
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final accent = Theme.of(context).colorScheme.primary;
     final text = Theme.of(context).textTheme;
+    final iconSize = compact ? 48.0 : 72.0;
     return Padding(
-      padding: const EdgeInsets.all(Dimens.spacing32),
+      padding: EdgeInsets.all(compact ? Dimens.spacing16 : Dimens.spacing32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 72,
-            height: 72,
+            width: iconSize,
+            height: iconSize,
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: accent, size: 32),
+            child: Icon(icon, color: accent, size: compact ? 24 : 32),
           ),
-          const SizedBox(height: Dimens.spacing16),
+          SizedBox(height: compact ? Dimens.spacing8 : Dimens.spacing16),
           Text(title, style: text.titleMedium, textAlign: TextAlign.center),
           if (subtitle != null) ...[
             const SizedBox(height: Dimens.spacing8),

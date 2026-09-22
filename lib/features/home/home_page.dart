@@ -172,7 +172,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               amountMl: waterQuickAddMl,
             ),
             const FastingHomeChip(),
-            const SizedBox(height: Dimens.spacing8),
+            const SizedBox(height: Dimens.dashboardItemGap),
             DashboardWidget(
               totalKcalSupplied: totalKcalSupplied,
               totalKcalBurned: totalKcalBurned,
@@ -195,6 +195,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               EmptyHint(
                 icon: Icons.add_circle_outline_rounded,
                 title: S.of(context).homeFirstMealHint,
+                compact: true,
               ),
             if (CalorieGoalCalc.isBelowRecommendedDailyKcalFloor(
               goalKcal: totalKcalDaily,
@@ -277,7 +278,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 onItemTappedCallback: onActivityItemTapped,
                 onItemDragCallback: onActivityItemDrag,
               ),
-            const SizedBox(height: 48.0),
+            const SizedBox(height: Dimens.spacing48),
           ],
         ),
         Align(

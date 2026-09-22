@@ -5,12 +5,12 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments
 import 'package:opennutritracker/features/recipes/presentation/widgets/ingredient_quantity_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-MealEntity _solidMeal() => MealEntity(
+MealEntity _solidMeal({String unit = 'g'}) => MealEntity(
   code: 'flour',
   name: 'Flour',
   url: null,
   mealQuantity: null,
-  mealUnit: 'g',
+  mealUnit: unit,
   servingQuantity: null,
   servingUnit: null,
   servingSize: null,
@@ -27,6 +27,64 @@ Widget _wrap({required Widget child}) {
 }
 
 void main() {
+  for (final entry in [
+    (saved: 'g', mealUnit: 'ml', expected: 'ml', amount: 2.0),
+    (saved: 'fl oz', mealUnit: 'ml', expected: 'fl.oz', amount: 2.0),
+    (saved: 'cl', mealUnit: 'ml', expected: 'ml', amount: 20.0),
+    (saved: 'missing', mealUnit: 'g', expected: 'g', amount: null),
+    (saved: 'serving', mealUnit: 'g', expected: 'g', amount: null),
+  ]) {
+    testWidgets(
+      'saved ${entry.saved} on ${entry.mealUnit} opens and submits safely',
+      (tester) async {
+        IngredientQuantitySelection? captured;
+        await tester.pumpWidget(
+          _wrap(
+            child: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  child: const Text('Open'),
+                  onPressed: () async {
+                    captured = await showIngredientQuantityDialog(
+                      context,
+                      meal: _solidMeal(unit: entry.mealUnit),
+                      initialAmount: 2,
+                      initialUnit: entry.saved,
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        final field = tester.widget<DropdownButtonFormField<String>>(
+          find.byType(DropdownButtonFormField<String>),
+        );
+        expect(field.initialValue, entry.expected);
+        expect(
+          tester
+              .widget<DropdownButton<String>>(
+                find.byType(DropdownButton<String>),
+              )
+              .items!
+              .where((item) => item.value == entry.expected),
+          hasLength(1),
+        );
+        await tester.tap(find.text('Add'));
+        await tester.pumpAndSettle();
+        if (entry.amount == null) {
+          expect(captured, isNull);
+        } else {
+          expect(captured!.unit, entry.expected);
+          expect(captured!.amount, entry.amount);
+        }
+      },
+    );
+  }
+
   testWidgets('returns selection on confirm', (tester) async {
     IngredientQuantitySelection? captured;
 

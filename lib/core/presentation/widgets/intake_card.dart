@@ -125,10 +125,15 @@ class _Thumbnail extends StatelessWidget {
     if (intake.meal.localImagePath != null) {
       content = _LocalMealImage(relativePath: intake.meal.localImagePath!);
     } else if (intake.meal.mainImageUrl != null) {
+      final cacheSize =
+          (IntakeCard.thumbSize * MediaQuery.devicePixelRatioOf(context))
+              .round();
       content = CachedNetworkImage(
         cacheManager: locator<CacheManager>(),
         imageUrl: intake.meal.mainImageUrl ?? "",
         fit: BoxFit.cover,
+        memCacheWidth: cacheSize,
+        memCacheHeight: cacheSize,
         errorWidget: (context, url, error) => _fallback(),
         placeholder: (context, url) => _fallback(),
       );
@@ -158,13 +163,20 @@ class _LocalMealImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cacheSize =
+        (IntakeCard.thumbSize * MediaQuery.devicePixelRatioOf(context)).round();
     return FutureBuilder<String>(
       future: UserImageStorage.absolutePath(relativePath),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const SizedBox.shrink();
         final file = File(snapshot.data!);
         if (!file.existsSync()) return const SizedBox.shrink();
-        return Image.file(file, fit: BoxFit.cover);
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          cacheWidth: cacheSize,
+          cacheHeight: cacheSize,
+        );
       },
     );
   }

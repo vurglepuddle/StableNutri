@@ -1194,9 +1194,34 @@
   "rangeBoundsErrorLabel": "Lower value must be less than upper value.",
   "towardDailyRangeLabel": "toward daily range",
   "rangeGoalLabel": "Range",
-  "rangeToReachLabel": "to reach range",
-  "rangeWithinLabel": "within daily range",
-  "rangeAboveLabel": "above daily range",
+  "rangeWithinLabel": "within range",
+  "rangeLeftLabel": "{amount} left",
+  "@rangeLeftLabel": {
+    "description": "What is still left to eat today. Under the ring, amount carries the unit (\"286–536 kcal\", or \"286 kcal\" for a single goal); beside the unit on the bar it does not (\"286–536\").",
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "rangeAboveRangeLabel": "{amount} above range",
+  "@rangeAboveRangeLabel": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "rangeAboveGoalLabel": "{amount} above goal",
+  "@rangeAboveGoalLabel": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "rangeAboveShortLabel": "{amount} above",
+  "@rangeAboveShortLabel": {
+    "description": "Beside the unit on the calorie bar, e.g. \"kcal · 100 above\".",
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "rangeAtGoalLabel": "at goal",
   "measurementsTitle": "Measurements",
   "measurementsLogTitle": "Log measurements",
   "measurementsWaist": "Waist",
@@ -1370,9 +1395,15 @@
   "logWaterRemoveAmountLabel": "Remove {amount} ml",
   "waterTotalLabel": "{current} / {goal} l",
   "waterGoalReachedLabel": "Daily goal reached",
-  "calorieGaugeTowardRangeLabel": "toward daily range",
   "calorieGaugeActiveLabel": "active",
   "calorieGaugeRangeLabel": "goal range {lower}–{upper}",
+  "calorieGaugeGoalLabel": "goal {value}",
+  "@calorieGaugeGoalLabel": {
+    "description": "Under the calorie bar when the goal is a single number rather than a range.",
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
   "settingsRangeGaugeLabel": "Calories as a range bar",
   "calorieGaugeOverRangeNote": "Some days run higher. That's normal.",
   "privacyNoTelemetryBody": "Stable collects nothing. There is no analytics, no crash reporting and no account. Everything you log stays on this device, encrypted, and is only sent anywhere when you ask for it \u2014 looking up a food, or exporting your data yourself.",

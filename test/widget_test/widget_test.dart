@@ -126,11 +126,12 @@ void main() {
     expect(intakeCounter.value, 1500);
     expect(find.text('kcal'), findsOneWidget);
     expect(find.text('Range 1850–2100 kcal'), findsOneWidget);
-    expect(find.text('350–600 kcal to reach range'), findsOneWidget);
+    expect(find.text('350–600 kcal left'), findsOneWidget);
     expect(find.byIcon(Icons.info_outline_rounded), findsNothing);
     expect(find.byIcon(Icons.track_changes_rounded), findsNothing);
     expect(find.byIcon(Icons.local_fire_department_rounded), findsNothing);
-    expect(find.textContaining('kcal left'), findsNothing);
+    // What is left is a span toward the range, never a single countdown.
+    expect(find.text('600 kcal left'), findsNothing);
   });
 
   testWidgets('DashboardWidget uses neutral within-range feedback', (
@@ -139,7 +140,7 @@ void main() {
     await tester.pumpWidget(_dashboard(supplied: 1950));
     await tester.pumpAndSettle();
 
-    expect(find.text('within daily range'), findsOneWidget);
+    expect(find.text('within range'), findsOneWidget);
   });
 
   testWidgets('DashboardWidget uses neutral above-range feedback', (
@@ -148,7 +149,7 @@ void main() {
     await tester.pumpWidget(_dashboard(supplied: 2200));
     await tester.pumpAndSettle();
 
-    expect(find.text('100 kcal above daily range'), findsOneWidget);
+    expect(find.text('100 kcal above range'), findsOneWidget);
     expect(find.textContaining('too much'), findsNothing);
   });
 
@@ -162,9 +163,10 @@ void main() {
       find.byType(AnimatedFlipCounter),
     );
     expect(intakeCounter.value, 1500);
-    expect(find.text('kcal \u00b7 toward daily range'), findsOneWidget);
+    // The range is named once, under the bar; the headline says what is left.
+    expect(find.text('kcal · 350\u2013600 left'), findsOneWidget);
+    expect(find.textContaining('toward'), findsNothing);
     expect(find.text('goal range 1850\u20132100'), findsOneWidget);
-    expect(find.text('350\u2013600 kcal to reach range'), findsOneWidget);
     // The axis ends on a rounded ceiling that clears the goal range.
     expect(find.text('2500'), findsOneWidget);
     // Burned energy rides alongside the headline.
@@ -188,7 +190,7 @@ void main() {
       CalorieRangeBar.axisMaxFor(value: 3000, upper: 2100),
       greaterThan(3000),
     );
-    expect(find.text('900 kcal above daily range'), findsOneWidget);
+    expect(find.text('kcal · 900 above'), findsOneWidget);
     // Reassurance, not a warning.
     expect(find.text("Some days run higher. That's normal."), findsOneWidget);
     expect(find.textContaining('too much'), findsNothing);
@@ -200,7 +202,7 @@ void main() {
     await tester.pumpWidget(_dashboard(supplied: 1950, usesRangeGauge: true));
     await tester.pumpAndSettle();
 
-    expect(find.text('within daily range'), findsOneWidget);
+    expect(find.text('kcal · within range'), findsOneWidget);
     expect(find.text("Some days run higher. That's normal."), findsNothing);
   });
 
@@ -246,6 +248,35 @@ void main() {
     expect(find.byType(CalorieRangeBar), findsOneWidget);
     expect(find.byType(CircularPercentIndicator), findsNothing);
     // Same numbers, different shape.
-    expect(find.text('350–600 kcal to reach range'), findsOneWidget);
+    expect(find.text('kcal · 350–600 left'), findsOneWidget);
   });
+
+  for (final usesRangeGauge in [true, false]) {
+    testWidgets(
+      'the dashboard keeps its height while the number rolls (bar: $usesRangeGauge)',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          _dashboard(supplied: 1500, usesRangeGauge: usesRangeGauge),
+        );
+        await tester.pumpAndSettle();
+        final restingHeight = tester
+            .getSize(find.byType(DashboardWidget))
+            .height;
+
+        await tester.pumpWidget(
+          _dashboard(supplied: 1650, usesRangeGauge: usesRangeGauge),
+        );
+        // Anything below the dashboard moves if it grows mid-roll, so every
+        // frame of the animation has to keep the resting height.
+        for (var frame = 0; frame < 20; frame++) {
+          await tester.pump(const Duration(milliseconds: 40));
+          expect(
+            tester.getSize(find.byType(DashboardWidget)).height,
+            restingHeight,
+            reason: 'frame $frame',
+          );
+        }
+      },
+    );
+  }
 }

@@ -75,14 +75,32 @@ class _DashboardWidgetState extends State<DashboardWidget> {
         ? UnitCalc.kcalToKj(widget.totalKcalBurned)
         : widget.totalKcalBurned;
     final unitLabel = usesKilojoules ? s.kjLabel : s.kcalLabel;
-    final rangeLabel =
-        '${s.rangeGoalLabel} ${displayLower.round()}–${displayUpper.round()} $unitLabel';
+    // Profiles without a range keep a single goal, stored as equal bounds.
+    final isPointGoal = displayLower.round() == displayUpper.round();
+    final rangeLabel = isPointGoal
+        ? '${s.goalLabel} ${displayUpper.round()} $unitLabel'
+        : '${s.rangeGoalLabel} ${displayLower.round()}–${displayUpper.round()} $unitLabel';
+    final left = isPointGoal
+        ? '${displayDistance.round()}'
+        : '${displayDistance.round()}–${(displayUpper - displayValue).round()}';
+    final above = '${displayDistance.round()} $unitLabel';
+    // The bar shows its status beside the unit, so it leaves the unit out.
+    final barStatusLabel = switch (rangeResult.status) {
+      StableRangeStatus.below => s.rangeLeftLabel(left),
+      StableRangeStatus.within =>
+        isPointGoal ? s.rangeAtGoalLabel : s.rangeWithinLabel,
+      StableRangeStatus.above => s.rangeAboveShortLabel(
+        '${displayDistance.round()}',
+      ),
+    };
     final statusLabel = switch (rangeResult.status) {
-      StableRangeStatus.below =>
-        '${displayDistance.round()}–${(displayUpper - displayValue).round()} $unitLabel ${s.rangeToReachLabel}',
-      StableRangeStatus.within => s.rangeWithinLabel,
+      StableRangeStatus.below => s.rangeLeftLabel('$left $unitLabel'),
+      StableRangeStatus.within =>
+        isPointGoal ? s.rangeAtGoalLabel : s.rangeWithinLabel,
       StableRangeStatus.above =>
-        '${displayDistance.round()} $unitLabel ${s.rangeAboveLabel}',
+        isPointGoal
+            ? s.rangeAboveGoalLabel(above)
+            : s.rangeAboveRangeLabel(above),
     };
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -113,7 +131,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                     upper: displayUpper,
                     burned: displayBurned,
                     unitLabel: unitLabel,
-                    statusLabel: statusLabel,
+                    statusLabel: barStatusLabel,
                   )
                 : Column(
                     children: [
@@ -201,7 +219,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   palette: palette,
                 ),
               ),
-              const SizedBox(width: Dimens.spacing12),
+              const SizedBox(width: Dimens.spacing8),
               Expanded(
                 child: _MacroTile(
                   label: S.of(context).fatLabel,
@@ -211,7 +229,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   palette: palette,
                 ),
               ),
-              const SizedBox(width: Dimens.spacing12),
+              const SizedBox(width: Dimens.spacing8),
               Expanded(
                 child: _MacroTile(
                   label: S.of(context).proteinLabel,
@@ -250,37 +268,16 @@ class _MacroTile extends StatelessWidget {
     final pct = (goal <= 0) ? 0.0 : (intake / goal).clamp(0.0, 1.0);
     return AppCard(
       borderRadius: Dimens.radiusM,
-      padding: const EdgeInsets.fromLTRB(
-        Dimens.spacing16,
-        Dimens.spacing16,
-        Dimens.spacing16,
-        Dimens.spacing16,
+      // Narrow side padding and gaps leave room for "555/555 g" on one line
+      // at larger text sizes; the bar already carries the macro's colour.
+      padding: const EdgeInsets.symmetric(
+        horizontal: Dimens.spacing12,
+        vertical: Dimens.spacing16,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 9,
-                height: 9,
-                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    softWrap: false,
-                    style: textTheme.labelMedium,
-                  ),
-                ),
-              ),
-            ],
-          ),
+          _OneLine(label, style: textTheme.labelMedium),
           const SizedBox(height: Dimens.spacing12),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
@@ -292,7 +289,7 @@ class _MacroTile extends StatelessWidget {
             ),
           ),
           const SizedBox(height: Dimens.spacing12),
-          Text(
+          _OneLine(
             '${intake.toInt()}/${goal.toInt()} g',
             style: textTheme.bodySmall?.copyWith(
               color: palette.textStrong,
@@ -301,6 +298,23 @@ class _MacroTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Keeps [text] on one line, shrinking it only if the tile is still too narrow.
+class _OneLine extends StatelessWidget {
+  final String text;
+  final TextStyle? style;
+
+  const _OneLine(this.text, {this.style});
+
+  @override
+  Widget build(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: AlignmentDirectional.centerStart,
+      child: Text(text, style: style, maxLines: 1, softWrap: false),
     );
   }
 }

@@ -33,6 +33,9 @@ class CalorieRangeBar extends StatelessWidget {
   final double upper;
   final double burned;
   final String unitLabel;
+
+  /// Where the day stands, shown beside the unit: "286–536 left". It leaves
+  /// out the unit, which the headline already shows.
   final String statusLabel;
 
   static const double _barHeight = 18;
@@ -81,10 +84,13 @@ class CalorieRangeBar extends StatelessWidget {
     // it landed", not as a warning.
     final withinEnd = (math.min(value, upper) / axisMax).clamp(0.0, 1.0);
     final isOver = value > upper;
-    final rangeLabel = s.calorieGaugeRangeLabel(
-      lower.round().toString(),
-      upper.round().toString(),
-    );
+    // Profiles without a range keep a single goal, stored as equal bounds.
+    final rangeLabel = lower.round() == upper.round()
+        ? s.calorieGaugeGoalLabel(upper.round().toString())
+        : s.calorieGaugeRangeLabel(
+            lower.round().toString(),
+            upper.round().toString(),
+          );
 
     return Semantics(
       label: '${value.round()} $unitLabel. $rangeLabel. $statusLabel',
@@ -104,20 +110,8 @@ class CalorieRangeBar extends StatelessWidget {
           _buildBar(palette, bandStart, bandEnd, fill, withinEnd),
           const SizedBox(height: Dimens.spacing8),
           _buildScale(axisMax, rangeLabel, textTheme, palette),
-          const SizedBox(height: Dimens.spacing12),
-          SizedBox(
-            width: double.infinity,
-            child: Text(
-              statusLabel,
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(
-                color: palette.textMuted,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
           if (isOver) ...[
-            const SizedBox(height: Dimens.spacing4),
+            const SizedBox(height: Dimens.spacing12),
             SizedBox(
               width: double.infinity,
               child: Text(
@@ -133,6 +127,9 @@ class CalorieRangeBar extends StatelessWidget {
   }
 
   Widget _buildHeadline(S s, TextTheme textTheme, AppPalette palette) {
+    // Deliberately tighter than the display ladder — see the same counter in
+    // dashboard_widget.dart.
+    final numberStyle = textTheme.displaySmall?.copyWith(height: 1);
     // The number and its caption share a baseline, and shrink together rather
     // than wrapping when the unit is long or the text scale is large.
     return FittedBox(
@@ -143,18 +140,34 @@ class CalorieRangeBar extends StatelessWidget {
         textBaseline: TextBaseline.alphabetic,
         mainAxisSize: MainAxisSize.min,
         children: [
-          AnimatedFlipCounter(
-            value: value.round(),
-            duration: AppMotion.durationLong,
-            curve: AppMotion.emphasized,
-            thousandSeparator: ' ',
-            // Deliberately tighter than the display ladder — see the same
-            // counter in dashboard_widget.dart.
-            textStyle: textTheme.displaySmall?.copyWith(height: 1),
+          // Mid-roll, the counter reports the baseline of a digit sliding in
+          // from above, so the row would stretch every frame and shake the
+          // whole dashboard. An invisible resting digit holds the baseline
+          // instead, and the roll stays inside its own box.
+          Stack(
+            children: [
+              IgnoreBaseline(
+                child: AnimatedFlipCounter(
+                  value: value.round(),
+                  duration: AppMotion.durationLong,
+                  curve: AppMotion.emphasized,
+                  thousandSeparator: ' ',
+                  textStyle: numberStyle,
+                ),
+              ),
+              Positioned(
+                left: 0,
+                top: 0,
+                child: Opacity(
+                  opacity: 0,
+                  child: Text('0', style: numberStyle),
+                ),
+              ),
+            ],
           ),
           const SizedBox(width: Dimens.spacing8),
           Text(
-            '$unitLabel · ${s.calorieGaugeTowardRangeLabel}',
+            '$unitLabel · $statusLabel',
             style: textTheme.bodyMedium?.copyWith(color: palette.textMuted),
           ),
         ],
@@ -164,13 +177,13 @@ class CalorieRangeBar extends StatelessWidget {
 
   Widget _buildBurned(S s, TextTheme textTheme, AppPalette palette) {
     if (burned <= 0) return const SizedBox.shrink();
-    return Row(
+    // Stacked rather than side by side: it takes half the width, which the
+    // headline needs for its status at larger text sizes.
+    return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(burned.round().toString(), style: textTheme.labelLarge),
-        const SizedBox(width: 4),
         Text(
           s.calorieGaugeActiveLabel.toUpperCase(),
           style: textTheme.labelSmall?.copyWith(

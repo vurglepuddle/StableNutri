@@ -316,18 +316,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             ),
           ),
           actions: [
+            // The rescue toggle is off this toolbar for now: it crowded the
+            // title. Its new place is still to be decided.
             if (meal.source != MealSourceEntity.recipe) ...[
-              IconButton(
-                tooltip: meal.isRescue
-                    ? S.of(context).libraryRemoveRescue
-                    : S.of(context).libraryAddRescue,
-                onPressed: () => _updateLibraryFlags(rescue: !meal.isRescue),
-                icon: Icon(
-                  meal.isRescue
-                      ? Icons.volunteer_activism_rounded
-                      : Icons.volunteer_activism_outlined,
-                ),
-              ),
               IconButton(
                 tooltip: meal.isFavorite
                     ? S.of(context).libraryRemoveFavorite

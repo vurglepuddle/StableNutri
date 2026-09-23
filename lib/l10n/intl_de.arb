@@ -1073,5 +1073,10 @@
   "quickAddActivityAddedSnack": "Aktivität hinzugefügt",
   "quickAddActivityNameLabel": "Name (optional)",
   "scannerLockOrientationTooltip": "Auf Hochformat sperren",
-  "scannerUnlockOrientationTooltip": "Drehung erlauben"
+  "scannerUnlockOrientationTooltip": "Drehung erlauben",
+  "homePreviousDayTooltip": "Vorheriger Tag",
+  "homeNextDayTooltip": "Nächster Tag",
+  "homeYesterdayLabel": "Gestern",
+  "homeTomorrowLabel": "Morgen",
+  "homeBackToTodayLabel": "Zurück zu heute"
 }

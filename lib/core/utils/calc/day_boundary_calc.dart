@@ -135,6 +135,14 @@ class DayBoundaryCalc {
         dayA.day == dayB.day;
   }
 
+  /// The logical day a stored entry belongs to. A day label (bare midnight)
+  /// names its own day; a clock reading is shifted by the boundary, the same
+  /// rule the day filters apply through [isMomentInLogicalDayMinutes].
+  static DateTime logicalDayOfEntry(DateTime moment, int? offsetTotalMinutes) =>
+      _isDayLabel(moment)
+      ? DateTime(moment.year, moment.month, moment.day)
+      : logicalDayOfMinutes(moment, offsetTotalMinutes);
+
   static DateTime _logicalDayOfTotalMinutes(DateTime moment, int totalMinutes) {
     final shifted = moment.subtract(Duration(minutes: totalMinutes));
     return DateTime(shifted.year, shifted.month, shifted.day);

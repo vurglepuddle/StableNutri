@@ -1042,5 +1042,10 @@
   "quickAddActivityAddedSnack": "Dodano aktywność",
   "quickAddActivityNameLabel": "Nazwa (opcjonalnie)",
   "scannerLockOrientationTooltip": "Zablokuj w pionie",
-  "scannerUnlockOrientationTooltip": "Zezwól na obrót"
+  "scannerUnlockOrientationTooltip": "Zezwól na obrót",
+  "homePreviousDayTooltip": "Poprzedni dzień",
+  "homeNextDayTooltip": "Następny dzień",
+  "homeYesterdayLabel": "Wczoraj",
+  "homeTomorrowLabel": "Jutro",
+  "homeBackToTodayLabel": "Wróć do dziś"
 }

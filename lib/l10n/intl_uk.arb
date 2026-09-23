@@ -1042,5 +1042,10 @@
   "quickAddActivityAddedSnack": "Активність додано",
   "quickAddActivityNameLabel": "Назва (необов'язково)",
   "scannerLockOrientationTooltip": "Зафіксувати вертикально",
-  "scannerUnlockOrientationTooltip": "Дозволити обертання"
+  "scannerUnlockOrientationTooltip": "Дозволити обертання",
+  "homePreviousDayTooltip": "Попередній день",
+  "homeNextDayTooltip": "Наступний день",
+  "homeYesterdayLabel": "Учора",
+  "homeTomorrowLabel": "Завтра",
+  "homeBackToTodayLabel": "Повернутися до сьогодні"
 }

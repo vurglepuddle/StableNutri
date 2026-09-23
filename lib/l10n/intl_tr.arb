@@ -1073,5 +1073,10 @@
   "quickAddActivityAddedSnack": "Aktivite eklendi",
   "quickAddActivityNameLabel": "Ad (isteğe bağlı)",
   "scannerLockOrientationTooltip": "Dikey kilitle",
-  "scannerUnlockOrientationTooltip": "Döndürmeye izin ver"
+  "scannerUnlockOrientationTooltip": "Döndürmeye izin ver",
+  "homePreviousDayTooltip": "Önceki gün",
+  "homeNextDayTooltip": "Sonraki gün",
+  "homeYesterdayLabel": "Dün",
+  "homeTomorrowLabel": "Yarın",
+  "homeBackToTodayLabel": "Bugüne dön"
 }

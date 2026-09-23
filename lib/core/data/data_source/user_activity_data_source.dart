@@ -76,18 +76,15 @@ class UserActivityDataSource {
     // Only the stored timestamp is resolved through the boundary, and the
     // predicate reduces to calendar-day equality at a zero offset, so the
     // old fast path is redundant.
-    final totalMinutes = DayBoundaryCalc.totalMinutesOf(
-      dayStartOffsetHours,
-      dayStartOffsetMinutes,
+    final inDay = DayBoundaryCalc.logicalDayMatcher(
+      dateTime,
+      DayBoundaryCalc.totalMinutesOf(
+        dayStartOffsetHours,
+        dayStartOffsetMinutes,
+      ),
     );
     return _userActivityBox.values
-        .where(
-          (activity) => DayBoundaryCalc.isMomentInLogicalDayMinutes(
-            dateTime,
-            activity.date,
-            totalMinutes,
-          ),
-        )
+        .where((activity) => inDay(activity.date))
         .toList();
   }
 

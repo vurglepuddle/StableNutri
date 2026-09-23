@@ -160,6 +160,24 @@ void main() {
     ]);
   });
 
+  test(
+    'a refresh that changes nothing the widget shows skips the redraw',
+    () async {
+      await publish();
+      await publish();
+      expect(calls.where((call) => call.method == 'publish'), hasLength(1));
+
+      // Water tapped on the widget is still acknowledged.
+      await publish(ids: ['widget-water-one']);
+      expect(calls.where((call) => call.method == 'publish'), hasLength(2));
+
+      // A cleared widget is drawn again, even with the same totals.
+      await LauncherWidgetService.clear();
+      await publish();
+      expect(calls.where((call) => call.method == 'publish'), hasLength(3));
+    },
+  );
+
   test('plural forms cover every category a language uses', () {
     // Russian distinguishes one, few, many and other (fractions); the widget
     // selects among them with Android's rules for its own water total.

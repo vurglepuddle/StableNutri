@@ -229,4 +229,38 @@ void main() {
       );
     });
   });
+
+  group('DayBoundaryCalc.logicalDayMatcher', () {
+    // The matcher only skips work: for every moment it must answer exactly
+    // what the full check answers, or a real entry would vanish from a day.
+    for (final offset in <int?>[null, 0, 240, 23 * 60 + 59, -5, 24 * 60]) {
+      test('agrees with the exact check (offset $offset)', () {
+        for (final day in [
+          DateTime(2024, 1, 15),
+          DateTime(2024, 3, 31), // a daylight-saving change in Europe
+          DateTime(2024, 12, 31),
+        ]) {
+          final matches = DayBoundaryCalc.logicalDayMatcher(day, offset);
+          final from = DateTime(day.year, day.month, day.day - 3);
+          final moments = <DateTime>[
+            for (var m = 0; m < 7 * 24 * 60; m += 7)
+              from.add(Duration(minutes: m)),
+            // Labels and midnights, local and UTC, around the day.
+            for (var d = -3; d <= 4; d++) ...[
+              DateTime(day.year, day.month, day.day + d),
+              DateTime.utc(day.year, day.month, day.day + d),
+              DateTime.utc(day.year, day.month, day.day + d, 22, 30),
+            ],
+          ];
+          for (final moment in moments) {
+            expect(
+              matches(moment),
+              DayBoundaryCalc.isMomentInLogicalDayMinutes(day, moment, offset),
+              reason: '$moment on $day',
+            );
+          }
+        }
+      });
+    }
+  });
 }

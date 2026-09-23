@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -25,6 +26,11 @@ class LauncherWidgetService {
   static final _imported = <String, Set<String>>{};
   static Future<List<String>>? _importing;
   static int revision = 0;
+
+  /// What the widget was last sent. A refresh that changes nothing it shows,
+  /// such as moving Today to another day, skips the redraw: Android redraws
+  /// widgets on its main thread, which also delivers touches mid-swipe.
+  static Map<String, Object?>? _lastPublished;
   static String? get activeProfileId =>
       supported && locator.isRegistered<GetProfilesUsecase>()
       ? locator<GetProfilesUsecase>().activeProfileId
@@ -58,6 +64,7 @@ class LauncherWidgetService {
   static Future<void> discardProfile(String profileId) async {
     await _call<bool>('discardProfile', profileId);
     _imported.remove(profileId);
+    _lastPublished = null;
   }
 
   static Future<List<String>> importWater() async {
@@ -122,7 +129,7 @@ class LauncherWidgetService {
     String energy(double kcal) =>
         '${(config.usesKilojoules ? UnitCalc.kcalToKj(kcal) : kcal).round()}';
     final applied = appliedWaterIds;
-    final published = await _call<bool>('publish', {
+    final snapshot = <String, Object?>{
       'profileId': profile.id,
       'profileName': profile.name,
       'locale': locale.toLanguageTag(),
@@ -144,9 +151,21 @@ class LauncherWidgetService {
       'showExercise': config.showActivityTracking,
       'addLabel': s.addLabel,
       'openLabel': s.widgetOpenStableLabel,
+    };
+    // Cups tapped on the widget are always acknowledged, even when the
+    // totals already include them.
+    if (applied.isEmpty &&
+        const DeepCollectionEquality().equals(snapshot, _lastPublished)) {
+      return;
+    }
+    final published = await _call<bool>('publish', {
+      ...snapshot,
       'appliedWaterIds': applied,
     });
-    if (published == true) _imported[profile.id]?.removeAll(applied);
+    if (published == true) {
+      _imported[profile.id]?.removeAll(applied);
+      _lastPublished = snapshot;
+    }
   }
 
   /// Every form of a plural [message], keyed by CLDR category (one, few,
@@ -182,6 +201,7 @@ class LauncherWidgetService {
   static Future<void> clear({bool discardWater = false}) async {
     if (!supported || !locator.isRegistered<GetProfilesUsecase>()) return;
     revision++;
+    _lastPublished = null;
     await _importing;
     final profile = locator<GetProfilesUsecase>().activeProfileId;
     await _call<bool>('clear', {

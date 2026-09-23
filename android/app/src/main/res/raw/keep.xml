@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Resources the app reaches only by name from Dart. The release build's
+     resource shrinker cannot see those references and would drop them:
+     reminders ask for their status bar icon as "@drawable/ic_stat_stable". -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_stable" />

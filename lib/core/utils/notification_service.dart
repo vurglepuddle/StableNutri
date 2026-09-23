@@ -29,8 +29,10 @@ class NotificationService {
     final timeZone = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(timeZone.identifier));
 
+    // The status bar shows only a white silhouette, so reminders use the
+    // stones on their own rather than the full launcher icon.
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      '@drawable/ic_stat_stable',
     );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,

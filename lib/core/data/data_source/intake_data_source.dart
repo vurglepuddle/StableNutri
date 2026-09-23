@@ -84,20 +84,15 @@ class IntakeDataSource {
     //
     // No zero-offset fast path is needed: the predicate reduces to plain
     // calendar-day equality when no offset is set.
-    final totalMinutes = DayBoundaryCalc.totalMinutesOf(
-      dayStartOffsetHours,
-      dayStartOffsetMinutes,
+    final inDay = DayBoundaryCalc.logicalDayMatcher(
+      dateTime,
+      DayBoundaryCalc.totalMinutesOf(
+        dayStartOffsetHours,
+        dayStartOffsetMinutes,
+      ),
     );
     return _intakeBox.values
-        .where(
-          (intake) =>
-              DayBoundaryCalc.isMomentInLogicalDayMinutes(
-                dateTime,
-                intake.dateTime,
-                totalMinutes,
-              ) &&
-              intake.type == intakeType,
-        )
+        .where((intake) => intake.type == intakeType && inDay(intake.dateTime))
         .toList();
   }
 

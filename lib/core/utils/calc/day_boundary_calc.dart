@@ -118,6 +118,31 @@ class DayBoundaryCalc {
         momentDay.day == dayLabel.day;
   }
 
+  /// [isMomentInLogicalDayMinutes] for filtering many stored entries against
+  /// one day.
+  ///
+  /// The exact check does calendar arithmetic in the local time zone for
+  /// every entry, and Today filters years of history several times for each
+  /// day it shows: with a 7,800-entry import that held up a day swipe for a
+  /// noticeable moment. This works out the day's window once and rejects
+  /// entries far outside it with a plain timestamp comparison first.
+  ///
+  /// An entry of the day lies between its midnight and the next day's
+  /// boundary, under 48 hours later. The window adds a day either side, so
+  /// anything the exact check could accept (a label or a timestamp stored in
+  /// another zone, a daylight-saving shift) still reaches it.
+  static bool Function(DateTime moment) logicalDayMatcher(
+    DateTime dayLabel,
+    int? offsetTotalMinutes,
+  ) {
+    final earliest = DateTime(dayLabel.year, dayLabel.month, dayLabel.day - 1);
+    final latest = DateTime(dayLabel.year, dayLabel.month, dayLabel.day + 3);
+    return (moment) =>
+        !moment.isBefore(earliest) &&
+        moment.isBefore(latest) &&
+        isMomentInLogicalDayMinutes(dayLabel, moment, offsetTotalMinutes);
+  }
+
   /// True when [a] and [b] resolve to the same logical day under
   /// [offsetTotalMinutes].
   ///

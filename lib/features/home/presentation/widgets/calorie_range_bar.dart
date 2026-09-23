@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show lerpDouble;
 
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
@@ -76,13 +77,11 @@ class CalorieRangeBar extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     final axisMax = axisMaxFor(value: value, upper: upper);
-    final bandStart = (lower / axisMax).clamp(0.0, 1.0);
-    final bandEnd = (upper / axisMax).clamp(0.0, 1.0);
-    final fill = (value / axisMax).clamp(0.0, 1.0);
-    // Everything past the top of the range is drawn in peach: a different
-    // colour rather than a louder one, so an over day reads as "this is where
-    // it landed", not as a warning.
-    final withinEnd = (math.min(value, upper) / axisMax).clamp(0.0, 1.0);
+    final geometry = _BarGeometry(
+      bandStart: (lower / axisMax).clamp(0.0, 1.0),
+      bandEnd: (upper / axisMax).clamp(0.0, 1.0),
+      fill: (value / axisMax).clamp(0.0, 1.0),
+    );
     final isOver = value > upper;
     // Profiles without a range keep a single goal, stored as equal bounds.
     final rangeLabel = lower.round() == upper.round()
@@ -107,7 +106,7 @@ class CalorieRangeBar extends StatelessWidget {
             ],
           ),
           const SizedBox(height: Dimens.spacing16),
-          _buildBar(palette, bandStart, bandEnd, fill, withinEnd),
+          _buildBar(palette, geometry),
           const SizedBox(height: Dimens.spacing8),
           _buildScale(axisMax, rangeLabel, textTheme, palette),
           if (isOver) ...[
@@ -195,59 +194,58 @@ class CalorieRangeBar extends StatelessWidget {
     );
   }
 
-  Widget _buildBar(
-    AppPalette palette,
-    double bandStart,
-    double bandEnd,
-    double fill,
-    double withinEnd,
-  ) {
+  Widget _buildBar(AppPalette palette, _BarGeometry geometry) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final radius = BorderRadius.circular(_barHeight);
-        return SizedBox(
-          height: _barHeight,
-          width: double.infinity,
-          child: Stack(
-            children: [
-              // The axis itself.
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: palette.surfaceMuted,
-                    borderRadius: radius,
+        // One tween moves the fill, the goal band and the axis scale together,
+        // so a new entry or another day glides into place instead of jumping.
+        // Standard easing starts gently and settles slowly.
+        return TweenAnimationBuilder<_BarGeometry>(
+          tween: _BarGeometryTween(end: geometry),
+          duration: AppMotion.durationLong,
+          curve: AppMotion.standard,
+          builder: (context, bar, _) {
+            // Everything past the top of the range is drawn in peach: a
+            // different colour rather than a louder one, so an over day reads
+            // as "this is where it landed", not as a warning. The green fills
+            // first and the peach only appears once the fill passes the range.
+            final within = math.min(bar.fill, bar.bandEnd);
+            return SizedBox(
+              height: _barHeight,
+              width: double.infinity,
+              child: Stack(
+                children: [
+                  // The axis itself.
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: palette.surfaceMuted,
+                        borderRadius: radius,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              // Where the goal range sits on that axis.
-              Positioned(
-                left: width * bandStart,
-                width: math.max(2, width * (bandEnd - bandStart)),
-                top: 0,
-                bottom: 0,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: palette.accent.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(Dimens.spacing4),
+                  // Where the goal range sits on that axis.
+                  Positioned(
+                    left: width * bar.bandStart,
+                    width: math.max(2, width * (bar.bandEnd - bar.bandStart)),
+                    top: 0,
+                    bottom: 0,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: palette.accent.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(Dimens.spacing4),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              // How far along it today has got. One tween drives both
-              // segments, so the green fills first and the peach only appears
-              // once the animation passes the top of the range.
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween<double>(end: fill),
-                  duration: AppMotion.durationLong,
-                  curve: AppMotion.emphasized,
-                  builder: (context, animated, _) {
-                    final within = math.min(animated, withinEnd);
-                    return SizedBox(
-                      width: width * animated,
+                  // How far along the day has got.
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: SizedBox(
+                      width: width * bar.fill,
                       child: Stack(
                         children: [
                           Positioned.fill(
@@ -279,12 +277,12 @@ class CalorieRangeBar extends StatelessWidget {
                           ),
                         ],
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -317,4 +315,41 @@ class CalorieRangeBar extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Where the goal band and the fill sit, as fractions of the bar's width.
+@immutable
+class _BarGeometry {
+  const _BarGeometry({
+    required this.bandStart,
+    required this.bandEnd,
+    required this.fill,
+  });
+
+  final double bandStart;
+  final double bandEnd;
+  final double fill;
+
+  // Compared by value, so a rebuild with the same numbers (a water pour, say)
+  // does not restart the animation.
+  @override
+  bool operator ==(Object other) =>
+      other is _BarGeometry &&
+      other.bandStart == bandStart &&
+      other.bandEnd == bandEnd &&
+      other.fill == fill;
+
+  @override
+  int get hashCode => Object.hash(bandStart, bandEnd, fill);
+}
+
+class _BarGeometryTween extends Tween<_BarGeometry> {
+  _BarGeometryTween({super.end});
+
+  @override
+  _BarGeometry lerp(double t) => _BarGeometry(
+    bandStart: lerpDouble(begin!.bandStart, end!.bandStart, t)!,
+    bandEnd: lerpDouble(begin!.bandEnd, end!.bandEnd, t)!,
+    fill: lerpDouble(begin!.fill, end!.fill, t)!,
+  );
 }

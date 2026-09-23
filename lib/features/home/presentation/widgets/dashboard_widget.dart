@@ -157,6 +157,9 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                           lineWidth: 16,
                           percent: gaugeValue.clamp(0.0, 1.0),
                           animation: true,
+                          // From where the arc is, not from empty, when the
+                          // day or its total changes.
+                          animateFromLastPercent: true,
                           animationDuration: 800,
                           curve: AppMotion.emphasized,
                           circularStrokeCap: CircularStrokeCap.round,
@@ -281,11 +284,18 @@ class _MacroTile extends StatelessWidget {
           const SizedBox(height: Dimens.spacing12),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: pct,
-              minHeight: 8,
-              backgroundColor: palette.surfaceMuted,
-              valueColor: AlwaysStoppedAnimation(color),
+            // Glides to a new value (another day, a new entry) with the same
+            // easing as the calorie bar.
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(end: pct),
+              duration: AppMotion.durationLong,
+              curve: AppMotion.standard,
+              builder: (context, value, _) => LinearProgressIndicator(
+                value: value,
+                minHeight: 8,
+                backgroundColor: palette.surfaceMuted,
+                valueColor: AlwaysStoppedAnimation(color),
+              ),
             ),
           ),
           const SizedBox(height: Dimens.spacing12),

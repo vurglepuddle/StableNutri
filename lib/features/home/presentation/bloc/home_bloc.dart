@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
@@ -57,8 +58,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final DailyStepsRepository? dailyStepsRepository;
   final HealthStepsSync? healthStepsSync;
 
+  /// The logical today, as of the last load.
   DateTime currentDay = DateTime.now();
+
+  /// The day Today shows; null follows today, across midnight too.
+  DateTime? _selectedDay;
   int _loadGeneration = 0;
+
+  /// The logical day Today shows.
+  DateTime get selectedDay => _selectedDay ?? currentDay;
+
+  /// What new food and activity are logged against: the clock time on today,
+  /// as before, and the shown day's label on any other day.
+  DateTime get dayForNewEntries => _selectedDay ?? DateTime.now();
 
   HomeBloc(
     this._getConfigUsecase,
@@ -88,220 +100,199 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       // appears already full instead of animating, and the list jumps back
       // to the top. The launcher import below spans frames on its own.
       if (event.reset || state is! HomeLoadedState) emit(HomeLoadingState());
+      // Another profile starts on its own today.
+      if (event.reset) _selectedDay = null;
       final widgetWaterIds = await LauncherWidgetService.importWater();
-      final stepSync = healthStepsSync?.sync();
+      // Steps are read per day below, so a running sync finishes first.
+      await healthStepsSync?.sync();
 
-      final configData = await _getConfigUsecase.getConfig();
-      final dayStartOffsetHours = configData.dayStartOffsetHours;
-      final dayStartOffsetMinutes = configData.dayStartOffsetMinutes;
-      // #139: the bloc's "current day" is the logical day, so day-change
-      // detection on app resume respects the user's configured boundary.
-      // The follow-up to #139 routes the boundary through total minutes
-      // so a 04:30 setting is honoured exactly.
-      currentDay = DayBoundaryCalc.currentLogicalDayMinutes(
-        configData.dayStartOffsetTotalMinutes,
-      );
-      final usesImperialUnits = configData.usesImperialFoodUnits;
-      final bodyWeightUnit = configData.bodyWeightUnit;
-      final usesImperialLengthUnits = configData.usesImperialHeightUnits;
-      final showDisclaimerDialog = !configData.hasAcceptedDisclaimer;
-      final showMealMacros = configData.showMealMacros;
-      final showActivityTracking = configData.showActivityTracking;
-
-      final breakfastIntakeList = await _getIntakeUsecase
-          .getTodayBreakfastIntake(
-            dayStartOffsetHours: dayStartOffsetHours,
-            dayStartOffsetMinutes: dayStartOffsetMinutes,
-          );
-      final totalBreakfastKcal = getTotalKcal(breakfastIntakeList);
-      final totalBreakfastCarbs = getTotalCarbs(breakfastIntakeList);
-      final totalBreakfastFats = getTotalFats(breakfastIntakeList);
-      final totalBreakfastProteins = getTotalProteins(breakfastIntakeList);
-
-      final lunchIntakeList = await _getIntakeUsecase.getTodayLunchIntake(
-        dayStartOffsetHours: dayStartOffsetHours,
-        dayStartOffsetMinutes: dayStartOffsetMinutes,
-      );
-      final totalLunchKcal = getTotalKcal(lunchIntakeList);
-      final totalLunchCarbs = getTotalCarbs(lunchIntakeList);
-      final totalLunchFats = getTotalFats(lunchIntakeList);
-      final totalLunchProteins = getTotalProteins(lunchIntakeList);
-
-      final dinnerIntakeList = await _getIntakeUsecase.getTodayDinnerIntake(
-        dayStartOffsetHours: dayStartOffsetHours,
-        dayStartOffsetMinutes: dayStartOffsetMinutes,
-      );
-      final totalDinnerKcal = getTotalKcal(dinnerIntakeList);
-      final totalDinnerCarbs = getTotalCarbs(dinnerIntakeList);
-      final totalDinnerFats = getTotalFats(dinnerIntakeList);
-      final totalDinnerProteins = getTotalProteins(dinnerIntakeList);
-
-      final snackIntakeList = await _getIntakeUsecase.getTodaySnackIntake(
-        dayStartOffsetHours: dayStartOffsetHours,
-        dayStartOffsetMinutes: dayStartOffsetMinutes,
-      );
-      final totalSnackKcal = getTotalKcal(snackIntakeList);
-      final totalSnackCarbs = getTotalCarbs(snackIntakeList);
-      final totalSnackFats = getTotalFats(snackIntakeList);
-      final totalSnackProteins = getTotalProteins(snackIntakeList);
-
-      final totalKcalIntake =
-          totalBreakfastKcal +
-          totalLunchKcal +
-          totalDinnerKcal +
-          totalSnackKcal;
-      final totalCarbsIntake =
-          totalBreakfastCarbs +
-          totalLunchCarbs +
-          totalDinnerCarbs +
-          totalSnackCarbs;
-      final totalFatsIntake =
-          totalBreakfastFats +
-          totalLunchFats +
-          totalDinnerFats +
-          totalSnackFats;
-      final totalProteinsIntake =
-          totalBreakfastProteins +
-          totalLunchProteins +
-          totalDinnerProteins +
-          totalSnackProteins;
-
-      final userActivities = await _getUserActivityUsecase.getTodayUserActivity(
-        dayStartOffsetHours: dayStartOffsetHours,
-        dayStartOffsetMinutes: dayStartOffsetMinutes,
-      );
-      final totalKcalActivities = userActivities
-          .map((activity) => activity.burnedKcal)
-          .toList()
-          .sum;
-
-      final waterIntakes = await _getWaterIntakeUsecase.getTodayEntries(
-        dayStartOffsetTotalMinutes: configData.dayStartOffsetTotalMinutes,
-      );
-      final totalWaterMl = waterIntakes
-          .map((entry) => entry.amountMl)
-          .fold<int>(0, (sum, ml) => sum + ml);
+      final config = await _getConfigUsecase.getConfig();
+      final user = await _getUserUsecase.getUserData();
       final waterQuickAddMl = await _getWaterIntakeUsecase
           .getQuickAddAmountMl();
+      // #139: the logical day, so day changes respect the configured
+      // boundary (hours and minutes).
+      final today = DayBoundaryCalc.currentLogicalDayMinutes(
+        config.dayStartOffsetTotalMinutes,
+      );
+      currentDay = today;
+      // A shown day that has become today follows today from now on.
+      if (_selectedDay == today) _selectedDay = null;
+      final selected = _selectedDay ?? today;
 
-      final user = await _getUserUsecase.getUserData();
-      final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
-        userEntity: user,
-      );
-      final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
-        totalKcalGoal,
-      );
-      final totalFatsGoal = await _getMacroGoalUsecase.getFatsGoal(
-        totalKcalGoal,
-      );
-      final totalProteinsGoal = await _getMacroGoalUsecase.getProteinsGoal(
-        totalKcalGoal,
-      );
+      final days = <DateTime, HomeDay>{};
+      for (final day in {
+        _addDays(selected, -1),
+        selected,
+        _addDays(selected, 1),
+        today,
+      }) {
+        days[day] = await _loadDay(day, config, user);
+      }
+      // A newer load (a later change, or a swipe to another day) supersedes
+      // this one; emitting it would briefly show stale or wrong-day data.
+      if (generation != _loadGeneration) return;
 
-      // Stored intake bounds describe the profile's base day. Activity keeps
-      // its existing behaviour by shifting both edges upward. An upgraded
-      // profile with no stored range resolves to the exact legacy goal.
-      final baseLegacyKcalGoal = totalKcalGoal - totalKcalActivities;
-      final dailyIntakeLowerKcal =
-          (configData.dailyIntakeLowerKcal ?? baseLegacyKcalGoal) +
-          totalKcalActivities;
-      final dailyIntakeUpperKcal =
-          (configData.dailyIntakeUpperKcal ?? baseLegacyKcalGoal) +
-          totalKcalActivities;
-      final weightCorridorLowerKg =
-          configData.weightCorridorLowerKg ?? user.weightKG;
-      final weightCorridorUpperKg =
-          configData.weightCorridorUpperKg ?? user.weightKG;
-
-      // #150: derive recommended per-meal kcal targets from the saved share.
-      final breakfastKcalTarget = configData.targetKcalForMeal(
-        ConfigEntity.mealKeyBreakfast,
-        totalKcalGoal,
-      );
-      final lunchKcalTarget = configData.targetKcalForMeal(
-        ConfigEntity.mealKeyLunch,
-        totalKcalGoal,
-      );
-      final dinnerKcalTarget = configData.targetKcalForMeal(
-        ConfigEntity.mealKeyDinner,
-        totalKcalGoal,
-      );
-      final snackKcalTarget = configData.targetKcalForMeal(
-        ConfigEntity.mealKeySnack,
-        totalKcalGoal,
-      );
-
-      await stepSync;
       emit(
         HomeLoadedState(
-          dailySteps: dailyStepsRepository?.forDay(currentDay),
-          showDisclaimerDialog: showDisclaimerDialog,
-          totalKcalDaily: totalKcalGoal,
-          totalKcalSupplied: totalKcalIntake,
-          totalKcalBurned: totalKcalActivities,
-          dailyIntakeLowerKcal: dailyIntakeLowerKcal,
-          dailyIntakeUpperKcal: dailyIntakeUpperKcal,
-          weightCorridorLowerKg: weightCorridorLowerKg,
-          weightCorridorUpperKg: weightCorridorUpperKg,
-          totalCarbsIntake: totalCarbsIntake,
-          totalFatsIntake: totalFatsIntake,
-          totalCarbsGoal: totalCarbsGoal,
-          totalFatsGoal: totalFatsGoal,
-          totalProteinsGoal: totalProteinsGoal,
-          totalProteinsIntake: totalProteinsIntake,
-          breakfastIntakeList: breakfastIntakeList,
-          lunchIntakeList: lunchIntakeList,
-          dinnerIntakeList: dinnerIntakeList,
-          snackIntakeList: snackIntakeList,
-          userActivityList: userActivities,
-          usesImperialUnits: usesImperialUnits,
-          bodyWeightUnit: bodyWeightUnit,
-          usesImperialLengthUnits: usesImperialLengthUnits,
-          showActivityTracking: showActivityTracking,
-          showWaterTracking: configData.showWaterTracking,
-          showMealMacros: showMealMacros,
+          selectedDay: selected,
+          today: today,
+          days: days,
+          showDisclaimerDialog: !config.hasAcceptedDisclaimer,
+          weightCorridorLowerKg: config.weightCorridorLowerKg ?? user.weightKG,
+          weightCorridorUpperKg: config.weightCorridorUpperKg ?? user.weightKG,
+          usesImperialUnits: config.usesImperialFoodUnits,
+          bodyWeightUnit: config.bodyWeightUnit,
+          usesImperialLengthUnits: config.usesImperialHeightUnits,
+          showActivityTracking: config.showActivityTracking,
+          showWaterTracking: config.showWaterTracking,
+          showMealMacros: config.showMealMacros,
           userWeightKg: user.weightKG,
-          breakfastKcalTarget: breakfastKcalTarget,
-          lunchKcalTarget: lunchKcalTarget,
-          dinnerKcalTarget: dinnerKcalTarget,
-          snackKcalTarget: snackKcalTarget,
           breakfastSharePct:
-              configData.mealKcalSharesPct[ConfigEntity.mealKeyBreakfast] ?? 0,
+              config.mealKcalSharesPct[ConfigEntity.mealKeyBreakfast] ?? 0,
           lunchSharePct:
-              configData.mealKcalSharesPct[ConfigEntity.mealKeyLunch] ?? 0,
+              config.mealKcalSharesPct[ConfigEntity.mealKeyLunch] ?? 0,
           dinnerSharePct:
-              configData.mealKcalSharesPct[ConfigEntity.mealKeyDinner] ?? 0,
+              config.mealKcalSharesPct[ConfigEntity.mealKeyDinner] ?? 0,
           snackSharePct:
-              configData.mealKcalSharesPct[ConfigEntity.mealKeySnack] ?? 0,
+              config.mealKcalSharesPct[ConfigEntity.mealKeySnack] ?? 0,
           userGender: user.gender,
           userCaloriesProfile: user.caloriesProfile,
-          waterMlToday: totalWaterMl,
-          waterQuickAddMl: waterQuickAddMl,
-          waterGoalMl: configData.effectiveDailyWaterGoalMl(
+          waterGoalMl: config.effectiveDailyWaterGoalMl(
             user.gender,
             caloriesProfile: user.caloriesProfile,
           ),
-          waterIntakes: waterIntakes,
+          waterQuickAddMl: waterQuickAddMl,
         ),
       );
-      if (generation == _loadGeneration) {
-        await LauncherWidgetService.publish(
-          expectedProfileId: widgetProfileId,
-          expectedRevision: widgetRevision,
-          appliedWaterIds: widgetWaterIds,
-          config: configData,
-          day: currentDay,
-          waterMl: totalWaterMl,
-          cupMl: waterQuickAddMl,
-          foodKcal: totalKcalIntake,
-          exerciseKcal: totalKcalActivities,
-        );
+      // The launcher widget always shows today, whatever day is on screen.
+      final todayData = days[today]!;
+      await LauncherWidgetService.publish(
+        expectedProfileId: widgetProfileId,
+        expectedRevision: widgetRevision,
+        appliedWaterIds: widgetWaterIds,
+        config: config,
+        day: today,
+        waterMl: todayData.waterMl,
+        cupMl: waterQuickAddMl,
+        foodKcal: todayData.totalKcalSupplied,
+        exerciseKcal: todayData.totalKcalBurned,
+      );
+    });
+
+    on<ShowTodayEvent>((event, emit) {
+      _selectedDay = null;
+      final current = state;
+      if (current is HomeLoadedState) emit(current.showing(current.today));
+      add(const LoadItemsEvent());
+    });
+
+    on<SelectDayEvent>((event, emit) {
+      final day = DateTime(event.day.year, event.day.month, event.day.day);
+      _selectedDay = day == currentDay ? null : day;
+      // A day already loaded (a swiped-to neighbour) shows at once, so the
+      // dashboard moves with the swipe; the load then fetches its neighbours.
+      final current = state;
+      if (current is HomeLoadedState && current.days.containsKey(day)) {
+        emit(current.showing(day));
       }
+      add(const LoadItemsEvent());
     });
   }
 
   double getTotalKcal(List<IntakeEntity> intakeList) =>
       intakeList.map((intake) => intake.totalKcal).toList().sum;
+
+  /// Everything Today shows for one logical [day].
+  Future<HomeDay> _loadDay(
+    DateTime day,
+    ConfigEntity config,
+    UserEntity user,
+  ) async {
+    final hours = config.dayStartOffsetHours;
+    final minutes = config.dayStartOffsetMinutes;
+    final breakfast = await _getIntakeUsecase.getBreakfastIntakeByDay(
+      day,
+      dayStartOffsetHours: hours,
+      dayStartOffsetMinutes: minutes,
+    );
+    final lunch = await _getIntakeUsecase.getLunchIntakeByDay(
+      day,
+      dayStartOffsetHours: hours,
+      dayStartOffsetMinutes: minutes,
+    );
+    final dinner = await _getIntakeUsecase.getDinnerIntakeByDay(
+      day,
+      dayStartOffsetHours: hours,
+      dayStartOffsetMinutes: minutes,
+    );
+    final snack = await _getIntakeUsecase.getSnackIntakeByDay(
+      day,
+      dayStartOffsetHours: hours,
+      dayStartOffsetMinutes: minutes,
+    );
+    final intakes = [...breakfast, ...lunch, ...dinner, ...snack];
+    final activities = await _getUserActivityUsecase.getUserActivityByDay(
+      day,
+      dayStartOffsetHours: hours,
+      dayStartOffsetMinutes: minutes,
+    );
+    final burned = activities.map((activity) => activity.burnedKcal).sum;
+    final water = await _getWaterIntakeUsecase.getEntriesForDay(
+      day,
+      dayStartOffsetTotalMinutes: config.dayStartOffsetTotalMinutes,
+    );
+    final kcalGoal = await _getKcalGoalUsecase.getKcalGoal(
+      userEntity: user,
+      totalKcalActivitiesParam: burned,
+    );
+    // Stored intake bounds describe the profile's base day. Activity keeps
+    // its existing behaviour by shifting both edges upward. An upgraded
+    // profile with no stored range resolves to the exact legacy goal.
+    final baseGoal = kcalGoal - burned;
+    return HomeDay(
+      day: day,
+      breakfastIntakeList: breakfast,
+      lunchIntakeList: lunch,
+      dinnerIntakeList: dinner,
+      snackIntakeList: snack,
+      userActivityList: activities,
+      dailySteps: dailyStepsRepository?.forDay(day),
+      totalKcalDaily: kcalGoal,
+      totalKcalSupplied: getTotalKcal(intakes),
+      totalKcalBurned: burned,
+      dailyIntakeLowerKcal: (config.dailyIntakeLowerKcal ?? baseGoal) + burned,
+      dailyIntakeUpperKcal: (config.dailyIntakeUpperKcal ?? baseGoal) + burned,
+      totalCarbsIntake: getTotalCarbs(intakes),
+      totalFatsIntake: getTotalFats(intakes),
+      totalProteinsIntake: getTotalProteins(intakes),
+      totalCarbsGoal: await _getMacroGoalUsecase.getCarbsGoal(kcalGoal),
+      totalFatsGoal: await _getMacroGoalUsecase.getFatsGoal(kcalGoal),
+      totalProteinsGoal: await _getMacroGoalUsecase.getProteinsGoal(kcalGoal),
+      // #150: recommended per-meal targets from the saved shares.
+      breakfastKcalTarget: config.targetKcalForMeal(
+        ConfigEntity.mealKeyBreakfast,
+        kcalGoal,
+      ),
+      lunchKcalTarget: config.targetKcalForMeal(
+        ConfigEntity.mealKeyLunch,
+        kcalGoal,
+      ),
+      dinnerKcalTarget: config.targetKcalForMeal(
+        ConfigEntity.mealKeyDinner,
+        kcalGoal,
+      ),
+      snackKcalTarget: config.targetKcalForMeal(
+        ConfigEntity.mealKeySnack,
+        kcalGoal,
+      ),
+      waterMl: water.fold<int>(0, (sum, entry) => sum + entry.amountMl),
+      waterIntakes: water,
+    );
+  }
+
+  static DateTime _addDays(DateTime day, int days) =>
+      DateTime(day.year, day.month, day.day + days);
 
   double getTotalCarbs(List<IntakeEntity> intakeList) =>
       intakeList.map((intake) => intake.totalCarbsGram).toList().sum;
@@ -320,10 +311,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     String intakeId,
     Map<String, dynamic> fields,
   ) async {
-    final dateTime = await _currentLogicalDay();
     // Get old intake values
     final oldIntakeObject = await _getIntakeUsecase.getIntakeById(intakeId);
     if (oldIntakeObject == null) return;
+    final dateTime = await _logicalDayOf(oldIntakeObject.dateTime);
     final newIntakeObject = await _updateIntakeUsecase.updateIntake(
       intakeId,
       fields,
@@ -366,7 +357,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> deleteIntakeItem(IntakeEntity intakeEntity) async {
-    final dateTime = await _currentLogicalDay();
+    final dateTime = await _logicalDayOf(intakeEntity.dateTime);
     await _deleteIntakeUsecase.deleteIntake(intakeEntity);
     await _addTrackedDayUseCase.removeDayCaloriesTracked(
       dateTime,
@@ -383,7 +374,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> deleteUserActivityItem(UserActivityEntity activityEntity) async {
-    final dateTime = await _currentLogicalDay();
+    final dateTime = await _logicalDayOf(activityEntity.date);
     await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
     _addTrackedDayUseCase.reduceDayCalorieGoal(
       dateTime,
@@ -412,7 +403,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     UserActivityEntity activityEntity,
     double newDuration,
   ) async {
-    final dateTime = await _currentLogicalDay();
+    final dateTime = await _logicalDayOf(activityEntity.date);
     final newActivity = await _updateUserActivityUsecase.updateUserActivity(
       activityEntity,
       newDuration,
@@ -451,7 +442,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     if (amountMl <= 0) return;
     final entry = WaterIntakeEntity(
       id: 'water-${DateTime.now().microsecondsSinceEpoch}',
-      dateTime: DateTime.now(),
+      dateTime: await _waterMomentForShownDay(),
       amountMl: amountMl,
     );
     await _addWaterIntakeUsecase.addEntry(entry);
@@ -468,10 +459,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   /// 700 ml entry would silently resize every cup on the card to 450 ml.
   Future<void> removeWaterIntake(int amountMl) async {
     if (amountMl <= 0) return;
-    final config = await _getConfigUsecase.getConfig();
-    final entries = await _getWaterIntakeUsecase.getTodayEntries(
-      dayStartOffsetTotalMinutes: config.dayStartOffsetTotalMinutes,
-    );
+    final entries = await _shownDayWater();
     final trim = WaterTrimCalc.trim(entries, amountMl);
     if (trim.isEmpty) return;
     for (final id in trim.deleteIds) {
@@ -494,10 +482,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   /// day. Returns whether anything was deleted, so the dialog can react
   /// without re-reading state.
   Future<bool> undoLastWaterIntake() async {
-    final config = await _getConfigUsecase.getConfig();
-    final entries = await _getWaterIntakeUsecase.getTodayEntries(
-      dayStartOffsetTotalMinutes: config.dayStartOffsetTotalMinutes,
-    );
+    final entries = await _shownDayWater();
     if (entries.isEmpty) return false;
     entries.sort((a, b) => a.dateTime.compareTo(b.dateTime));
     await _deleteWaterIntakeUsecase.deleteEntry(entries.last.id);
@@ -505,15 +490,54 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     return true;
   }
 
-  /// #139: tracked-day deltas (calories, macros) must land on the
-  /// user's logical "today" — for someone on a 04:30 boundary, a 02:00
-  /// edit still updates yesterday's totals. We resolve the offset on
-  /// each call so the most recent setting wins without needing the
-  /// bloc to cache it explicitly. The follow-up to #139 reads the
-  /// total-minutes value so the minute component (0-59) is honoured.
-  Future<DateTime> _currentLogicalDay() async {
+  /// The water entries of the day Today shows.
+  Future<List<WaterIntakeEntity>> _shownDayWater() async {
     final config = await _getConfigUsecase.getConfig();
-    return DayBoundaryCalc.currentLogicalDayMinutes(
+    final day = _selectedDay;
+    if (day == null) {
+      return _getWaterIntakeUsecase.getTodayEntries(
+        dayStartOffsetTotalMinutes: config.dayStartOffsetTotalMinutes,
+      );
+    }
+    return _getWaterIntakeUsecase.getEntriesForDay(
+      day,
+      dayStartOffsetTotalMinutes: config.dayStartOffsetTotalMinutes,
+    );
+  }
+
+  /// When a drink logged now is recorded. Today that is simply now. On any
+  /// other day it is the current clock time on that day, moved to the next
+  /// date when the time falls before the day boundary (with a 04:00
+  /// boundary, 01:30 still belongs to the day before), so it lands inside
+  /// the day's window.
+  Future<DateTime> _waterMomentForShownDay() async {
+    final now = DateTime.now();
+    final day = _selectedDay;
+    if (day == null) return now;
+    final config = await _getConfigUsecase.getConfig();
+    final beforeBoundary =
+        now.hour * 60 + now.minute < config.dayStartOffsetTotalMinutes;
+    final date = beforeBoundary ? _addDays(day, 1) : day;
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      now.hour,
+      now.minute,
+      now.second,
+      now.millisecond,
+      now.microsecond,
+    );
+  }
+
+  /// #139: tracked-day deltas (calories, macros) land on the logical day
+  /// the entry belongs to. On Today that need not be today any more, and
+  /// with a 04:30 boundary a 02:00 entry still belongs to the day before.
+  /// The offset is read on each call so the latest setting wins.
+  Future<DateTime> _logicalDayOf(DateTime moment) async {
+    final config = await _getConfigUsecase.getConfig();
+    return DayBoundaryCalc.logicalDayOfEntry(
+      moment,
       config.dayStartOffsetTotalMinutes,
     );
   }

@@ -81,6 +81,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             route.isFirst || route.settings.name == NavigationOptions.mainRoute,
       );
       _setDestination(MainDestination.today);
+      // The launcher buttons log for now, so Today follows along.
+      locator<HomeBloc>().add(const ShowTodayEvent());
       final now = DateTime.now();
       if (action == 'food') {
         Navigator.of(context).pushNamed(
@@ -171,12 +173,20 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   Future<void> _onFabPressed(BuildContext context) async {
     final config = await locator<GetConfigUsecase>().getConfig();
     if (!context.mounted) return;
+    // On Today, new entries go to whichever day is being shown. Elsewhere
+    // they are for now, and Today turns back to today so they show up there.
+    final homeBloc = locator<HomeBloc>();
+    final onToday = _selectedDestination == MainDestination.today;
+    if (!onToday && homeBloc.selectedDay != homeBloc.currentDay) {
+      homeBloc.add(const ShowTodayEvent());
+    }
+    final day = onToday ? homeBloc.dayForNewEntries : DateTime.now();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return AddItemBottomSheet(
-          day: DateTime.now(),
+          day: day,
           showActivityTracking: config.showActivityTracking,
           usesImperialUnits: config.usesImperialFoodUnits,
           onOpenLibrary: () => _setDestination(MainDestination.library),

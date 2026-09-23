@@ -1042,5 +1042,10 @@
   "quickAddActivityAddedSnack": "Attività aggiunta",
   "quickAddActivityNameLabel": "Nome (facoltativo)",
   "scannerLockOrientationTooltip": "Blocca in verticale",
-  "scannerUnlockOrientationTooltip": "Consenti rotazione"
+  "scannerUnlockOrientationTooltip": "Consenti rotazione",
+  "homePreviousDayTooltip": "Giorno precedente",
+  "homeNextDayTooltip": "Giorno successivo",
+  "homeYesterdayLabel": "Ieri",
+  "homeTomorrowLabel": "Domani",
+  "homeBackToTodayLabel": "Torna a oggi"
 }

@@ -17,3 +17,19 @@ class LoadItemsEvent extends HomeEvent {
   @override
   List<Object?> get props => [reset];
 }
+
+/// Shows today on Today, and keeps following it across midnight.
+class ShowTodayEvent extends HomeEvent {
+  const ShowTodayEvent();
+}
+
+/// Shows [day] (a logical day) on Today. Swipes, the arrows and the calendar
+/// go through here.
+class SelectDayEvent extends HomeEvent {
+  final DateTime day;
+
+  const SelectDayEvent(this.day);
+
+  @override
+  List<Object?> get props => [day];
+}

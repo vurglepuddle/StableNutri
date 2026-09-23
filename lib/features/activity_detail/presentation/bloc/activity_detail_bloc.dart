@@ -96,7 +96,7 @@ class ActivityDetailBloc
     await _addCustomActivityTemplateUsecase.addTemplate(entity);
   }
 
-  void persistActivity(
+  Future<void> persistActivity(
     String quantityText,
     double totalKcalBurned,
     PhysicalActivityEntity activityEntity,

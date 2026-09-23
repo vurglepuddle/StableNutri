@@ -1042,5 +1042,10 @@
   "quickAddActivityAddedSnack": "Aktivita přidána",
   "quickAddActivityNameLabel": "Název (volitelné)",
   "scannerLockOrientationTooltip": "Uzamknout na výšku",
-  "scannerUnlockOrientationTooltip": "Povolit otáčení"
+  "scannerUnlockOrientationTooltip": "Povolit otáčení",
+  "homePreviousDayTooltip": "Předchozí den",
+  "homeNextDayTooltip": "Další den",
+  "homeYesterdayLabel": "Včera",
+  "homeTomorrowLabel": "Zítra",
+  "homeBackToTodayLabel": "Zpět na dnešek"
 }

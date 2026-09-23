@@ -1043,5 +1043,10 @@
   "quickAddActivityAddedSnack": "已添加活动",
   "quickAddActivityNameLabel": "名称（可选）",
   "scannerLockOrientationTooltip": "锁定为竖屏",
-  "scannerUnlockOrientationTooltip": "允许旋转"
+  "scannerUnlockOrientationTooltip": "允许旋转",
+  "homePreviousDayTooltip": "前一天",
+  "homeNextDayTooltip": "后一天",
+  "homeYesterdayLabel": "昨天",
+  "homeTomorrowLabel": "明天",
+  "homeBackToTodayLabel": "回到今天"
 }

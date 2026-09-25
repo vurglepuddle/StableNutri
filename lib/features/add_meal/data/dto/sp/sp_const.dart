@@ -86,6 +86,10 @@ class SPConst {
     'bls': 'BLS',
     'indb': 'INDB',
     'tbca': 'TBCA',
+    // Not a backend source (so absent from the full names, whose keys are
+    // the search filter): METRO products found for a scanned barcode share
+    // the group, and these lookups give them a label and a link.
+    'metro': 'METRO',
   };
 
   /// Sources offered in Settings → Food databases. INDB and TBCA exist in
@@ -110,6 +114,7 @@ class SPConst {
     'bls': 'https://www.blsdb.de',
     'indb': 'https://www.anuvaad.org.in',
     'tbca': 'https://www.tbca.net.br',
+    'metro': 'https://online.metro-cc.ru',
   };
 
   /// BCP 47 locale used in food_translation for [language], or null when

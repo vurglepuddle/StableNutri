@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/scanner/data/barcode_list_data_source.dart';
+import 'package:opennutritracker/features/scanner/data/metro_data_source.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -94,8 +95,16 @@ class _FoodSourcesScreenState extends State<FoodSourcesScreen> {
                     value: _toggles[sourceCode] ?? true,
                     onChanged: (value) => _toggle(sourceCode, value),
                   ),
-                // Not a search database: it only names a scanned barcode
-                // after every other source has come back empty.
+                // Not search databases: they step in for a scanned barcode
+                // the sources above could not resolve.
+                SwitchListTile(
+                  secondary: _infoButton(MetroDataSource.websiteUrl),
+                  title: const Text(MetroDataSource.displayName),
+                  subtitle: Text(s.foodSourcesMetroSubtitle),
+                  value: _toggles[MetroDataSource.sourceCode] ?? true,
+                  onChanged: (value) =>
+                      _toggle(MetroDataSource.sourceCode, value),
+                ),
                 SwitchListTile(
                   secondary: _infoButton(BarcodeListDataSource.websiteUrl),
                   title: const Text(BarcodeListDataSource.displayName),

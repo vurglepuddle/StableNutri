@@ -44,9 +44,21 @@ class ScannerFailedState extends ScannerState {
   /// screen shows straight away and fills the name in when it arrives.
   final bool isLookingUpName;
 
-  /// What barcode-list.ru calls this product; null when it does not know it,
-  /// the lookup is off, or it has not answered yet.
+  /// What the product is called: from [partial] when there is one,
+  /// otherwise from barcode-list.ru. Null when nobody knows, the lookup is
+  /// off, or it has not answered yet.
   final String? suggestedName;
+
+  /// The product without (all of) its nutrition — an Open Food Facts record
+  /// with no values, or a METRO product missing some. Seeds the new food.
+  final MealEntity? partial;
+
+  /// True while METRO is being searched by [suggestedName].
+  final bool isSearchingMetro;
+
+  /// METRO products that may be this one, best first, for the user to pick
+  /// from. Each already carries [barcode].
+  final List<MealEntity> metroMatches;
 
   const ScannerFailedState(
     this.type, {
@@ -54,6 +66,9 @@ class ScannerFailedState extends ScannerState {
     this.usesImperialUnits = false,
     this.isLookingUpName = false,
     this.suggestedName,
+    this.partial,
+    this.isSearchingMetro = false,
+    this.metroMatches = const [],
   });
 
   // props used to be const-empty, which made every failure state equal to
@@ -66,6 +81,9 @@ class ScannerFailedState extends ScannerState {
     usesImperialUnits,
     isLookingUpName,
     suggestedName,
+    partial,
+    isSearchingMetro,
+    metroMatches,
   ];
 }
 

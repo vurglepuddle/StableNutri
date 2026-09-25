@@ -1,18 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
-import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 
-/// Regression test for #495 — custom-food serving size.
-///
-/// The custom-meal form has a single unit selector shared by the meal size
-/// and the serving size. `createNewMealEntity` used to store the serving
-/// *quantity* text in `servingUnit` (so a 50 g serving saved its unit as the
-/// string "50"). The meal-detail serving option then read "Serving (50.0 50)"
-/// instead of "Serving (50 g)", and the per-serving header carried the same
-/// garbled unit. This pins the serving unit to the selected unit.
+/// The food form saves what it shows: one serving of so many grams or
+/// millilitres, and nutrition per 100 of them. Its old Simple mode stored a
+/// serving's totals as per-100 values, so every new food logged "1 serving"
+/// as 100 g.
 ///
 /// The fakes are unused stand-ins — `createNewMealEntity` is a pure transform
 /// over its arguments and touches none of the bloc's dependencies.
@@ -26,63 +22,142 @@ class _FakeCustomMealDataSource implements CustomMealDataSource {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _FakeConfigRepository implements ConfigRepository {
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+const FoodNutritionPer100 _tomato = (
+  kcal: 18,
+  carbs: 4,
+  fat: 0.2,
+  protein: 1,
+  fiber: 1.2,
+  saturatedFat: null,
+  sugars: 2.6,
+  sodium: null,
+  calcium: null,
+  iron: null,
+  potassium: null,
+  magnesium: null,
+  vitaminD: null,
+  vitaminB12: null,
+);
 
 void main() {
-  group('createNewMealEntity serving unit (#495)', () {
-    late EditMealBloc bloc;
+  late EditMealBloc bloc;
 
-    setUp(() {
-      bloc = EditMealBloc(
-        _FakeGetConfigUsecase(),
-        _FakeCustomMealDataSource(),
-        _FakeConfigRepository(),
-      );
-    });
+  setUp(() {
+    bloc = EditMealBloc(_FakeGetConfigUsecase(), _FakeCustomMealDataSource());
+  });
 
-    tearDown(() async {
-      await bloc.close();
-    });
+  tearDown(() async {
+    await bloc.close();
+  });
 
-    MealEntity build({required String servingQuantity, required String unit}) {
-      return bloc.createNewMealEntity(
-        MealEntity.empty(),
-        'Tomato',
-        '',
-        '100', // meal size
-        servingQuantity,
-        '100', // base quantity
-        unit,
-        '18', // kcal
-        '4', // carbs
-        '0', // fat
-        '1', // protein
-      );
-    }
+  MealEntity build(
+    MealEntity old, {
+    String? unit = 'g',
+    double? servingQuantity = 150,
+  }) => bloc.createNewMealEntity(
+    old,
+    name: ' Tomato ',
+    brands: '',
+    unit: unit,
+    servingQuantity: servingQuantity,
+    per100: _tomato,
+  );
 
-    test(
-      'serving unit is the selected unit, not the serving quantity text',
-      () {
-        final meal = build(servingQuantity: '50', unit: 'g');
-        expect(meal.servingUnit, 'g');
-        expect(meal.servingQuantity, 50);
-        // The old bug stored the quantity text as the unit.
-        expect(meal.servingUnit, isNot('50'));
-      },
+  test('a new food keeps its serving and per-100 values apart', () {
+    final meal = build(MealEntity.empty());
+    expect(meal.name, 'Tomato');
+    expect(meal.brands, isNull);
+    expect(meal.mealUnit, 'g');
+    expect(meal.servingQuantity, 150);
+    // #495: the serving's unit is the selected unit, not the quantity text.
+    expect(meal.servingUnit, 'g');
+    expect(meal.scalableServingQuantity, 150);
+    expect(meal.nutriments.energyKcal100, 18);
+    expect(meal.nutriments.sugars100, 2.6);
+    expect(meal.mealQuantity, isNull);
+    expect(meal.detailed, isTrue);
+  });
+
+  test('a liquid is measured in millilitres, serving and all', () {
+    final meal = build(MealEntity.empty(), unit: 'ml', servingQuantity: 250);
+    expect(meal.mealUnit, 'ml');
+    expect(meal.servingUnit, 'ml');
+    expect(meal.isLiquid, isTrue);
+  });
+
+  test('no serving size means no serving to pick', () {
+    final meal = build(MealEntity.empty(), servingQuantity: null);
+    expect(meal.scalableServingQuantity, isNull);
+  });
+
+  MealEntity product({String? servingSize = '1 slice (25 g)'}) => MealEntity(
+    code: '4000000000000',
+    name: 'Bread',
+    url: null,
+    mealQuantity: '500',
+    mealUnit: 'g',
+    servingQuantity: null,
+    servingUnit: null,
+    servingSize: servingSize,
+    nutriments: const MealNutrimentsEntity(
+      energyKcal100: 250,
+      carbohydrates100: 45,
+      fat100: 3,
+      proteins100: 9,
+      sugars100: 3,
+      saturatedFat100: 0.5,
+      fiber100: 6,
+      zinc100: 1.1,
+      vitaminC100: 0.4,
+    ),
+    source: MealSourceEntity.off,
+    isFavorite: true,
+  );
+
+  test('an unchanged serving keeps its description', () {
+    final meal = build(product(), servingQuantity: 25);
+    expect(meal.servingSize, '1 slice (25 g)');
+  });
+
+  test('a changed serving drops the description that no longer fits', () {
+    final meal = build(product(), servingQuantity: 40);
+    expect(meal.servingSize, isNull);
+    expect(meal.scalableServingQuantity, 40);
+  });
+
+  test('nutrients the form does not show are kept, and so are labels', () {
+    final meal = build(product(), servingQuantity: 25);
+    expect(meal.nutriments.zinc100, 1.1);
+    expect(meal.nutriments.vitaminC100, 0.4);
+    expect(meal.mealQuantity, '500');
+    expect(meal.isFavorite, isTrue);
+    expect(meal.code, '4000000000000');
+  });
+
+  test('a food counted in servings keeps its units', () {
+    final lifesum = MealEntity(
+      code: 'lifesum-meal-1',
+      name: 'Pizza slice',
+      url: null,
+      mealQuantity: null,
+      mealUnit: 'serving',
+      servingQuantity: 1,
+      servingUnit: 'serving',
+      servingSize: 'slice',
+      nutriments: MealNutrimentsEntity.empty(),
+      source: MealSourceEntity.custom,
     );
+    final meal = build(lifesum, unit: null, servingQuantity: null);
+    expect(meal.mealUnit, 'serving');
+    expect(meal.servingUnit, 'serving');
+    expect(meal.servingQuantity, 1);
+    expect(meal.servingSize, 'slice');
+  });
 
-    test('serving and meal units agree (one shared selector)', () {
-      final meal = build(servingQuantity: '30', unit: 'ml');
-      expect(meal.servingUnit, 'ml');
-      expect(meal.mealUnit, 'ml');
-    });
-
-    test('the g/ml default unit is preserved on the serving', () {
-      final meal = build(servingQuantity: '100', unit: 'g/ml');
-      expect(meal.servingUnit, 'g/ml');
-    });
+  test('weights and volumes show as g or ml; servings do not', () {
+    for (final unit in [null, '', 'g', 'ml', 'g/ml', 'gml', 'oz', 'kg']) {
+      expect(isMeasuredByWeightOrVolume(unit), isTrue, reason: '$unit');
+    }
+    expect(isMeasuredByWeightOrVolume('serving'), isFalse);
   });
 }

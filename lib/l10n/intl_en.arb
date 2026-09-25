@@ -1456,5 +1456,22 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "customFoodNewTitle": "New food",
+  "customFoodEditTitle": "Edit food",
+  "customFoodNewTooltip": "New food",
+  "customFoodServingSection": "Serving",
+  "customFoodServingSizeLabel": "1 serving",
+  "customFoodServingSizeHelper": "Optional. With it, you can log this food by the serving.",
+  "customFoodCountedInServings": "This food is logged by the serving, without a weight.",
+  "customFoodNutritionSection": "Nutrition",
+  "customFoodPer100": "Per 100 {unit}",
+  "@customFoodPer100": {"placeholders": {"unit": {"type": "String"}}},
+  "customFoodPerServing": "Per serving",
+  "customFoodMoreNutrients": "More nutrients",
+  "customFoodServingNeeded": "Enter the serving size to use values per serving.",
+  "customFoodNutrientTooHigh": "{nutrient} can't be more than 100 g in 100 g.",
+  "@customFoodNutrientTooHigh": {"placeholders": {"nutrient": {"type": "String"}}},
+  "customFoodMacrosTooHigh": "Carbohydrates, fat and protein add up to more than 100 g in 100 g.",
+  "customFoodEnergyTooHigh": "That is more energy than 100 g of pure fat has."
 }

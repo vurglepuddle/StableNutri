@@ -112,6 +112,7 @@ class LauncherWidgetService {
     required int cupMl,
     required double foodKcal,
     required double exerciseKcal,
+    ({int waterMl, double foodKcal, double exerciseKcal})? nextDay,
   }) async {
     if (!supported || !locator.isRegistered<GetProfilesUsecase>()) return;
     final profile = locator<GetProfilesUsecase>().getActiveProfile();
@@ -135,7 +136,7 @@ class LauncherWidgetService {
       'locale': locale.toLanguageTag(),
       'accent': config.accentColor,
       'materialYou': config.useMaterialYou,
-      'day': '${day.year}-${day.month}-${day.day}',
+      'day': _dayKey(day),
       'offsetMinutes': config.dayStartOffsetTotalMinutes,
       'waterMl': waterMl,
       'cupMl': cupMl > 0 ? cupMl : 250,
@@ -144,6 +145,15 @@ class LauncherWidgetService {
       'exerciseLabel': s.quickAddExerciseLabel,
       'foodAmount': energy(foodKcal),
       'exerciseAmount': energy(exerciseKcal),
+      // The following day's totals, usually nothing yet. Android switches to
+      // them at the day boundary while Stable is closed, instead of keeping
+      // today's numbers until the app is next opened.
+      if (nextDay != null) ...{
+        'nextDay': _dayKey(DateTime(day.year, day.month, day.day + 1)),
+        'nextWaterMl': nextDay.waterMl,
+        'nextFoodAmount': energy(nextDay.foodKcal),
+        'nextExerciseAmount': energy(nextDay.exerciseKcal),
+      },
       'energyUnit': config.usesKilojoules ? s.kjLabel : s.kcalLabel,
       'waterUnits': pluralForms(s.localeName, s.widgetWaterUnit),
       // Food always stays, so the widget is never empty.
@@ -167,6 +177,8 @@ class LauncherWidgetService {
       _lastPublished = snapshot;
     }
   }
+
+  static String _dayKey(DateTime day) => '${day.year}-${day.month}-${day.day}';
 
   /// Every form of a plural [message], keyed by CLDR category (one, few,
   /// other...). The widget adds cups while Stable is closed, so it picks the

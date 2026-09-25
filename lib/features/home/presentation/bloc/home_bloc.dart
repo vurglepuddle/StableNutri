@@ -121,11 +121,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final selected = _selectedDay ?? today;
 
       final days = <DateTime, HomeDay>{};
+      final tomorrow = _addDays(today, 1);
       for (final day in {
         _addDays(selected, -1),
         selected,
         _addDays(selected, 1),
         today,
+        // For the launcher widget, which moves on at the day boundary.
+        tomorrow,
       }) {
         days[day] = await _loadDay(day, config, user);
       }
@@ -167,6 +170,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
       // The launcher widget always shows today, whatever day is on screen.
       final todayData = days[today]!;
+      final tomorrowData = days[tomorrow]!;
       await LauncherWidgetService.publish(
         expectedProfileId: widgetProfileId,
         expectedRevision: widgetRevision,
@@ -177,6 +181,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         cupMl: waterQuickAddMl,
         foodKcal: todayData.totalKcalSupplied,
         exerciseKcal: todayData.totalKcalBurned,
+        nextDay: (
+          waterMl: tomorrowData.waterMl,
+          foodKcal: tomorrowData.totalKcalSupplied,
+          exerciseKcal: tomorrowData.totalKcalBurned,
+        ),
       );
     });
 

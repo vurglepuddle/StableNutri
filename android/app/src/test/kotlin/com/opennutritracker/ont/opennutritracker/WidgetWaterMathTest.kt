@@ -29,6 +29,22 @@ class WidgetWaterMathTest {
         assertEquals(250, WidgetWaterMath.pendingMl(listOf(tap, tap), "first", "2026-9-22", 0, zone))
     }
 
+    @Test fun theNextDayStartsAtTheConfiguredBoundary() {
+        val start = WidgetWaterMath.nextDayStart(at("2026-09-22T01:29:00Z"), 270, zone)
+        assertEquals(at("2026-09-22T01:30:00Z"), start)
+        assertEquals("2026-9-22", WidgetWaterMath.day(start, 270, zone))
+        assertEquals(at("2026-09-23T01:30:00Z"), WidgetWaterMath.nextDayStart(start, 270, zone))
+    }
+
+    @Test fun theNextDayStartFollowsDaylightSaving() {
+        val berlin = ZoneId.of("Europe/Berlin")
+        // 2026-10-25 has 25 hours in Berlin.
+        assertEquals(at("2026-10-24T22:00:00Z"),
+            WidgetWaterMath.nextDayStart(at("2026-10-24T12:00:00Z"), 0, berlin))
+        assertEquals(at("2026-10-25T23:00:00Z"),
+            WidgetWaterMath.nextDayStart(at("2026-10-25T12:00:00Z"), 0, berlin))
+    }
+
     @Test fun changingTimezoneChangesTheLogicalDay() {
         val time = at("2026-09-22T01:00:00Z")
         assertEquals("2026-9-22", WidgetWaterMath.day(time, 0, zone))

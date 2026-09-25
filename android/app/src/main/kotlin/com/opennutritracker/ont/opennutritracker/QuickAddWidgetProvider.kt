@@ -1,5 +1,6 @@
 package com.opennutritracker.ont.opennutritracker
 
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -36,15 +37,20 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
                 updateAll(context)
                 MainActivity.widgetChannel?.invokeMethod("waterQueued", null)
             }
-        } else if (intent.action in setOf(Intent.ACTION_DATE_CHANGED, Intent.ACTION_TIME_CHANGED,
+        } else if (intent.action in setOf(DAY_ACTION, Intent.ACTION_DATE_CHANGED, Intent.ACTION_TIME_CHANGED,
                 Intent.ACTION_TIMEZONE_CHANGED, Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED)) {
             updateAll(context)
         }
     }
 
+    override fun onDisabled(context: Context) {
+        context.getSystemService(AlarmManager::class.java)?.cancel(dayChange(context))
+    }
+
     companion object {
         const val WATER_ACTION = "com.opennutritracker.ont.QUICK_ADD_WATER"
         const val ACTION_EXTRA = "stable_widget_action"
+        private const val DAY_ACTION = "com.opennutritracker.ont.QUICK_ADD_DAY_CHANGED"
 
         /** One launcher row is well below this height; two rows are above it. */
         private const val TALL_MIN_HEIGHT_DP = 130
@@ -68,6 +74,24 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
                 .forEach { update(context, manager, it) }
         }
 
+        private fun dayChange(context: Context): PendingIntent = PendingIntent.getBroadcast(
+            context, 1, Intent(context, QuickAddWidgetProvider::class.java).setAction(DAY_ACTION),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        /**
+         * Redraws at the next logical day boundary. Android 8+ never delivers
+         * DATE_CHANGED to a manifest receiver, and the half-hourly update is
+         * often deferred for hours, so the widget kept yesterday's totals
+         * until Stable was opened. An inexact alarm needs no permission and
+         * lands within minutes; each redraw schedules the next one.
+         */
+        private fun scheduleDayChange(context: Context, offsetMinutes: Int) {
+            val alarms = context.getSystemService(AlarmManager::class.java) ?: return
+            val at = WidgetWaterMath.nextDayStart(System.currentTimeMillis(), offsetMinutes) + 1000
+            alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, dayChange(context))
+        }
+
         private fun launch(context: Context, action: String): PendingIntent = PendingIntent.getActivity(
             context, action.hashCode(),
             Intent(context, MainActivity::class.java).apply {
@@ -78,6 +102,7 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
 
         private fun update(context: Context, manager: AppWidgetManager, id: Int) {
             val content = content(context)
+            scheduleDayChange(context, content.offsetMinutes)
             val views = if (Build.VERSION.SDK_INT >= 31) {
                 // The launcher picks the tallest layout that fits, and switches
                 // on resize or rotation without waiting for another update.
@@ -109,9 +134,18 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
             }
             val offset = data?.optInt("offsetMinutes") ?: 0
             val today = WidgetWaterMath.day(System.currentTimeMillis(), offset)
-            val fresh = data?.optString("day") == today
+            // Stable sends today's totals and the next day's. Past the day
+            // boundary the next day's are current; any later, they are unknown.
+            val prefix = when (today) {
+                data?.optString("day") -> ""
+                data?.optString("nextDay") -> "next"
+                else -> null
+            }
+            val fresh = prefix != null
+            fun current(key: String) = if (prefix == null) null
+                else data?.opt(if (prefix.isEmpty()) key else prefix + key.replaceFirstChar { it.uppercase() })
             val pending = WidgetWaterMath.pendingMl(QuickAddWidgetStore.pending(context), profile, today, offset)
-            val water = (if (fresh) data?.optInt("waterMl") ?: 0 else 0) + pending
+            val water = ((current("waterMl") as? Number)?.toInt() ?: 0) + pending
             // Rounded as displayed, so "1 litre" and "1.2 litres" agree with
             // the number shown. Stable sends a form per plural category.
             val litres = BigDecimal(water).movePointLeft(3).setScale(1, RoundingMode.HALF_UP).toDouble()
@@ -124,8 +158,8 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
             val exerciseLabel = data?.optString("exerciseLabel") ?: context.getString(R.string.widget_exercise)
             val add = data?.optString("addLabel") ?: context.getString(R.string.widget_add)
             val energyUnit = data?.optString("energyUnit").orEmpty()
-            // After a logical day change, unrefreshed totals are yesterday's.
-            fun energy(key: String) = if (fresh) data?.optString(key).orEmpty() else ""
+            // Two or more days on, unrefreshed totals are unknown.
+            fun energy(key: String) = current(key)?.toString().orEmpty()
             val waterAction = if (profile.isEmpty()) launch(context, "home") else PendingIntent.getBroadcast(
                 context, 0, Intent(context, QuickAddWidgetProvider::class.java).setAction(WATER_ACTION),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
@@ -135,6 +169,7 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
             val showWater = data?.optBoolean("showWater", true) ?: true
             val showExercise = data?.optBoolean("showExercise", true) ?: true
             return Content(
+                offsetMinutes = offset,
                 open = data?.optString("openLabel") ?: context.getString(R.string.widget_open_stable),
                 tiles = listOf(
                     Tile(WATER, showWater, waterLabel,
@@ -205,6 +240,6 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
         private class Tile(val ids: TileIds, val visible: Boolean, val label: String, val number: String,
             val unit: String, val description: String, val action: PendingIntent, val color: Int)
 
-        private class Content(val open: String, val tiles: List<Tile>)
+        private class Content(val offsetMinutes: Int, val open: String, val tiles: List<Tile>)
     }
 }

@@ -96,28 +96,62 @@ class IntakeDataSource {
         .toList();
   }
 
+  /// The foods eaten most recently, newest first, one row per food.
+  ///
+  /// Ordered purely by when the food was eaten, so today's soup is on top
+  /// tomorrow and last week's pie is a short scroll further down. Custom foods
+  /// used to be listed ahead of everything else, which buried every searched
+  /// or scanned food under hundreds of imported Lifesum snapshots.
+  ///
+  /// A food counts once by its code (or name), and once by what it is: the
+  /// Lifesum import gives every logged copy of the same food its own code.
   Future<List<IntakeDBO>> getRecentlyAddedIntake({int number = 100000}) async {
-    final intakeList = _intakeBox.values.toList();
+    // Newest first; entries on the same moment (day labels) keep the order
+    // they were logged in, latest first.
+    final intakeList = _intakeBox.values.toList().indexed.toList()
+      ..sort((a, b) {
+        final byTime = b.$2.dateTime.compareTo(a.$2.dateTime);
+        return byTime != 0 ? byTime : b.$1.compareTo(a.$1);
+      });
 
-    //  sort list by date (newest first) and filter unique intake
-    intakeList.sort((a, b) => (-1) * a.dateTime.compareTo(b.dateTime));
+    final seen = <String>{};
+    final uniqueIntake = <IntakeDBO>[];
+    for (final (_, intake) in intakeList) {
+      final codeKey = 'code:${intake.meal.code ?? intake.meal.name ?? ''}';
+      final sameFoodKey = _sameFoodKey(intake.meal);
+      final isNew =
+          !seen.contains(codeKey) &&
+          (sameFoodKey == null || !seen.contains(sameFoodKey));
+      seen.add(codeKey);
+      if (sameFoodKey != null) seen.add(sameFoodKey);
+      if (isNew) uniqueIntake.add(intake);
+      if (uniqueIntake.length >= number) break;
+    }
+    return uniqueIntake;
+  }
 
-    final filterCodes = <String>{};
-    final uniqueIntake = intakeList
-        .where(
-          (intake) =>
-              filterCodes.add(intake.meal.code ?? intake.meal.name ?? ""),
-        )
-        .toList();
-
-    // Surface custom meals before remote-sourced results.
-    final custom = uniqueIntake
-        .where((i) => i.meal.source == MealSourceDBO.custom)
-        .toList();
-    final others = uniqueIntake
-        .where((i) => i.meal.source != MealSourceDBO.custom)
-        .toList();
-    return [...custom, ...others].take(number).toList();
+  /// Equal for copies of one food: same source, name, brand, serving and
+  /// nutrition. Different products never share it, even with the same name.
+  /// Null for a nameless food, which cannot be told apart from another.
+  static String? _sameFoodKey(MealDBO meal) {
+    String text(String? value) =>
+        (value ?? '').trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+    String number(double? value) => value?.toStringAsFixed(1) ?? '-';
+    if (text(meal.name).isEmpty) return null;
+    final n = meal.nutriments;
+    return [
+      'food',
+      meal.source.name,
+      text(meal.name),
+      text(meal.brands),
+      text(meal.mealUnit),
+      number(meal.servingQuantity),
+      text(meal.servingUnit),
+      number(n.energyKcal100),
+      number(n.carbohydrates100),
+      number(n.fat100),
+      number(n.proteins100),
+    ].join('\u001f');
   }
 
   Future<List<IntakeDBO>> getCustomMealIntakes() async {

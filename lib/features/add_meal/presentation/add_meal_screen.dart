@@ -90,10 +90,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
             bloc: locator<AddMealBloc>()..add(InitializeAddMealEvent()),
             builder: (BuildContext context, AddMealState state) {
               if (state is AddMealLoadedState) {
-                return IconButton(
-                  onPressed: () =>
-                      _onCustomAddButtonPressed(state.usesImperialUnits),
-                  icon: const Icon(Icons.add_circle_outline),
+                return Semantics(
+                  identifier: 'add-meal-new-food',
+                  child: IconButton(
+                    tooltip: S.of(context).customFoodNewTooltip,
+                    onPressed: () =>
+                        _openEditMealScreen(state.usesImperialUnits),
+                    icon: const Icon(Icons.add_circle_outline),
+                  ),
                 );
               }
               return const SizedBox();
@@ -500,31 +504,6 @@ class _AddMealScreenState extends State<AddMealScreen> {
       showDragHandle: true,
       builder: (sheetContext) =>
           QuickAddBottomSheet(intakeType: _mealType.getIntakeType(), day: _day),
-    );
-  }
-
-  void _onCustomAddButtonPressed(bool usesImperialUnits) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(S.of(context).createCustomDialogTitle),
-          content: Text(S.of(context).createCustomDialogContent),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(), // close dialog
-              child: Text(S.of(context).dialogCancelLabel),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                _openEditMealScreen(usesImperialUnits);
-              },
-              child: Text(S.of(context).buttonYesLabel),
-            ),
-          ],
-        );
-      },
     );
   }
 

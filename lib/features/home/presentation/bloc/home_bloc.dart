@@ -316,53 +316,66 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     _addConfigUsecase.setConfigDisclaimer(acceptedDisclaimer);
   }
 
-  Future<void> updateIntakeItem(
-    String intakeId,
-    Map<String, dynamic> fields,
+  /// Saves an edited diary entry (amount, meal slot or its own copy of the
+  /// food) and moves its day's totals by the difference. The Library and
+  /// every other entry are left alone.
+  Future<void> replaceIntakeItem(
+    IntakeEntity oldIntake,
+    IntakeEntity newIntake,
   ) async {
-    // Get old intake values
-    final oldIntakeObject = await _getIntakeUsecase.getIntakeById(intakeId);
-    if (oldIntakeObject == null) return;
-    final dateTime = await _logicalDayOf(oldIntakeObject.dateTime);
-    final newIntakeObject = await _updateIntakeUsecase.updateIntake(
-      intakeId,
-      fields,
+    final day = await _logicalDayOf(oldIntake.dateTime);
+    await _updateIntakeUsecase.putIntake(newIntake);
+    await _moveDayTotals(
+      day,
+      kcal: newIntake.totalKcal - oldIntake.totalKcal,
+      carbs: newIntake.totalCarbsGram - oldIntake.totalCarbsGram,
+      fat: newIntake.totalFatsGram - oldIntake.totalFatsGram,
+      protein: newIntake.totalProteinsGram - oldIntake.totalProteinsGram,
     );
-    if (newIntakeObject == null) return;
-    if (oldIntakeObject.amount > newIntakeObject.amount) {
-      // Amounts shrunk
-      await _addTrackedDayUseCase.removeDayCaloriesTracked(
-        dateTime,
-        oldIntakeObject.totalKcal - newIntakeObject.totalKcal,
-      );
-      await _addTrackedDayUseCase.removeDayMacrosTracked(
-        dateTime,
-        carbsTracked:
-            oldIntakeObject.totalCarbsGram - newIntakeObject.totalCarbsGram,
-        fatTracked:
-            oldIntakeObject.totalFatsGram - newIntakeObject.totalFatsGram,
-        proteinTracked:
-            oldIntakeObject.totalProteinsGram -
-            newIntakeObject.totalProteinsGram,
-      );
-    } else if (newIntakeObject.amount > oldIntakeObject.amount) {
-      // Amounts gained
-      await _addTrackedDayUseCase.addDayCaloriesTracked(
-        dateTime,
-        newIntakeObject.totalKcal - oldIntakeObject.totalKcal,
-      );
-      await _addTrackedDayUseCase.addDayMacrosTracked(
-        dateTime,
-        carbsTracked:
-            newIntakeObject.totalCarbsGram - oldIntakeObject.totalCarbsGram,
-        fatTracked:
-            newIntakeObject.totalFatsGram - oldIntakeObject.totalFatsGram,
-        proteinTracked:
-            newIntakeObject.totalProteinsGram -
-            oldIntakeObject.totalProteinsGram,
-      );
+    _updateDiaryPage(day);
+  }
+
+  /// Puts back an entry that was just removed, with its totals.
+  Future<void> restoreIntakeItem(IntakeEntity intake) async {
+    final day = await _logicalDayOf(intake.dateTime);
+    await _updateIntakeUsecase.putIntake(intake);
+    await _moveDayTotals(
+      day,
+      kcal: intake.totalKcal,
+      carbs: intake.totalCarbsGram,
+      fat: intake.totalFatsGram,
+      protein: intake.totalProteinsGram,
+    );
+    _updateDiaryPage(day);
+  }
+
+  /// Adds positive and removes negative changes, nutrient by nutrient: an
+  /// edited food can bring more carbs and less fat at once.
+  Future<void> _moveDayTotals(
+    DateTime day, {
+    required double kcal,
+    required double carbs,
+    required double fat,
+    required double protein,
+  }) async {
+    double gain(double change) => change > 0 ? change : 0;
+    double loss(double change) => change < 0 ? -change : 0;
+    if (kcal > 0) await _addTrackedDayUseCase.addDayCaloriesTracked(day, kcal);
+    if (kcal < 0) {
+      await _addTrackedDayUseCase.removeDayCaloriesTracked(day, -kcal);
     }
-    _updateDiaryPage(dateTime);
+    await _addTrackedDayUseCase.addDayMacrosTracked(
+      day,
+      carbsTracked: gain(carbs),
+      fatTracked: gain(fat),
+      proteinTracked: gain(protein),
+    );
+    await _addTrackedDayUseCase.removeDayMacrosTracked(
+      day,
+      carbsTracked: loss(carbs),
+      fatTracked: loss(fat),
+      proteinTracked: loss(protein),
+    );
   }
 
   Future<void> deleteIntakeItem(IntakeEntity intakeEntity) async {

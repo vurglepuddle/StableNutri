@@ -13,11 +13,11 @@ import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/edit_activity_dialog.dart';
-import 'package:opennutritracker/core/presentation/widgets/edit_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/utils/calc/met_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -25,6 +25,7 @@ import 'package:opennutritracker/features/home/presentation/widgets/dashboard_wi
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/fasting_home_chip.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/water_card.dart';
+import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -505,29 +506,24 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
+  /// Opens the logged food on the food screen, with its amount and meal at
+  /// the top, to change, save or remove from the day.
   void onIntakeItemTapped(
     BuildContext context,
     IntakeEntity intakeEntity,
     bool usesImperialUnits,
-  ) async {
-    final changeIntakeAmount = await showDialog<double>(
-      context: context,
-      builder: (context) => EditDialog(
-        intakeEntity: intakeEntity,
-        usesImperialUnits: usesImperialUnits,
+  ) {
+    Navigator.of(context).pushNamed(
+      NavigationOptions.mealDetailRoute,
+      arguments: MealDetailScreenArguments(
+        intakeEntity.meal,
+        intakeEntity.type,
+        // Only the shown day's entries can be tapped.
+        _homeBloc.selectedDay,
+        usesImperialUnits,
+        loggedIntake: intakeEntity,
       ),
     );
-    if (changeIntakeAmount != null) {
-      _homeBloc.updateIntakeItem(intakeEntity.id, {
-        'amount': changeIntakeAmount,
-      });
-      _homeBloc.add(const LoadItemsEvent());
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).itemUpdatedSnackbar)),
-        );
-      }
-    }
   }
 
   void onDeleteIntake(IntakeEntity intake, TrackedDayEntity? trackedDayEntity) {

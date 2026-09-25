@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/serving_label_localizer.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_quantity_units.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+/// The food screen's action bar: Add, or for a logged entry Save and
+/// Remove. The amount itself is picked at the top of the screen.
 class MealDetailBottomSheet extends StatefulWidget {
   final MealEntity product;
   final DateTime day;
@@ -24,9 +23,12 @@ class MealDetailBottomSheet extends StatefulWidget {
   final TextEditingController quantityTextController;
   final MealDetailBloc mealDetailBloc;
 
-  final String selectedUnit;
+  /// Set for a logged entry, which is saved or removed instead of added.
+  final VoidCallback? onSave;
+  final VoidCallback? onRemove;
 
-  final Function(String?, String?) onQuantityOrUnitChanged;
+  /// The system navigation area below the sheet.
+  final double bottomInset;
 
   const MealDetailBottomSheet({
     super.key,
@@ -34,9 +36,10 @@ class MealDetailBottomSheet extends StatefulWidget {
     required this.day,
     required this.intakeTypeEntity,
     required this.quantityTextController,
-    required this.onQuantityOrUnitChanged,
     required this.mealDetailBloc,
-    required this.selectedUnit,
+    this.onSave,
+    this.onRemove,
+    this.bottomInset = 0,
   });
 
   @override
@@ -44,52 +47,19 @@ class MealDetailBottomSheet extends StatefulWidget {
 }
 
 class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
-  final _quantityFocusNode = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-    widget.quantityTextController.addListener(_onQuantityChanged);
-    _quantityFocusNode.addListener(_onQuantityFocusChanged);
-  }
-
-  @override
-  void dispose() {
-    _quantityFocusNode.removeListener(_onQuantityFocusChanged);
-    _quantityFocusNode.dispose();
-    widget.quantityTextController.removeListener(_onQuantityChanged);
-    super.dispose();
-  }
-
-  void _onQuantityFocusChanged() {
-    if (_quantityFocusNode.hasFocus) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !_quantityFocusNode.hasFocus) return;
-        _selectAllQuantityText();
-      });
-    }
-  }
-
-  void _selectAllQuantityText() {
-    final text = widget.quantityTextController.text;
-    widget.quantityTextController.selection = TextSelection(
-      baseOffset: 0,
-      extentOffset: text.length,
-    );
-  }
-
-  void _onQuantityChanged() {
-    widget.onQuantityOrUnitChanged(
-      widget.quantityTextController.text,
-      widget.selectedUnit,
-    );
-  }
+  static final _buttonShape = FilledButton.styleFrom(
+    padding: const EdgeInsets.symmetric(vertical: Dimens.spacing16),
+    shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM),
+  );
 
   @override
   Widget build(BuildContext context) {
     final productMissingRequiredInfo = _hasRequiredProductInfoMissing();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final s = S.of(context);
+    final onSave = widget.onSave;
+    final onRemove = widget.onRemove;
     return BottomSheet(
       elevation: 0,
       onClosing: () {},
@@ -106,135 +76,98 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
               topRight: Radius.circular(Dimens.radiusL),
             ),
           ),
+          // The Scaffold strips the bottom inset from its bottom sheet, so the
+          // screen hands it over: without it the buttons sat under the
+          // gesture bar.
           child: SafeArea(
             top: false,
-            child: Wrap(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 32.0, 16.0, 8.0),
-                  child: Column(
-                    children: [
-                      Row(
+            bottom: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                16.0,
+                16.0,
+                16.0,
+                8.0 + widget.bottomInset,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (onSave != null)
+                    // Save fills the row; removal is a square beside it, the
+                    // same height, so neither label ever wraps.
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Expanded(
-                            child: TextFormField(
-                              enabled: !productMissingRequiredInfo,
-                              controller: widget.quantityTextController,
-                              focusNode: _quantityFocusNode,
-                              onTap: _selectAllQuantityText,
-                              keyboardType: TextInputType.numberWithOptions(
-                                decimal: true,
-                              ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'^\d+([.,]\d{0,2})?$'),
+                          Semantics(
+                            identifier: 'meal-detail-remove',
+                            child: Tooltip(
+                              message: s.loggedFoodRemove,
+                              child: OutlinedButton(
+                                onPressed: onRemove,
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.error,
+                                  side: BorderSide(color: palette.border),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: Dimens.spacing16,
+                                  ),
+                                  minimumSize: const Size(56, 56),
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: Dimens.borderRadiusM,
+                                  ),
                                 ),
-                              ],
-                              decoration: InputDecoration(
-                                border: const OutlineInputBorder(
-                                  borderRadius: Dimens.borderRadiusM,
+                                child: Icon(
+                                  Icons.delete_outline_rounded,
+                                  semanticLabel: s.loggedFoodRemove,
                                 ),
-                                labelText: S.of(context).quantityLabel,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 16.0),
+                          const SizedBox(width: Dimens.spacing12),
                           Expanded(
-                            child: DropdownButtonFormField(
-                              isExpanded: true,
-                              itemHeight: null,
-                              initialValue: widget.selectedUnit,
-                              key: ValueKey(widget.selectedUnit),
-                              decoration: InputDecoration(
-                                border: const OutlineInputBorder(
-                                  borderRadius: Dimens.borderRadiusM,
-                                ),
-                                labelText: S.of(context).unitLabel,
+                            child: Semantics(
+                              identifier: 'meal-detail-save',
+                              child: FilledButton.icon(
+                                onPressed: productMissingRequiredInfo
+                                    ? null
+                                    : onSave,
+                                style: _buttonShape,
+                                icon: const Icon(Icons.check_rounded),
+                                label: Text(s.buttonSaveLabel),
                               ),
-                              items: [
-                                for (final unit in MealQuantityUnits(
-                                  widget.product,
-                                ).values)
-                                  _unitItem(context, unit),
-                              ],
-                              onChanged: (value) {
-                                widget.onQuantityOrUnitChanged(
-                                  widget.quantityTextController.text,
-                                  value,
-                                );
-                              },
                             ),
                           ),
                         ],
                       ),
-                      if (!productMissingRequiredInfo) ...[
-                        const SizedBox(height: Dimens.spacing12),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Wrap(
-                            spacing: Dimens.spacing8,
-                            children: [
-                              // Quick-quantity presets — one tap to a common
-                              // serving size instead of typing.
-                              for (final preset in const [
-                                50,
-                                100,
-                                150,
-                                200,
-                                250,
-                              ])
-                                ActionChip(
-                                  label: Text('$preset'),
-                                  onPressed: () {
-                                    widget.quantityTextController.text =
-                                        '$preset';
-                                    widget.onQuantityOrUnitChanged(
-                                      '$preset',
-                                      widget.selectedUnit,
-                                    );
-                                  },
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: Dimens.spacing16),
-                      Semantics(
-                        identifier: 'meal-detail-add',
-                        child: SizedBox(
-                          width: double.infinity, // Make button full width
-                          child: FilledButton.icon(
-                            onPressed: !productMissingRequiredInfo
-                                ? () {
-                                    onAddButtonPressed(context);
-                                  }
-                                : null,
-                            style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: Dimens.spacing16,
-                              ),
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: Dimens.borderRadiusM,
-                              ),
-                            ),
-                            icon: const Icon(Icons.add_rounded),
-                            label: Text(S.of(context).addLabel),
-                          ),
+                    )
+                  else
+                    Semantics(
+                      identifier: 'meal-detail-add',
+                      child: SizedBox(
+                        width: double.infinity, // Make button full width
+                        child: FilledButton.icon(
+                          onPressed: !productMissingRequiredInfo
+                              ? () {
+                                  onAddButtonPressed(context);
+                                }
+                              : null,
+                          style: _buttonShape,
+                          icon: const Icon(Icons.add_rounded),
+                          label: Text(s.addLabel),
                         ),
                       ),
-                      productMissingRequiredInfo
-                          ? Text(
-                              S.of(context).missingProductInfo,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
-                            )
-                          : const SizedBox(),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                  if (productMissingRequiredInfo)
+                    Text(
+                      s.missingProductInfo,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         );
@@ -371,39 +304,6 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
           ],
         );
       },
-    );
-  }
-
-  DropdownMenuItem<String> _getServingDropdownItem(BuildContext context) {
-    // Custom meals are seeded from MealEntity.empty(), which carries an empty
-    // servingSize string rather than null. An empty (or whitespace-only)
-    // description should fall through to the constructed label so the option
-    // doesn't render blank — otherwise '' wins over the ?? fallback (#495).
-    final servingSize = widget.product.servingSize;
-    // Serving labels are stored in English (see MealEntity._spServingLabel);
-    // translate the common household units at display time.
-    final servingText = (servingSize != null && servingSize.trim().isNotEmpty)
-        ? localizeServingLabel(S.of(context), servingSize)
-        : '${S.of(context).servingLabel} (${widget.product.servingQuantity} ${widget.product.servingUnit})';
-    return DropdownMenuItem(
-      value: UnitDropdownItem.serving.toString(),
-      child: Text(servingText, overflow: TextOverflow.ellipsis, maxLines: 1),
-    );
-  }
-
-  DropdownMenuItem<String> _unitItem(BuildContext context, String unit) {
-    if (unit == 'serving') return _getServingDropdownItem(context);
-    final s = S.of(context);
-    final label = switch (unit) {
-      'g' => s.gramUnit,
-      'oz' => s.ozUnit,
-      'ml' => s.milliliterUnit,
-      'fl.oz' => s.flOzUnit,
-      _ => '${s.notAvailableLabel} (${s.gramMilliliterUnit})',
-    };
-    return DropdownMenuItem(
-      value: unit,
-      child: Text(label, overflow: TextOverflow.ellipsis, maxLines: 1),
     );
   }
 }

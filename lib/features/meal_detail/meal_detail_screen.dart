@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/macro_share_rings.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/thumbnail_image.dart';
@@ -12,16 +15,18 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_library_item_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_quantity_units.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/daily_kcal_overview.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_amount_picker.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
-import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_macro_nutrients.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_nutriments_table.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_info_button.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_title_expanded.dart';
@@ -48,15 +53,24 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   final _titleKey = GlobalKey();
   final _showToolbarTitle = ValueNotifier(false);
 
-  /// The energy line a quantity change scrolls into view.
-  final _kcalKey = GlobalKey();
-
   /// Measured height of the bottom sheet; the page pads its end by this.
   double _sheetHeight = 240;
 
   late MealEntity meal;
   late DateTime _day;
   late IntakeTypeEntity intakeTypeEntity;
+
+  /// The diary entry being edited, or null when adding the food.
+  IntakeEntity? _logged;
+
+  /// The entry's amount as first shown; saved unchanged, it keeps its exact
+  /// stored amount rather than the two decimals in the field.
+  String? _loggedUnit;
+  String? _loggedQuantity;
+
+  /// Set while a save or removal is being written; a second tap would move
+  /// the day's totals twice.
+  bool _writing = false;
 
   final quantityTextController = TextEditingController();
   late bool _usesImperialUnits;
@@ -110,8 +124,22 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     _day = args.day;
     intakeTypeEntity = args.intakeTypeEntity;
     _usesImperialUnits = args.usesImperialUnits;
+    final logged = args.loggedIntake;
+    _logged = logged;
 
     _mealDetailBloc.add(LoadDailyTotalsEvent(_day));
+
+    if (logged != null) {
+      // A logged entry keeps its own copy of the food, as it was logged.
+      meal = logged.meal;
+      intakeTypeEntity = logged.type;
+      if (meal.source != MealSourceEntity.recipe) {
+        _libraryFlagsRequested = true;
+        _loadLibraryFlags();
+      }
+      _applyLoggedSelection(logged);
+      return;
+    }
 
     // Thin OFF search results get hydrated to the full product record (serving
     // fields + micronutrients) once, in the background; the listener in build()
@@ -144,6 +172,29 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           ? _initialQuantityImperial
           : _initialQuantityMetric,
     );
+  }
+
+  /// Shows a logged entry the way it was entered: 1.5 servings, 150 g or
+  /// 5 oz. Entries store grams or millilitres, so the amount is converted
+  /// back to the unit it was logged in.
+  void _applyLoggedSelection(IntakeEntity intake) {
+    final units = MealQuantityUnits(meal);
+    var unit = MealQuantityUnits.canonical(intake.unit);
+    final serving = meal.scalableServingQuantity;
+    double? amount = switch (unit) {
+      'serving' => serving == null ? null : intake.amount / serving,
+      'oz' => UnitCalc.gToOz(intake.amount),
+      'fl.oz' => UnitCalc.mlToFlOz(intake.amount),
+      _ => intake.amount,
+    };
+    if (amount == null || !units.values.contains(unit)) {
+      unit = units.values.contains(units.baseUnit) ? units.baseUnit : 'g/ml';
+      amount = intake.amount;
+    }
+    final text = amount.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '');
+    _loggedUnit = unit;
+    _loggedQuantity = text;
+    _setSelection(unit: unit, amount: text);
   }
 
   // Update the controller and selected ID together before rebuilding the
@@ -199,6 +250,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         isRescue: saved.isRescue,
       );
       setState(() => meal = updated);
+      // A logged entry is an older copy: it must not replace the Library's.
+      if (_logged != null) return;
       // If hydration already supplied a fuller remote record, refresh the
       // saved Library snapshot without changing either user label.
       unawaited(
@@ -212,10 +265,29 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   }
 
   Future<void> _updateLibraryFlags({bool? favorite, bool? rescue}) async {
-    final updated = await locator<UpdateLibraryItemUsecase>().updateMeal(
+    final library = locator<UpdateLibraryItemUsecase>();
+    final isFavorite = favorite ?? meal.isFavorite;
+    final isRescue = rescue ?? meal.isRescue;
+    if (_logged != null) {
+      // Label the Library's own copy when there is one; the logged copy is
+      // saved only when the food is not in the Library yet.
+      await library.updateMeal(
+        library.getSavedMeal(meal) ?? meal,
+        favorite: isFavorite,
+        rescue: isRescue,
+      );
+      if (mounted) {
+        setState(
+          () =>
+              meal = meal.copyWith(isFavorite: isFavorite, isRescue: isRescue),
+        );
+      }
+      return;
+    }
+    final updated = await library.updateMeal(
       meal,
-      favorite: favorite ?? meal.isFavorite,
-      rescue: rescue ?? meal.isRescue,
+      favorite: isFavorite,
+      rescue: isRescue,
     );
     if (mounted) setState(() => meal = updated);
   }
@@ -266,10 +338,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             product: meal,
             day: _day,
             intakeTypeEntity: intakeTypeEntity,
-            selectedUnit: _selectedUnit,
             mealDetailBloc: _mealDetailBloc,
             quantityTextController: quantityTextController,
-            onQuantityOrUnitChanged: onQuantityOrUnitChanged,
+            onSave: _logged == null ? null : _saveLoggedEntry,
+            onRemove: _logged == null ? null : _removeLoggedEntry,
+            bottomInset: MediaQuery.paddingOf(context).bottom,
           ),
         ),
       ),
@@ -338,17 +411,19 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             Semantics(
               identifier: 'meal-detail-edit',
               child: IconButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    NavigationOptions.editMealRoute,
-                    arguments: EditMealScreenArguments(
-                      _day,
-                      meal,
-                      intakeTypeEntity,
-                      _usesImperialUnits,
-                    ),
-                  );
-                },
+                onPressed: _logged != null
+                    ? _editLoggedFood
+                    : () {
+                        Navigator.of(context).pushNamed(
+                          NavigationOptions.editMealRoute,
+                          arguments: EditMealScreenArguments(
+                            _day,
+                            meal,
+                            intakeTypeEntity,
+                            _usesImperialUnits,
+                          ),
+                        );
+                      },
                 icon: const Icon(Icons.edit_rounded),
               ),
             ),
@@ -365,29 +440,44 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   usesImperialUnits: _usesImperialUnits,
                 ),
                 DailyKcalOverview(
-                  dayKcalConsumed: dayKcalConsumed,
+                  // A logged entry is already in the day's total.
+                  dayKcalConsumed: math.max(
+                    0,
+                    dayKcalConsumed - (_logged?.totalKcal ?? 0),
+                  ),
                   dayKcalGoal: dayKcalGoal,
                   currentSelectionKcal: totalKcal,
                 ),
-                const SizedBox(height: Dimens.spacing8),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Dimens.spacing16,
+                    Dimens.spacing12,
+                    Dimens.spacing16,
+                    Dimens.spacing16,
+                  ),
+                  child: MealAmountPicker(
+                    product: meal,
+                    quantityTextController: quantityTextController,
+                    selectedUnit: _selectedUnit,
+                    enabled: !_missingRequiredInfo,
+                    intakeType: intakeTypeEntity,
+                    onQuantityOrUnitChanged: onQuantityOrUnitChanged,
+                    onIntakeTypeChanged: (type) =>
+                        setState(() => intakeTypeEntity = type),
+                  ),
+                ),
               ],
             ),
           ),
         ),
         SliverList(
           delegate: SliverChildListDelegate([
-            // No photo, no placeholder: an empty frame only took up room.
-            if (_hasPhoto) ...[
-              const SizedBox(height: 16),
-              Center(child: _buildPhoto(context)),
-            ],
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
                   // Wraps at large text instead of running off the edge.
                   Wrap(
-                    key: _kcalKey,
                     crossAxisAlignment: WrapCrossAlignment.end,
                     children: [
                       Text(
@@ -409,34 +499,17 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: Dimens.spacing16),
-                  // Equal thirds, so large text shrinks a value rather than
-                  // pushing the row off the screen.
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: MealDetailMacroNutrients(
-                          typeString: S.of(context).carbsLabel,
-                          value: totalCarbs,
-                          color: palette.carbs,
-                        ),
-                      ),
-                      Expanded(
-                        child: MealDetailMacroNutrients(
-                          typeString: S.of(context).fatLabel,
-                          value: totalFat,
-                          color: palette.fat,
-                        ),
-                      ),
-                      Expanded(
-                        child: MealDetailMacroNutrients(
-                          typeString: S.of(context).proteinLabel,
-                          value: totalProtein,
-                          color: palette.protein,
-                        ),
-                      ),
-                    ],
+                  // How much of the energy each macro brings, and its grams.
+                  MacroShareRings(
+                    carbs: totalCarbs,
+                    fat: totalFat,
+                    protein: totalProtein,
                   ),
+                  // No photo, no placeholder: an empty frame only took up room.
+                  if (_hasPhoto) ...[
+                    const SizedBox(height: Dimens.spacing24),
+                    Center(child: _buildPhoto(context)),
+                  ],
                   const SizedBox(height: Dimens.spacing24),
                   Divider(color: palette.border, height: Dimens.hairline),
                   const SizedBox(height: Dimens.spacing24),
@@ -492,20 +565,115 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         selectedUnit: unit,
       ),
     );
-    _scrollToCalorieText();
   }
 
-  /// Brings the energy line above the bottom sheet after a quantity change,
-  /// wherever it sits (the photo above it is optional).
-  void _scrollToCalorieText() {
-    final target = _kcalKey.currentContext;
-    if (target == null) return;
-    Scrollable.ensureVisible(
-      target,
-      alignment: 0.2,
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeInOut,
+  bool get _missingRequiredInfo {
+    final n = meal.nutriments;
+    return n.energyKcal100 == null ||
+        n.carbohydrates100 == null ||
+        n.fat100 == null ||
+        n.proteins100 == null;
+  }
+
+  /// Edits this entry's own copy of the food. The Library and other
+  /// entries keep theirs.
+  Future<void> _editLoggedFood() async {
+    final edited = await Navigator.of(context).pushNamed<Object?>(
+      NavigationOptions.editMealRoute,
+      arguments: EditMealScreenArguments(
+        _day,
+        meal,
+        intakeTypeEntity,
+        _usesImperialUnits,
+        snapshotOnly: true,
+      ),
     );
+    if (edited is! MealEntity || !mounted) return;
+    final previous = meal;
+    setState(() => meal = edited);
+    final selection = MealQuantityUnits(meal).reconcile(
+      _selectedUnit,
+      quantityTextController.text,
+      previousMeal: previous,
+    );
+    _setSelection(unit: selection.unit, amount: selection.amount);
+  }
+
+  void _showQuantityError(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _saveLoggedEntry() async {
+    final logged = _logged;
+    if (logged == null) return;
+    final state = _mealDetailBloc.state;
+    final s = S.of(context);
+    final untouched =
+        state.selectedUnit == _loggedUnit &&
+        quantityTextController.text == _loggedQuantity &&
+        meal.scalableServingQuantity == logged.meal.scalableServingQuantity;
+    final amount = untouched
+        ? logged.amount
+        : double.tryParse(state.totalQuantityConverted);
+    final typed = double.tryParse(
+      quantityTextController.text.replaceAll(',', '.'),
+    );
+    // Validate quantity (#209, #210)
+    if (amount == null || amount <= 0 || typed == null || typed <= 0) {
+      _showQuantityError('${s.quantityLabel} must be greater than 0');
+      return;
+    }
+    if (typed > 10000) {
+      _showQuantityError('${s.quantityLabel} seems unrealistically high');
+      return;
+    }
+    if (_writing) return;
+    _writing = true;
+    final updated = IntakeEntity(
+      id: logged.id,
+      unit: state.selectedUnit,
+      amount: amount,
+      type: intakeTypeEntity,
+      meal: meal,
+      dateTime: logged.dateTime,
+    );
+    final home = locator<HomeBloc>();
+    await home.replaceIntakeItem(logged, updated);
+    home.add(const LoadItemsEvent());
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(s.loggedFoodSaved)));
+    Navigator.of(context).pop();
+  }
+
+  /// Removes the entry from its day only; the food stays wherever else it
+  /// is saved. Undo puts it back.
+  Future<void> _removeLoggedEntry() async {
+    final logged = _logged;
+    if (logged == null || _writing) return;
+    _writing = true;
+    final home = locator<HomeBloc>();
+    final messenger = ScaffoldMessenger.of(context);
+    final s = S.of(context);
+    await home.deleteIntakeItem(logged);
+    home.add(const LoadItemsEvent());
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(s.loggedFoodRemoved),
+        persist: false,
+        action: SnackBarAction(
+          label: s.loggedFoodUndo,
+          onPressed: () async {
+            await home.restoreIntakeItem(logged);
+            home.add(const LoadItemsEvent());
+          },
+        ),
+      ),
+    );
+    if (mounted) Navigator.of(context).pop();
   }
 
   bool get _hasPhoto =>
@@ -575,10 +743,15 @@ class MealDetailScreenArguments {
   final DateTime day;
   final bool usesImperialUnits;
 
+  /// A diary entry to edit instead of adding [mealEntity]: the screen opens
+  /// on its amount and meal, and saves or removes it.
+  final IntakeEntity? loggedIntake;
+
   MealDetailScreenArguments(
     this.mealEntity,
     this.intakeTypeEntity,
     this.day,
-    this.usesImperialUnits,
-  );
+    this.usesImperialUnits, {
+    this.loggedIntake,
+  });
 }

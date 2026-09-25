@@ -31,8 +31,8 @@ class DailyKcalOverview extends StatelessWidget {
     final consumedFactor = (dayKcalConsumed / dayKcalGoal).clamp(0.0, 1.0);
     final projectedFactor = (projected / dayKcalGoal).clamp(0.0, 1.0);
 
-    final hasLiveSelection = currentSelectionKcal > 0;
-
+    // Only the day: the selection's own energy is the large figure further
+    // down the page.
     return Container(
       color: palette.surface,
       padding: const EdgeInsets.fromLTRB(
@@ -80,18 +80,6 @@ class DailyKcalOverview extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          if (hasLiveSelection) ...[
-            const SizedBox(height: Dimens.spacing4),
-            Text(
-              S
-                  .of(context)
-                  .mealDetailCurrentSelectionLabel(
-                    currentSelectionKcal.toStringAsFixed(0),
-                  ),
-              style: textTheme.labelSmall?.copyWith(color: palette.textMuted),
-              textAlign: TextAlign.center,
-            ),
-          ],
         ],
       ),
     );

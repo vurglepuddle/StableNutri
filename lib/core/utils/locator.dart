@@ -112,7 +112,9 @@ import 'package:opennutritracker/features/profile/presentation/utils/profile_swi
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_builder_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_detail_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
+import 'package:opennutritracker/features/scanner/data/barcode_list_data_source.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/attach_barcode_to_meal_usecase.dart';
+import 'package:opennutritracker/features/scanner/domain/usecase/look_up_barcode_name_usecase.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_csv_usecase.dart';
@@ -309,7 +311,10 @@ Future<void> initLocator() async {
       locator(),
     ),
   );
-  locator.registerFactory<ScannerBloc>(() => ScannerBloc(locator(), locator()));
+  locator.registerFactory<ScannerBloc>(
+    () =>
+        ScannerBloc(locator(), locator(), lookUpBarcodeNameUseCase: locator()),
+  );
   locator.registerFactory<EditMealBloc>(
     () => EditMealBloc(locator(), locator()),
   );
@@ -380,6 +385,9 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<SearchProductByBarcodeUseCase>(
     () => SearchProductByBarcodeUseCase(locator(), locator(), locator()),
+  );
+  locator.registerLazySingleton<LookUpBarcodeNameUseCase>(
+    () => LookUpBarcodeNameUseCase(locator(), locator()),
   );
   locator.registerLazySingleton<AttachBarcodeToMealUseCase>(
     () => AttachBarcodeToMealUseCase(locator()),
@@ -579,6 +587,9 @@ Future<void> initLocator() async {
     () => PhysicalActivityDataSource(),
   );
   locator.registerLazySingleton<OFFDataSource>(() => OFFDataSource());
+  locator.registerLazySingleton<BarcodeListDataSource>(
+    () => BarcodeListDataSource(),
+  );
   locator.registerLazySingleton<FDCDataSource>(() => FDCDataSource());
   locator.registerLazySingleton<SpFoodDataSource>(() => SpFoodDataSource());
   locator.registerLazySingleton(() => TrackedDayDataSource(hiveDBProvider));

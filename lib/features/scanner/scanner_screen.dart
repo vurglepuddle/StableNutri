@@ -270,9 +270,12 @@ class _ScannerScreenState extends State<ScannerScreen>
               ),
               body: BarcodeNotFoundView(
                 barcode: state.barcode,
+                suggestedName: state.suggestedName,
+                isLookingUpName: state.isLookingUpName,
                 onCreateItemPressed: () => _onCreateItemPressed(
                   state.barcode,
                   state.usesImperialUnits,
+                  state.suggestedName,
                 ),
                 onConnectExistingPressed: () => _onConnectExistingPressed(
                   state.barcode,
@@ -506,6 +509,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   Future<void> _onCreateItemPressed(
     String barcode,
     bool usesImperialUnits,
+    String? suggestedName,
   ) async {
     final navigator = Navigator.of(context);
     final seed = MealEntity.empty().copyWith(code: barcode);
@@ -523,6 +527,7 @@ class _ScannerScreenState extends State<ScannerScreen>
           IntakeTypeEntity.breakfast,
           usesImperialUnits,
           editOnly: true,
+          initialName: suggestedName,
         ),
       );
       if (created is MealEntity && mounted) navigator.pop(created);
@@ -539,6 +544,7 @@ class _ScannerScreenState extends State<ScannerScreen>
         seed,
         _intakeTypeEntity!,
         usesImperialUnits,
+        initialName: suggestedName,
       ),
     );
   }

@@ -201,7 +201,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _snapshotOnly = args.snapshotOnly;
 
     final meal = _mealEntity;
-    _nameTextController.text = meal.name ?? "";
+    _nameTextController.text = meal.name ?? args.initialName ?? "";
     _brandsTextController.text = meal.brands ?? "";
     // MealEntity.code is dual-purpose: it carries a real product barcode for
     // OFF / FDC scans, but for custom meals MealEntity.empty() seeds it with
@@ -917,6 +917,10 @@ class EditMealScreenArguments {
   /// and nothing is saved to the Library.
   final bool snapshotOnly;
 
+  /// Pre-fills the name field of a new food without making the form treat
+  /// it as an existing one, e.g. a name barcode-list.ru gave a scanned code.
+  final String? initialName;
+
   EditMealScreenArguments(
     this.day,
     this.mealEntity,
@@ -924,6 +928,7 @@ class EditMealScreenArguments {
     this.usesImperialUnits, {
     this.editOnly = false,
     this.snapshotOnly = false,
+    this.initialName,
   });
 }
 

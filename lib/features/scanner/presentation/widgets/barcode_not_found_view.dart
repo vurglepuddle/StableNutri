@@ -18,12 +18,21 @@ class BarcodeNotFoundView extends StatelessWidget {
   final VoidCallback onCreateItemPressed;
   final VoidCallback onScanAgainPressed;
 
+  /// What barcode-list.ru calls the product, shown so the user knows the
+  /// scan read the right package; it also seeds the new food's name.
+  final String? suggestedName;
+
+  /// True while that name is still being looked up.
+  final bool isLookingUpName;
+
   const BarcodeNotFoundView({
     super.key,
     required this.barcode,
     required this.onConnectExistingPressed,
     required this.onCreateItemPressed,
     required this.onScanAgainPressed,
+    this.suggestedName,
+    this.isLookingUpName = false,
   });
 
   @override
@@ -76,6 +85,62 @@ class BarcodeNotFoundView extends StatelessWidget {
                 ),
               ),
             ),
+            if (isLookingUpName) ...[
+              const SizedBox(height: Dimens.spacing12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox.square(
+                    dimension: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: palette.textMuted,
+                    ),
+                  ),
+                  const SizedBox(width: Dimens.spacing8),
+                  Flexible(
+                    child: Text(
+                      s.scannerNameLookupPending,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: palette.textMuted,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            if (suggestedName != null) ...[
+              const SizedBox(height: Dimens.spacing12),
+              Semantics(
+                identifier: 'scanner-not-found-suggested-name',
+                child: AppCard(
+                  color: palette.surfaceMuted,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: Dimens.spacing16,
+                    vertical: Dimens.spacing12,
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        suggestedName!,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: palette.textStrong,
+                        ),
+                      ),
+                      const SizedBox(height: Dimens.spacing4),
+                      Text(
+                        s.scannerSuggestedNameSource,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: palette.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: Dimens.spacing12),
             Text(
               s.scannerNotFoundMessage(barcode),

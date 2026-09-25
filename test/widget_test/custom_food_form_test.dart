@@ -47,6 +47,8 @@ void main() {
     MealEntity? meal,
     Size size = const Size(411, 1400),
     double textScale = 1,
+    bool newFood = false,
+    String? prefilledFrom,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -85,6 +87,8 @@ void main() {
                         IntakeTypeEntity.lunch,
                         false,
                         editOnly: true,
+                        newFood: newFood,
+                        prefilledFrom: prefilledFrom,
                       ),
                     ),
                     builder: (_) => const EditMealScreen(),
@@ -258,5 +262,85 @@ void main() {
     await tester.drag(find.byType(ListView), const Offset(0, -3000));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+  });
+
+  group('pre-filled from a found product', () {
+    MealEntity found() => MealEntity(
+      code: '4601751024794',
+      name: 'Сыр Natura Сливочный 45%, 150г',
+      brands: 'Natura',
+      url: 'https://online.metro-cc.ru/products/x',
+      mealQuantity: '150',
+      mealUnit: 'g',
+      servingQuantity: null,
+      servingUnit: 'g',
+      servingSize: '',
+      nutriments: const MealNutrimentsEntity(
+        energyKcal100: 340,
+        carbohydrates100: 0,
+        fat100: null,
+        proteins100: 25,
+        sugars100: null,
+        saturatedFat100: null,
+        fiber100: null,
+      ),
+      source: MealSourceEntity.custom,
+    );
+
+    Finder helper(String label, String text) =>
+        find.descendant(of: field(label), matching: find.text(text));
+
+    testWidgets('says where it came from and stays a new food', (tester) async {
+      await pumpForm(
+        tester,
+        meal: found(),
+        newFood: true,
+        prefilledFrom: 'METRO',
+      );
+
+      expect(find.text(l10nEn.customFoodNewTitle), findsOneWidget);
+      expect(
+        find.text(l10nEn.customFoodPrefilledNote('METRO')),
+        findsOneWidget,
+      );
+      expect(find.text('Сыр Natura Сливочный 45%, 150г'), findsOneWidget);
+    });
+
+    testWidgets('highlights the missing main value until it is typed', (
+      tester,
+    ) async {
+      await pumpForm(
+        tester,
+        meal: found(),
+        newFood: true,
+        prefilledFrom: 'METRO',
+      );
+      final missing = l10nEn.customFoodMissingValue;
+
+      expect(helper(l10nEn.mealFatLabel, missing), findsOneWidget);
+      expect(helper(l10nEn.mealProteinLabel, missing), findsNothing);
+      expect(
+        helper(l10nEn.mealCarbsLabel, missing),
+        findsNothing,
+        reason: 'zero is a value, not a gap',
+      );
+
+      await tester.enterText(field(l10nEn.mealFatLabel), '26');
+      await tester.pump();
+      expect(find.text(missing), findsNothing);
+
+      await save(tester);
+      expect(result!.code, '4601751024794');
+      expect(result!.nutriments.fat100, 26);
+      expect(result!.nutriments.proteins100, 25);
+      expect(saved.meals.single.code, '4601751024794');
+    });
+
+    testWidgets('a blank form highlights nothing', (tester) async {
+      await pumpForm(tester);
+
+      expect(find.text(l10nEn.customFoodMissingValue), findsNothing);
+      expect(find.text(l10nEn.customFoodPrefilledNote('METRO')), findsNothing);
+    });
   });
 }

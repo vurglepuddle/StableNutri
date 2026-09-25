@@ -80,7 +80,9 @@ class MealInfoButton extends StatelessWidget {
         infoLabel = S.of(context).additionalInfoLabelOFF;
         break;
       case MealSourceEntity.fdc:
-        final sourceName = SPConst.foodSourceDisplayNames[backendSource];
+        final sourceName =
+            SPConst.foodSourceDisplayNames[backendSource] ??
+            SPConst.foodSourceShortNames[backendSource];
         infoLabel = sourceName != null
             ? S.of(context).additionalInfoLabelSource(sourceName)
             : S.of(context).additionalInfoLabelFDC;

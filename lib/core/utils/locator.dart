@@ -113,7 +113,9 @@ import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_build
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_detail_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
 import 'package:opennutritracker/features/scanner/data/barcode_list_data_source.dart';
+import 'package:opennutritracker/features/scanner/data/metro_data_source.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/attach_barcode_to_meal_usecase.dart';
+import 'package:opennutritracker/features/scanner/domain/usecase/find_metro_matches_usecase.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/look_up_barcode_name_usecase.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
@@ -312,8 +314,12 @@ Future<void> initLocator() async {
     ),
   );
   locator.registerFactory<ScannerBloc>(
-    () =>
-        ScannerBloc(locator(), locator(), lookUpBarcodeNameUseCase: locator()),
+    () => ScannerBloc(
+      locator(),
+      locator(),
+      lookUpBarcodeNameUseCase: locator(),
+      findMetroMatchesUseCase: locator(),
+    ),
   );
   locator.registerFactory<EditMealBloc>(
     () => EditMealBloc(locator(), locator()),
@@ -384,7 +390,16 @@ Future<void> initLocator() async {
     ),
   );
   locator.registerLazySingleton<SearchProductByBarcodeUseCase>(
-    () => SearchProductByBarcodeUseCase(locator(), locator(), locator()),
+    () => SearchProductByBarcodeUseCase(
+      locator(),
+      locator(),
+      locator(),
+      metroDataSource: locator(),
+      getConfigUsecase: locator(),
+    ),
+  );
+  locator.registerLazySingleton<FindMetroMatchesUseCase>(
+    () => FindMetroMatchesUseCase(locator(), locator()),
   );
   locator.registerLazySingleton<LookUpBarcodeNameUseCase>(
     () => LookUpBarcodeNameUseCase(locator(), locator()),
@@ -590,6 +605,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<BarcodeListDataSource>(
     () => BarcodeListDataSource(),
   );
+  locator.registerLazySingleton<MetroDataSource>(() => MetroDataSource());
   locator.registerLazySingleton<FDCDataSource>(() => FDCDataSource());
   locator.registerLazySingleton<SpFoodDataSource>(() => SpFoodDataSource());
   locator.registerLazySingleton(() => TrackedDayDataSource(hiveDBProvider));

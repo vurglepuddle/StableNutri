@@ -233,6 +233,7 @@
   "additionalInfoLabelSource": "More Information at\n{sourceName}",
   "foodSourcesAlwaysEnabledLabel": "Always enabled",
   "foodSourcesBarcodeListSubtitle": "Names barcodes no database knows, mostly Russian products. Asked only after a scan finds nothing.",
+  "foodSourcesMetroSubtitle": "Russian shop catalogue with nutrition values. Asked when a scan finds nothing, or a product without values.",
   "foodSourcesHelpText": "Search results come from these food databases. Open Food Facts powers the product and barcode search and is always enabled.",
   "machineTranslatedNameHint": "Name translated automatically",
   "measureUnitBar": "{count, plural, one{bar} other{bars}}",
@@ -1420,6 +1421,29 @@
   "scannerScanAgainLabel": "Scan again",
   "scannerNameLookupPending": "Looking up the name…",
   "scannerSuggestedNameSource": "Name from barcode-list.ru",
+  "scannerIncompleteTitle": "Nutrition missing",
+  "scannerIncompleteMessage": "This product is known, but not all of its nutrition values. Pick a match below, or create it and copy the values from the label.",
+  "scannerPartialSource": "From {source}, without full nutrition",
+  "@scannerPartialSource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "scannerMetroSearching": "Looking for it in METRO…",
+  "scannerMetroMatchesTitle": "Is it one of these?",
+  "scannerMetroMatchesHint": "From METRO, values per 100 g. Tap yours to fill in the new food, then check it against the label.",
+  "scannerMetroNoNutrition": "No nutrition values",
+  "customFoodPrefilledNote": "Filled in from {source}. Check it against the label and add what is highlighted.",
+  "@customFoodPrefilledNote": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "customFoodMissingValue": "Missing: copy it from the label",
   "scannerConnectPickTitle": "Choose an item to connect",
   "scannerConnectedLabel": "Barcode connected to {name}",
   "@scannerConnectedLabel": {

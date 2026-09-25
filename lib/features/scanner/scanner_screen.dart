@@ -27,6 +27,9 @@ import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_scree
 import 'package:opennutritracker/features/recipes/presentation/widgets/food_search_tab_view.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/attach_barcode_to_meal_usecase.dart';
 import 'package:opennutritracker/features/scanner/presentation/widgets/barcode_not_found_view.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/custom_meals_bloc.dart';
 import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
 import 'package:opennutritracker/features/scanner/util/gs1_gtin.dart';
@@ -272,10 +275,22 @@ class _ScannerScreenState extends State<ScannerScreen>
                 barcode: state.barcode,
                 suggestedName: state.suggestedName,
                 isLookingUpName: state.isLookingUpName,
+                partial: state.partial,
+                isSearchingMetro: state.isSearchingMetro,
+                metroMatches: state.metroMatches,
+                usesKilojoules: context
+                    .watch<EnergyUnitProvider>()
+                    .usesKilojoules,
+                onMetroMatchPressed: (match) => _onCreateItemPressed(
+                  state.barcode,
+                  state.usesImperialUnits,
+                  from: match,
+                ),
                 onCreateItemPressed: () => _onCreateItemPressed(
                   state.barcode,
                   state.usesImperialUnits,
-                  state.suggestedName,
+                  from: state.partial,
+                  name: state.suggestedName,
                 ),
                 onConnectExistingPressed: () => _onConnectExistingPressed(
                   state.barcode,
@@ -506,13 +521,19 @@ class _ScannerScreenState extends State<ScannerScreen>
   /// re-scanning the same package afterwards resolves straight to this item;
   /// it is also what the data export serialises, so the item travels with a
   /// backup like everything else the user has entered.
+  ///
+  /// [from] is a product the form starts from — the partial record a source
+  /// had, or the METRO match the user picked; its missing main values are
+  /// highlighted. Otherwise [name] alone, when one was found, starts it.
   Future<void> _onCreateItemPressed(
     String barcode,
-    bool usesImperialUnits,
-    String? suggestedName,
-  ) async {
+    bool usesImperialUnits, {
+    MealEntity? from,
+    String? name,
+  }) async {
     final navigator = Navigator.of(context);
-    final seed = MealEntity.empty().copyWith(code: barcode);
+    final seed = _newFoodSeed(barcode, from: from, name: name);
+    final prefilledFrom = from == null ? null : sourceNameOf(from);
 
     if (_pickMode) {
       // The recipe ingredient picker has no day or intake type to give the
@@ -527,7 +548,8 @@ class _ScannerScreenState extends State<ScannerScreen>
           IntakeTypeEntity.breakfast,
           usesImperialUnits,
           editOnly: true,
-          initialName: suggestedName,
+          newFood: true,
+          prefilledFrom: prefilledFrom,
         ),
       );
       if (created is MealEntity && mounted) navigator.pop(created);
@@ -544,8 +566,32 @@ class _ScannerScreenState extends State<ScannerScreen>
         seed,
         _intakeTypeEntity!,
         usesImperialUnits,
-        initialName: suggestedName,
+        newFood: true,
+        prefilledFrom: prefilledFrom,
       ),
+    );
+  }
+
+  /// A new food of the user's own under the scanned [barcode], carrying
+  /// what [from] knows — name, brand, photo, values — so saving it once
+  /// makes the next scan of this package resolve locally.
+  MealEntity _newFoodSeed(String barcode, {MealEntity? from, String? name}) {
+    String unitOf(String? unit) =>
+        unit != null && isMeasuredByWeightOrVolume(unit) ? unit : 'gml';
+    return MealEntity(
+      code: barcode,
+      name: from?.name ?? name,
+      brands: from?.brands,
+      thumbnailImageUrl: from?.thumbnailImageUrl,
+      mainImageUrl: from?.mainImageUrl,
+      url: from?.url,
+      mealQuantity: from?.mealQuantity,
+      mealUnit: unitOf(from?.mealUnit),
+      servingQuantity: null,
+      servingUnit: unitOf(from?.mealUnit),
+      servingSize: '',
+      nutriments: from?.nutriments ?? MealNutrimentsEntity.empty(),
+      source: MealSourceEntity.custom,
     );
   }
 

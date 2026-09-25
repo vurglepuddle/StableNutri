@@ -90,6 +90,11 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
   late bool _editOnly;
   late bool _snapshotOnly;
+  late bool _newFood;
+
+  /// Where the values came from when the form opened pre-filled; null for
+  /// a blank form or an edit. While set, empty main values are highlighted.
+  String? _prefilledFrom;
 
   late EditMealBloc _editMealBloc;
 
@@ -179,6 +184,16 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _editMealBloc.add(InitializeEditMealEvent());
     // Values per serving need a serving size.
     _serving.controller.addListener(_onServingChanged);
+    // A highlighted empty value loses its highlight as it is typed.
+    for (final field in _mainFields) {
+      field.controller.addListener(_onMainValueChanged);
+    }
+  }
+
+  List<_NumberField> get _mainFields => [_kcal, _carbs, _fat, _protein];
+
+  void _onMainValueChanged() {
+    if (_prefilledFrom != null && mounted) setState(() {});
   }
 
   void _onServingChanged() {
@@ -199,9 +214,11 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _usesImperialUnits = args.usesImperialUnits;
     _editOnly = args.editOnly;
     _snapshotOnly = args.snapshotOnly;
+    _newFood = args.newFood;
+    _prefilledFrom = args.prefilledFrom;
 
     final meal = _mealEntity;
-    _nameTextController.text = meal.name ?? args.initialName ?? "";
+    _nameTextController.text = meal.name ?? "";
     _brandsTextController.text = meal.brands ?? "";
     // MealEntity.code is dual-purpose: it carries a real product barcode for
     // OFF / FDC scans, but for custom meals MealEntity.empty() seeds it with
@@ -278,7 +295,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _maybeReinterpretKcalField(usesKj);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
-    final isNew = (_mealEntity.name ?? '').trim().isEmpty;
+    final isNew = _newFood || (_mealEntity.name ?? '').trim().isEmpty;
     return Scaffold(
       backgroundColor: palette.canvas,
       appBar: AppBar(
@@ -405,15 +422,28 @@ class _EditMealScreenState extends State<EditMealScreen> {
     String? helper,
     String? identifier,
   }) {
+    // A pre-filled form points at the main values its source lacked.
+    final missing =
+        _prefilledFrom != null &&
+        _mainFields.contains(field) &&
+        field.controller.text.trim().isEmpty;
+    final highlight = Theme.of(context).colorScheme.primary;
     final input = TextFormField(
       controller: field.controller,
       inputFormatters: CustomTextInputFormatter.doubleOnly(),
       decoration: InputDecoration(
         labelText: label,
         suffixText: suffix,
-        helperText: helper,
+        helperText: missing ? S.of(context).customFoodMissingValue : helper,
         helperMaxLines: 3,
+        helperStyle: missing ? TextStyle(color: highlight) : null,
         border: const OutlineInputBorder(borderRadius: Dimens.borderRadiusM),
+        enabledBorder: missing
+            ? OutlineInputBorder(
+                borderRadius: Dimens.borderRadiusM,
+                borderSide: BorderSide(color: highlight, width: 2),
+              )
+            : null,
       ),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
     );
@@ -458,6 +488,30 @@ class _EditMealScreenState extends State<EditMealScreen> {
         ] else if (hasRemoteImage) ...[
           Center(child: _buildRemoteMealImage()),
           const SizedBox(height: 24),
+        ],
+        if (_prefilledFrom != null) ...[
+          Semantics(
+            identifier: 'edit-meal-prefilled-note',
+            child: AppCard(
+              color: palette.surfaceMuted,
+              padding: const EdgeInsets.all(Dimens.spacing12),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, color: palette.textMuted),
+                  const SizedBox(width: Dimens.spacing12),
+                  Expanded(
+                    child: Text(
+                      s.customFoodPrefilledNote(_prefilledFrom!),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: palette.textStrong,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
         ],
         TextFormField(
           controller: _nameTextController,
@@ -917,9 +971,14 @@ class EditMealScreenArguments {
   /// and nothing is saved to the Library.
   final bool snapshotOnly;
 
-  /// Pre-fills the name field of a new food without making the form treat
-  /// it as an existing one, e.g. a name barcode-list.ru gave a scanned code.
-  final String? initialName;
+  /// The food is new even though [mealEntity] arrives with a name — one
+  /// found for a scanned code — so the form says "New food", not "Edit".
+  final bool newFood;
+
+  /// Names the source [mealEntity] was filled in from (METRO, Open Food
+  /// Facts). The form then says so and highlights the main values the
+  /// source lacked, for the user to copy from the label.
+  final String? prefilledFrom;
 
   EditMealScreenArguments(
     this.day,
@@ -928,7 +987,8 @@ class EditMealScreenArguments {
     this.usesImperialUnits, {
     this.editOnly = false,
     this.snapshotOnly = false,
-    this.initialName,
+    this.newFood = false,
+    this.prefilledFrom,
   });
 }
 

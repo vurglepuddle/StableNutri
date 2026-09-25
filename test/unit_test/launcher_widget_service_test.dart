@@ -73,6 +73,7 @@ void main() {
     String profile = 'first',
     int? revision,
     List<String> ids = const [],
+    ({int waterMl, double foodKcal, double exerciseKcal})? nextDay,
   }) => LauncherWidgetService.publish(
     expectedProfileId: profile,
     expectedRevision: revision ?? LauncherWidgetService.revision,
@@ -93,7 +94,18 @@ void main() {
     cupMl: 300,
     foodKcal: 340,
     exerciseKcal: 120,
+    nextDay: nextDay,
   );
+
+  test('the next day travels along, so the widget can roll over', () async {
+    await publish(nextDay: (waterMl: 0, foodKcal: 100, exerciseKcal: 0));
+    final snapshot = calls.last.arguments as Map;
+    expect(snapshot['day'], '2026-9-21');
+    expect(snapshot['nextDay'], '2026-9-22');
+    expect(snapshot['nextWaterMl'], 0);
+    expect(snapshot['nextFoodAmount'], '418');
+    expect(snapshot['nextExerciseAmount'], '0');
+  });
 
   test(
     'water imports retain the tap time, cup size and stable ID across retries',

@@ -12,4 +12,10 @@ class UpdateIntakeUsecase {
   ) async {
     return await _intakeRepository.updateIntake(intakeId, intakeFields);
   }
+
+  /// Saves the whole entry: its amount, meal slot and food snapshot. An
+  /// entry that no longer exists is added back.
+  Future<void> putIntake(IntakeEntity intake) async {
+    await _intakeRepository.putIntake(intake);
+  }
 }

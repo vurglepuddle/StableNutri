@@ -1473,5 +1473,12 @@
   "customFoodNutrientTooHigh": "{nutrient} can't be more than 100 g in 100 g.",
   "@customFoodNutrientTooHigh": {"placeholders": {"nutrient": {"type": "String"}}},
   "customFoodMacrosTooHigh": "Carbohydrates, fat and protein add up to more than 100 g in 100 g.",
-  "customFoodEnergyTooHigh": "That is more energy than 100 g of pure fat has."
+  "customFoodEnergyTooHigh": "That is more energy than 100 g of pure fat has.",
+  "mealTypeLabel": "Meal",
+  "loggedFoodRemove": "Remove from day",
+  "loggedFoodRemoved": "Removed from this day",
+  "loggedFoodUndo": "Undo",
+  "loggedFoodSaved": "Entry updated",
+  "macroShareSemantics": "{label}: {percent} percent of energy, {grams} grams",
+  "@macroShareSemantics": {"placeholders": {"label": {"type": "String"}, "percent": {"type": "String"}, "grams": {"type": "String"}}}
 }

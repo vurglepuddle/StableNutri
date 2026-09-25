@@ -32,6 +32,10 @@ class IntakeRepository {
     return result == null ? null : IntakeEntity.fromIntakeDBO(result);
   }
 
+  Future<void> putIntake(IntakeEntity intakeEntity) async {
+    await _intakeDataSource.putIntake(IntakeDBO.fromIntakeEntity(intakeEntity));
+  }
+
   Future<List<IntakeDBO>> getAllIntakesDBO() async {
     return await _intakeDataSource.getAllIntakes();
   }

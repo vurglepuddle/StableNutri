@@ -54,6 +54,19 @@ class IntakeDataSource {
     return _intakeBox.getAt(intakeObject.$1);
   }
 
+  /// Writes [intakeDBO] over the entry with its id, in the same place, or
+  /// adds it when there is none (a removal being undone).
+  Future<void> putIntake(IntakeDBO intakeDBO) async {
+    final index = _intakeBox.values.toList().indexWhere(
+      (dbo) => dbo.id == intakeDBO.id,
+    );
+    if (index < 0) {
+      await _intakeBox.add(intakeDBO);
+    } else {
+      await _intakeBox.putAt(index, intakeDBO);
+    }
+  }
+
   Future<IntakeDBO?> getIntakeById(String intakeId) async {
     return _intakeBox.values.firstWhereOrNull(
       (intake) => intake.id == intakeId,

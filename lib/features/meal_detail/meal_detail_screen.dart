@@ -696,7 +696,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           localPath: meal.localImagePath,
           url: url,
           size: 250,
-          borderRadius: BorderRadius.circular(80),
+          // The user's photo fills a soft squircle; a product image sits
+          // whole on a card, where so round a corner would crowd it.
+          borderRadius: BorderRadius.circular(
+            meal.localImagePath != null ? 80 : Dimens.radiusXL,
+          ),
           fallback: const SizedBox.shrink(),
         ),
       ),

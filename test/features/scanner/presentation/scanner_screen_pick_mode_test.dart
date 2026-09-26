@@ -12,6 +12,7 @@ import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 /// Regression cover for GitHub #443: the recipe ingredient picker needs a
 /// scanner that hands a [MealEntity] back to its caller rather than routing
@@ -78,6 +79,7 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
+            localizationsDelegates: const [S.delegate],
             home: Builder(
               builder: (context) => Scaffold(
                 body: Center(
@@ -148,6 +150,7 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
+            localizationsDelegates: const [S.delegate],
             onGenerateRoute: (settings) {
               if (settings.name == NavigationOptions.mealDetailRoute) {
                 pushedArgs.add(settings.arguments);
@@ -226,7 +229,10 @@ class _FakeSearchUseCase implements SearchProductByBarcodeUseCase {
   _FakeSearchUseCase(this._result);
 
   @override
-  Future<MealEntity> searchProductByBarcode(String barcode) async => _result;
+  Future<MealEntity> searchProductByBarcode(
+    String barcode, {
+    ValueChanged<BarcodeLookupStage>? onStage,
+  }) async => _result;
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

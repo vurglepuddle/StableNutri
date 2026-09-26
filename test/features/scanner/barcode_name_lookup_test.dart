@@ -191,8 +191,10 @@ Future<void> _pumpView(
 
 class _NotFoundSearch implements SearchProductByBarcodeUseCase {
   @override
-  Future<MealEntity> searchProductByBarcode(String barcode) async =>
-      throw ProductNotFoundException();
+  Future<MealEntity> searchProductByBarcode(
+    String barcode, {
+    ValueChanged<BarcodeLookupStage>? onStage,
+  }) async => throw ProductNotFoundException();
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

@@ -50,7 +50,11 @@ void main() {
     return relative;
   }
 
-  Future<void> pumpThumbnail(WidgetTester tester, String relative) async {
+  Future<void> pumpThumbnail(
+    WidgetTester tester,
+    String relative, {
+    bool? showWhole,
+  }) async {
     await tester.pumpWidget(
       MediaQuery(
         data: const MediaQueryData(devicePixelRatio: 2),
@@ -58,6 +62,7 @@ void main() {
           child: ThumbnailImage(
             localPath: relative,
             size: 50,
+            showWhole: showWhole,
             fallback: const SizedBox(key: fallbackKey),
           ),
         ),
@@ -101,5 +106,29 @@ void main() {
     await pumpThumbnail(tester, 'meal_images/missing.webp');
 
     expect(find.byKey(fallbackKey), findsOneWidget);
+  });
+
+  testWidgets('shown whole, the longer side is decoded at the shown size, '
+      'on a white card', (tester) async {
+    final relative = await tester.runAsync(() => photo(400, 200));
+    await pumpThumbnail(tester, relative!, showWhole: true);
+
+    final raw = tester.widget<RawImage>(find.byType(RawImage));
+    expect(raw.image!.width, 100);
+    expect(raw.image!.height, 50);
+    expect(raw.fit, BoxFit.contain);
+    expect(
+      find.byWidgetPredicate((w) => w is ColoredBox && w.color == Colors.white),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets("the user's own photo fills the square by default", (
+    tester,
+  ) async {
+    final relative = await tester.runAsync(() => photo(400, 200));
+    await pumpThumbnail(tester, relative!);
+
+    expect(tester.widget<RawImage>(find.byType(RawImage)).fit, BoxFit.cover);
   });
 }

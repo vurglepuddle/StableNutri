@@ -81,6 +81,9 @@ class MealDetailNutrimentsTable extends StatelessWidget {
                 width: Dimens.hairline,
               ),
             ),
+            // Saturated fat, sugar and fibre are often simply not known
+            // (METRO never gives them); a missing one is left out rather
+            // than shown as 0 g. The food form still offers them to fill in.
             children: <TableRow>[
               _getNutrimentsTableRow("", headerText, textStyleBold),
               _getNutrimentsTableRow(
@@ -96,26 +99,29 @@ class MealDetailNutrimentsTable extends StatelessWidget {
                 "${_adjustValueForServing(n.fat100 ?? 0).roundToPrecision(2)}g",
                 textStyleNormal,
               ),
-              _getNutrimentsTableRow(
-                '   ${S.of(context).saturatedFatLabel}',
-                "${_adjustValueForServing(n.saturatedFat100 ?? 0).roundToPrecision(2)}g",
-                textStyleNormal,
-              ),
+              if (n.saturatedFat100 != null)
+                _getNutrimentsTableRow(
+                  '   ${S.of(context).saturatedFatLabel}',
+                  "${_adjustValueForServing(n.saturatedFat100!).roundToPrecision(2)}g",
+                  textStyleNormal,
+                ),
               _getNutrimentsTableRow(
                 S.of(context).carbohydrateLabel,
                 "${_adjustValueForServing(n.carbohydrates100 ?? 0).roundToPrecision(2)}g",
                 textStyleNormal,
               ),
-              _getNutrimentsTableRow(
-                '    ${S.of(context).sugarLabel}',
-                "${_adjustValueForServing(n.sugars100 ?? 0).roundToPrecision(2)}g",
-                textStyleNormal,
-              ),
-              _getNutrimentsTableRow(
-                S.of(context).fiberLabel,
-                "${_adjustValueForServing(n.fiber100 ?? 0).roundToPrecision(2)}g",
-                textStyleNormal,
-              ),
+              if (n.sugars100 != null)
+                _getNutrimentsTableRow(
+                  '    ${S.of(context).sugarLabel}',
+                  "${_adjustValueForServing(n.sugars100!).roundToPrecision(2)}g",
+                  textStyleNormal,
+                ),
+              if (n.fiber100 != null)
+                _getNutrimentsTableRow(
+                  S.of(context).fiberLabel,
+                  "${_adjustValueForServing(n.fiber100!).roundToPrecision(2)}g",
+                  textStyleNormal,
+                ),
               _getNutrimentsTableRow(
                 S.of(context).proteinLabel,
                 "${_adjustValueForServing(n.proteins100 ?? 0).roundToPrecision(2)}g",

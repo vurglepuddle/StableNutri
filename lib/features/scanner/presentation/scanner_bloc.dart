@@ -29,7 +29,7 @@ class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
        _findMetroMatchesUseCase = findMetroMatchesUseCase,
        super(ScannerInitial()) {
     on<ScannerLoadProductEvent>((event, emit) async {
-      emit(ScannerLoadingState());
+      emit(const ScannerLoadingState());
 
       // Config is read up front because both outcomes need it: a hit routes
       // into meal detail, and a miss routes into the custom-meal creation
@@ -43,6 +43,9 @@ class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
 
         final meal = await _searchProductUseCase.searchProductByBarcode(
           event.barcode,
+          onStage: (stage) {
+            if (!emit.isDone) emit(ScannerLoadingState(stage: stage));
+          },
         );
         emit(
           ScannerLoadedState(

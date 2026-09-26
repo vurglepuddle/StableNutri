@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
@@ -54,7 +55,12 @@ class SearchProductByBarcodeUseCase {
   }) : _metroDataSource = metroDataSource,
        _getConfigUsecase = getConfigUsecase;
 
-  Future<MealEntity> searchProductByBarcode(String barcode) async {
+  /// [onStage] hears when the lookup leaves the device and moves between
+  /// sources, so a slow network can be explained to the user.
+  Future<MealEntity> searchProductByBarcode(
+    String barcode, {
+    ValueChanged<BarcodeLookupStage>? onStage,
+  }) async {
     final customMatch = _customMealDataSource
         .getAllCustomMeals()
         .where((dbo) => dbo.code != null && dbo.code == barcode)
@@ -70,6 +76,7 @@ class SearchProductByBarcodeUseCase {
     }
 
     MealEntity? partial;
+    onStage?.call(BarcodeLookupStage.openFoodFacts);
     try {
       final remote = await _productsRepository.getOFFProductByBarcode(barcode);
       if (!_needsHelp(remote)) {
@@ -81,7 +88,7 @@ class SearchProductByBarcodeUseCase {
       if (_metroDataSource == null) rethrow;
     }
 
-    final metro = await _findInMetro(barcode);
+    final metro = await _findInMetro(barcode, onStage);
     if (metro != null && metro.hasAllNutrition) {
       final meal = _withFallbackImage(
         metro.toMealEntity(code: barcode),
@@ -102,13 +109,17 @@ class SearchProductByBarcodeUseCase {
   bool _needsHelp(MealEntity meal) =>
       _metroDataSource != null && !hasAnyMainNutrient(meal.nutriments);
 
-  Future<MetroProduct?> _findInMetro(String barcode) async {
+  Future<MetroProduct?> _findInMetro(
+    String barcode,
+    ValueChanged<BarcodeLookupStage>? onStage,
+  ) async {
     final metro = _metroDataSource;
     final config = await _getConfigUsecase?.getConfig();
     if (metro == null ||
         !(config?.isFoodSourceEnabled(MetroDataSource.sourceCode) ?? true)) {
       return null;
     }
+    onStage?.call(BarcodeLookupStage.metro);
     try {
       final found = await metro.findByBarcode(barcode);
       return found.where((p) => p.hasAllNutrition).firstOrNull ??
@@ -145,6 +156,10 @@ class SearchProductByBarcodeUseCase {
     );
   }
 }
+
+/// Where a barcode lookup has got to; the saved foods and the cache are
+/// [local] and answer at once.
+enum BarcodeLookupStage { local, openFoodFacts, metro }
 
 /// Whether any of energy, carbohydrate, fat or protein is known.
 bool hasAnyMainNutrient(MealNutrimentsEntity n) =>

@@ -120,6 +120,10 @@ class MetroDataSource {
   static const _attempts = 4;
   static const _attemptTimeout = Duration(seconds: 8);
 
+  /// No new attempt starts after this long: past it the user has waited
+  /// enough, and the scan moves on without METRO.
+  static const _giveUpAfter = Duration(seconds: 12);
+
   static const _productFields =
       'id name url images barcodes manufacturer { name } '
       'attributes { name text }';
@@ -176,8 +180,10 @@ class MetroDataSource {
   ) async {
     final userAgent = await AppConst.getUserAgentString();
     final body = jsonEncode({'query': query, 'variables': variables});
+    final elapsed = Stopwatch()..start();
     Object? lastError;
     for (var attempt = 1; attempt <= _attempts; attempt++) {
+      if (attempt > 1 && elapsed.elapsed > _giveUpAfter) break;
       final inner = _clientFactory();
       final client = ONTHttpClient(userAgent, inner);
       try {

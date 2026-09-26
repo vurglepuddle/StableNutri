@@ -225,8 +225,10 @@ class _ThrowingSearchUseCase implements SearchProductByBarcodeUseCase {
   _ThrowingSearchUseCase(this._error);
 
   @override
-  Future<MealEntity> searchProductByBarcode(String barcode) async =>
-      throw _error;
+  Future<MealEntity> searchProductByBarcode(
+    String barcode, {
+    ValueChanged<BarcodeLookupStage>? onStage,
+  }) async => throw _error;
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

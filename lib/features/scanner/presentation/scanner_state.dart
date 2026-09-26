@@ -11,8 +11,13 @@ class ScannerInitial extends ScannerState {
 }
 
 class ScannerLoadingState extends ScannerState {
+  /// Which source is being asked, for the words under the spinner.
+  final BarcodeLookupStage stage;
+
+  const ScannerLoadingState({this.stage = BarcodeLookupStage.local});
+
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [stage];
 }
 
 class ScannerLoadedState extends ScannerState {

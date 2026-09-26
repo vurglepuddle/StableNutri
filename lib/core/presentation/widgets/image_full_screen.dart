@@ -37,7 +37,9 @@ class _ImageFullScreenState extends State<ImageFullScreen> {
             height: double.infinity,
             cacheManager: locator<CacheManager>(),
             imageUrl: imageUrl,
-            fit: BoxFit.cover,
+            // The whole image; pinching zooms in. Cover cropped a pack shot
+            // to the phone's shape and cut off its sides.
+            fit: BoxFit.contain,
             placeholder: (context, string) => const MealPlaceholder(),
             errorWidget: (context, url, error) => const MealPlaceholder(),
           ),

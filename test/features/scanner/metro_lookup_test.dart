@@ -247,6 +247,30 @@ void main() {
       expect(metro.barcodeCalls, 0);
     });
 
+    test('reports each source it asks, in order', () async {
+      final stages = <BarcodeLookupStage>[];
+
+      await expectLater(
+        useCase().searchProductByBarcode(_natura, onStage: stages.add),
+        throwsA(isA<ProductNotFoundException>()),
+      );
+      expect(stages, [
+        BarcodeLookupStage.openFoodFacts,
+        BarcodeLookupStage.metro,
+      ]);
+    });
+
+    test('METRO switched off is not reported as asked', () async {
+      metroOn = false;
+      final stages = <BarcodeLookupStage>[];
+
+      await expectLater(
+        useCase().searchProductByBarcode(_natura, onStage: stages.add),
+        throwsA(isA<ProductNotFoundException>()),
+      );
+      expect(stages, [BarcodeLookupStage.openFoodFacts]);
+    });
+
     test('METRO failing is a plain not-found, not an error', () async {
       metro.error = MetroException('HTTP 502');
 
@@ -602,8 +626,10 @@ class _NotFound implements SearchProductByBarcodeUseCase {
   _NotFound({this.partial});
 
   @override
-  Future<MealEntity> searchProductByBarcode(String barcode) async =>
-      throw ProductNotFoundException(partial: partial);
+  Future<MealEntity> searchProductByBarcode(
+    String barcode, {
+    ValueChanged<BarcodeLookupStage>? onStage,
+  }) async => throw ProductNotFoundException(partial: partial);
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

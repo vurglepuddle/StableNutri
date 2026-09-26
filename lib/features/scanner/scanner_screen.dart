@@ -26,6 +26,8 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/food_search_tab_view.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/attach_barcode_to_meal_usecase.dart';
+import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
+import 'package:opennutritracker/features/scanner/presentation/widgets/barcode_lookup_progress.dart';
 import 'package:opennutritracker/features/scanner/presentation/widgets/barcode_not_found_view.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
@@ -219,7 +221,9 @@ class _ScannerScreenState extends State<ScannerScreen>
             return Scaffold(
               backgroundColor: palette.canvas,
               appBar: AppBar(backgroundColor: palette.canvas),
-              body: const Center(child: CircularProgressIndicator()),
+              body: const BarcodeLookupProgress(
+                stage: BarcodeLookupStage.local,
+              ),
             );
           }
           return _getScannerContent(context);
@@ -227,7 +231,7 @@ class _ScannerScreenState extends State<ScannerScreen>
           return Scaffold(
             backgroundColor: palette.canvas,
             appBar: AppBar(backgroundColor: palette.canvas),
-            body: const Center(child: CircularProgressIndicator()),
+            body: BarcodeLookupProgress(stage: state.stage),
           );
         } else if (state is ScannerLoadedState) {
           // Push new route after build

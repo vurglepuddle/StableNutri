@@ -126,31 +126,37 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      ListTile(
-                        title: Text(S.of(context).diaryLabel),
-                        onTap: () {
-                          Navigator.pop(sheet);
-                          widget.onDateSelected(
-                            selectedDay,
-                            widget.trackedDaysMap,
-                          );
-                        },
+                      Semantics(
+                        identifier: 'calendar-open-food-day',
+                        child: ListTile(
+                          title: Text(S.of(context).diaryLabel),
+                          onTap: () {
+                            Navigator.pop(sheet);
+                            widget.onDateSelected(
+                              selectedDay,
+                              widget.trackedDaysMap,
+                            );
+                          },
+                        ),
                       ),
-                      ListTile(
-                        title: Text(S.of(context).cycleLabel),
-                        onTap: () {
-                          Navigator.pop(sheet);
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => Scaffold(
-                                appBar: AppBar(
-                                  title: Text(S.of(context).cycleLabel),
+                      Semantics(
+                        identifier: 'calendar-open-cycle',
+                        child: ListTile(
+                          title: Text(S.of(context).cycleLabel),
+                          onTap: () {
+                            Navigator.pop(sheet);
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => Scaffold(
+                                  appBar: AppBar(
+                                    title: Text(S.of(context).cycleLabel),
+                                  ),
+                                  body: const CyclePage(),
                                 ),
-                                body: const CyclePage(),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
                     ],
                   ),

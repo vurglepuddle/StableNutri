@@ -87,6 +87,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Weekly nutrients'), findsOneWidget);
+      await tester.tap(find.text('Weekly nutrients'));
+      await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     });
   }

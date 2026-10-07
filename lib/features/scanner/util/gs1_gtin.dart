@@ -47,8 +47,9 @@ String? _findGtin14(String raw) {
   if (raw.startsWith(']d2') || raw.startsWith(']Q3')) raw = raw.substring(3);
   final uri = Uri.tryParse(raw);
   if (uri != null && uri.hasScheme) {
-    if ((uri.scheme != 'https' && uri.scheme != 'http') || uri.host.isEmpty)
+    if ((uri.scheme != 'https' && uri.scheme != 'http') || uri.host.isEmpty) {
       return null;
+    }
     final segments = uri.pathSegments;
     final matches = <String>[];
     for (var i = 0; i + 1 < segments.length; i++) {

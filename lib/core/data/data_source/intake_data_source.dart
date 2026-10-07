@@ -150,8 +150,9 @@ class IntakeDataSource {
     String text(String? value) =>
         (value ?? '').trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
     String number(double? value) => value?.toStringAsFixed(1) ?? '-';
-    if (text(meal.name).isEmpty || meal.source != MealSourceDBO.custom)
+    if (text(meal.name).isEmpty || meal.source != MealSourceDBO.custom) {
       return null;
+    }
     final n = meal.nutriments;
     return [
       'food',

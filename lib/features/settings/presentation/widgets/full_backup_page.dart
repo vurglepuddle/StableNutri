@@ -64,13 +64,19 @@ class _FullBackupPageState extends State<FullBackupPage> {
               ),
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(s.dialogCancelLabel),
+              Semantics(
+                identifier: 'backup-restore-cancel',
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(s.dialogCancelLabel),
+                ),
               ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(s.fullBackupRestore),
+              Semantics(
+                identifier: 'backup-restore-confirm',
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(s.fullBackupRestore),
+                ),
               ),
             ],
           ),

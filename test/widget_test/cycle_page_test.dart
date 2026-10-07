@@ -109,8 +109,11 @@ void main() {
         MaterialApp(
           localizationsDelegates: S.localizationsDelegates,
           supportedLocales: S.supportedLocales,
-          home: const Scaffold(
-            body: SingleChildScrollView(child: CycleTrends()),
+          home: MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+            child: const Scaffold(
+              body: SingleChildScrollView(child: CycleTrends()),
+            ),
           ),
         ),
       );

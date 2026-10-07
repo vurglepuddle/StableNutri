@@ -68,8 +68,9 @@ class WeeklyNutrients {
         intake.dateTime,
         offsetMinutes,
       );
-      if (day.isBefore(start) || day.isAfter(end) || intake.amount <= 0)
+      if (day.isBefore(start) || day.isAfter(end) || intake.amount <= 0) {
         continue;
+      }
       days.add(day);
       for (final nutrient in WeeklyNutrient.values) {
         final value = nutrient.read(intake.meal.nutriments);

@@ -129,18 +129,20 @@ class CalorieRangeBar extends StatelessWidget {
       spacing: Dimens.spacing8,
       runSpacing: Dimens.spacing4,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: Dimens.spacing8,
           children: [
-            AnimatedFlipCounter(
-              value: DashboardEnergyFormat.rounded(value),
-              duration: AppMotion.durationLong,
-              curve: AppMotion.standard,
-              thousandSeparator: ' ',
-              textStyle: textTheme.headlineSmall?.copyWith(height: 1.25),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: AnimatedFlipCounter(
+                value: DashboardEnergyFormat.rounded(value),
+                duration: AppMotion.durationLong,
+                curve: AppMotion.standard,
+                thousandSeparator: ' ',
+                textStyle: textTheme.headlineSmall?.copyWith(height: 1.25),
+              ),
             ),
-            const SizedBox(width: Dimens.spacing8),
             Text(unitLabel, style: style),
           ],
         ),

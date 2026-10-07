@@ -74,6 +74,7 @@ class CyclePage extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             AppCard(
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -279,11 +280,13 @@ class CyclePage extends StatelessWidget {
             ),
           ),
           actions: [
-            TextButton(
+            _CycleDialogButton(
+              identifier: 'cycle-setup-cancel',
               onPressed: () => Navigator.pop(context),
               child: Text(s.dialogCancelLabel),
             ),
-            TextButton(
+            _CycleDialogButton(
+              identifier: 'cycle-setup-save',
               onPressed: () {
                 try {
                   final next = data.copyWith(
@@ -385,11 +388,13 @@ Future<void> editPeriod(
           ),
         ),
         actions: [
-          TextButton(
+          _CycleDialogButton(
+            identifier: 'cycle-record-cancel',
             onPressed: () => Navigator.pop(context),
             child: Text(s.dialogCancelLabel),
           ),
-          TextButton(
+          _CycleDialogButton(
+            identifier: 'cycle-record-save',
             onPressed: () {
               final updated = PeriodRecord(
                 id: record?.id ?? IdGenerator.getUniqueID(),
@@ -439,6 +444,7 @@ class CycleTrends extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: AppCard(
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -489,12 +495,14 @@ class CycleTrends extends StatelessWidget {
                               title: Text(s.cycleDelete),
                               content: Text(s.cycleDeleteBody),
                               actions: [
-                                TextButton(
+                                _CycleDialogButton(
+                                  identifier: 'cycle-delete-cancel',
                                   onPressed: () =>
                                       Navigator.pop(context, false),
                                   child: Text(s.dialogCancelLabel),
                                 ),
-                                TextButton(
+                                _CycleDialogButton(
+                                  identifier: 'cycle-delete-confirm',
                                   onPressed: () => Navigator.pop(context, true),
                                   child: Text(s.dialogDeleteLabel),
                                 ),
@@ -525,4 +533,20 @@ class CycleTrends extends StatelessWidget {
       },
     );
   }
+}
+
+class _CycleDialogButton extends StatelessWidget {
+  final String identifier;
+  final VoidCallback onPressed;
+  final Widget child;
+  const _CycleDialogButton({
+    required this.identifier,
+    required this.onPressed,
+    required this.child,
+  });
+  @override
+  Widget build(BuildContext context) => Semantics(
+    identifier: identifier,
+    child: TextButton(onPressed: onPressed, child: child),
+  );
 }

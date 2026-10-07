@@ -11,6 +11,7 @@ class CycleRepository extends ChangeNotifier {
   S? _labels;
   Future<void> _reminders = Future.value();
   bool reminderFailed = false;
+  bool _disposed = false;
 
   CycleRepository(this.db, this.notifications) {
     db.addListener(_changed);
@@ -46,6 +47,7 @@ class CycleRepository extends ChangeNotifier {
   void _schedule() {
     _reminders = _reminders
         .then((_) async {
+          if (_disposed || db.restorePending) return;
           final state = data;
           final labels = _labels;
           DateTime? when;
@@ -75,11 +77,14 @@ class CycleRepository extends ChangeNotifier {
         .catchError((Object error) {
           reminderFailed = true;
         })
-        .whenComplete(notifyListeners);
+        .whenComplete(() {
+          if (!_disposed) notifyListeners();
+        });
   }
 
   @override
   void dispose() {
+    _disposed = true;
     db.removeListener(_changed);
     super.dispose();
   }

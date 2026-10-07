@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/features/cycle/data/cycle_repository.dart';
 import 'package:opennutritracker/features/cycle/presentation/cycle_page.dart';
 import 'dart:async';
@@ -76,11 +77,18 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _openWidgetAction();
+    if (state == AppLifecycleState.resumed) {
+      _openWidgetAction();
+      if (mounted) _cycle?.useLabels(S.of(context));
+    }
   }
 
   Future<void> _openWidgetAction() async {
     if (!mounted || !LauncherWidgetService.supported) return;
+    if (locator.isRegistered<HiveDBProvider>() &&
+        locator<HiveDBProvider>().restorePending) {
+      return;
+    }
     if (_handlingWidget) {
       _widgetEventPending = true;
       return;

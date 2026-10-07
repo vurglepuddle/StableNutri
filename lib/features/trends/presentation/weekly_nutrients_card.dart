@@ -33,64 +33,64 @@ class WeeklyNutrientsCard extends StatelessWidget {
       WeeklyNutrient.magnesium => s.magnesiumLabel,
     };
     return AppCard(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            s.weeklyNutrientsTitle,
-            style: Theme.of(context).textTheme.titleMedium,
+      child: Semantics(
+        identifier: 'weekly-nutrients-expand',
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.all(20),
+          childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          shape: const Border(),
+          collapsedShape: const Border(),
+          title: Text(s.weeklyNutrientsTitle),
+          subtitle: Text(
+            '${dates.format(summary.start)} \u2013 ${dates.format(summary.end)}\n${s.weeklyNutrientsDays(summary.loggedDays)}',
           ),
-          const SizedBox(height: 8),
-          Text(
-            '${dates.format(summary.start)} \u2013 ${dates.format(summary.end)}',
-          ),
-          Text(s.weeklyNutrientsDays(summary.loggedDays)),
-          const SizedBox(height: 8),
-          Text(
-            s.weeklyNutrientsExplanation,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          if (summary.loggedDays == 0) ...[
-            const SizedBox(height: 16),
-            Text(s.weeklyNutrientsEmpty),
-          ] else
-            for (final nutrient in WeeklyNutrient.values)
-              if (visibility[nutrient.key] != false) ...[
-                const Divider(height: 24),
-                Text(
-                  label(nutrient),
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                Builder(
-                  builder: (context) {
-                    final row = summary.nutrients[nutrient]!;
-                    final total = row.total == null
-                        ? '\u2014'
-                        : '${numbers.format(row.total)} ${nutrient.unit}';
-                    final average = row.dailyAverage == null
-                        ? '\u2014'
-                        : '${numbers.format(row.dailyAverage)} ${nutrient.unit}';
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          row.missingFoods > 0
-                              ? s.weeklyNutrientsPartialTotal(total)
-                              : s.weeklyNutrientsTotal(total),
-                        ),
-                        Text(s.weeklyNutrientsAverage(average)),
-                        if (row.missingFoods > 0)
+          children: [
+            Text(
+              s.weeklyNutrientsExplanation,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            if (summary.loggedDays == 0) ...[
+              const SizedBox(height: 16),
+              Text(s.weeklyNutrientsEmpty),
+            ] else
+              for (final nutrient in WeeklyNutrient.values)
+                if (visibility[nutrient.key] != false) ...[
+                  const Divider(height: 24),
+                  Text(
+                    label(nutrient),
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  Builder(
+                    builder: (context) {
+                      final row = summary.nutrients[nutrient]!;
+                      final total = row.total == null
+                          ? '\u2014'
+                          : '${numbers.format(row.total)} ${nutrient.unit}';
+                      final average = row.dailyAverage == null
+                          ? '\u2014'
+                          : '${numbers.format(row.dailyAverage)} ${nutrient.unit}';
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            s.weeklyNutrientsMissing(row.missingFoods),
-                            style: Theme.of(context).textTheme.bodySmall,
+                            row.missingFoods > 0
+                                ? s.weeklyNutrientsPartialTotal(total)
+                                : s.weeklyNutrientsTotal(total),
                           ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-        ],
+                          Text(s.weeklyNutrientsAverage(average)),
+                          if (row.missingFoods > 0)
+                            Text(
+                              s.weeklyNutrientsMissing(row.missingFoods),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+          ],
+        ),
       ),
     );
   }

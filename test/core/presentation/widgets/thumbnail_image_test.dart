@@ -102,6 +102,37 @@ void main() {
     expect(decoded.height, 80);
   });
 
+  testWidgets('rebuilding a loaded photo keeps the same image provider', (
+    tester,
+  ) async {
+    final relative = await tester.runAsync(() => photo(400, 200));
+    await pumpThumbnail(tester, relative!);
+    final before = tester.widget<Image>(find.byType(Image)).image;
+    await pumpThumbnail(tester, relative);
+    final after = tester.widget<Image>(find.byType(Image)).image;
+    expect(after, before);
+  });
+
+  testWidgets('a cached drag copy paints without a fallback frame', (
+    tester,
+  ) async {
+    final relative = await tester.runAsync(() => photo(400, 200));
+    await pumpThumbnail(tester, relative!);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(devicePixelRatio: 2),
+        child: ThumbnailImage(
+          localPath: relative,
+          size: 50,
+          fallback: const SizedBox(key: fallbackKey),
+        ),
+      ),
+    );
+    expect(find.byKey(fallbackKey), findsNothing);
+    expect(tester.widget<RawImage>(find.byType(RawImage)).image, isNotNull);
+  });
+
   testWidgets('a missing photo shows the fallback', (tester) async {
     await pumpThumbnail(tester, 'meal_images/missing.webp');
 

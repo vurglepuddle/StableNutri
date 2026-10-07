@@ -109,8 +109,22 @@ class _FitResizeImage extends ImageProvider<_FitResizeKey> {
   final bool whole;
 
   @override
-  Future<_FitResizeKey> obtainKey(ImageConfiguration configuration) async =>
-      _FitResizeKey(await image.obtainKey(configuration), side, whole);
+  Future<_FitResizeKey> obtainKey(ImageConfiguration configuration) =>
+      // Preserve SynchronousFuture from cached providers. An async wrapper
+      // flashes the fallback for one frame when a cached image is remounted.
+      image.obtainKey(configuration).then(
+        (key) => _FitResizeKey(key, side, whole),
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      other is _FitResizeImage &&
+      other.image == image &&
+      other.side == side &&
+      other.whole == whole;
+
+  @override
+  int get hashCode => Object.hash(image, side, whole);
 
   @override
   ImageStreamCompleter loadImage(

@@ -377,20 +377,14 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                         ),
                       ),
                     ),
-                    childWhenDragging: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: Dimens.spacing16,
-                        vertical: Dimens.spacing4,
-                      ),
-                      child: Container(
-                        height: 76,
-                        decoration: BoxDecoration(
-                          color: palette.surfaceMuted,
-                          borderRadius: Dimens.borderRadiusM,
-                          border: Border.all(
-                            color: palette.border,
-                            width: Dimens.hairline,
-                          ),
+                    childWhenDragging: IgnorePointer(
+                      child: Opacity(
+                        opacity: 0.25,
+                        child: IntakeCard(
+                          key: ValueKey('placeholder-${intakeEntity.id}'),
+                          intake: intakeEntity,
+                          firstListElement: false,
+                          usesImperialUnits: widget.usesImperialUnits,
                         ),
                       ),
                     ),

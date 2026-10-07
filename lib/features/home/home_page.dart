@@ -213,11 +213,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     onAcceptWithDetails: (data) {
                       _confirmDelete(context, data.data);
                     },
-                    onLeave: (data) {
-                      setState(() {
-                        _isIntakeDragging = false;
-                      });
-                    },
                     builder: (context, candidateData, rejectedData) {
                       return Container(
                         margin: const EdgeInsets.fromLTRB(
@@ -243,11 +238,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   DragTarget<UserActivityEntity>(
                     onAcceptWithDetails: (data) {
                       _confirmDeleteActivity(context, data.data);
-                    },
-                    onLeave: (data) {
-                      setState(() {
-                        _isActivityDragging = false;
-                      });
                     },
                     builder: (context, candidateData, rejectedData) {
                       return const SizedBox.expand();

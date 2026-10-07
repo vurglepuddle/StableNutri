@@ -214,6 +214,44 @@ void main() {
       );
     });
 
+    test(
+      'equivalent custom copies collapse without deleting stored foods',
+      () async {
+        customMealDataSource.meals.addAll([
+          _customMealDbo(code: 'lifesum-1', name: 'Tomato'),
+          _customMealDbo(code: 'lifesum-2', name: 'Tomato'),
+        ]);
+        final result = await useCase.searchOFFProductsByString('tomato');
+        expect(result.meals.map((m) => m.code), ['lifesum-1']);
+        expect(customMealDataSource.meals, hasLength(2));
+      },
+    );
+
+    test(
+      'distinct barcodes and different micronutrients remain separate',
+      () async {
+        productsRepository.offResults['tomato'] = [
+          _meal(
+            code: 'barcode-a',
+            name: 'Tomato',
+            source: MealSourceEntity.off,
+          ),
+          _meal(
+            code: 'barcode-b',
+            name: 'Tomato',
+            source: MealSourceEntity.off,
+          ),
+        ];
+        final original = _customMealDbo(code: 'one', name: 'Tomato');
+        final json = original.toJson();
+        json['code'] = 'two';
+        json['nutriments'] = {...original.nutriments.toJson(), 'sodium100': 15};
+        customMealDataSource.meals.addAll([original, MealDBO.fromJson(json)]);
+        final result = await useCase.searchOFFProductsByString('tomato');
+        expect(result.meals, hasLength(4));
+      },
+    );
+
     test('prepends matching custom meals for OFF search', () async {
       final customMatch = _meal(
         code: 'custom-1',

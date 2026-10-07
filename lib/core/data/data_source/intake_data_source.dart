@@ -131,7 +131,7 @@ class IntakeDataSource {
     final uniqueIntake = <IntakeDBO>[];
     for (final (_, intake) in intakeList) {
       final codeKey = 'code:${intake.meal.code ?? intake.meal.name ?? ''}';
-      final sameFoodKey = _sameFoodKey(intake.meal);
+      final sameFoodKey = IntakeDataSource.sameFoodKey(intake.meal);
       final isNew =
           !seen.contains(codeKey) &&
           (sameFoodKey == null || !seen.contains(sameFoodKey));
@@ -144,13 +144,14 @@ class IntakeDataSource {
   }
 
   /// Equal for copies of one food: same source, name, brand, serving and
-  /// nutrition. Different products never share it, even with the same name.
+  /// nutrition. Barcode products remain identified by their own source/code.
   /// Null for a nameless food, which cannot be told apart from another.
-  static String? _sameFoodKey(MealDBO meal) {
+  static String? sameFoodKey(MealDBO meal) {
     String text(String? value) =>
         (value ?? '').trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
     String number(double? value) => value?.toStringAsFixed(1) ?? '-';
-    if (text(meal.name).isEmpty) return null;
+    if (text(meal.name).isEmpty || meal.source != MealSourceDBO.custom)
+      return null;
     final n = meal.nutriments;
     return [
       'food',
@@ -164,6 +165,21 @@ class IntakeDataSource {
       number(n.carbohydrates100),
       number(n.fat100),
       number(n.proteins100),
+      // Do not collapse foods with different extended nutrition or pack sizes.
+      text(meal.mealQuantity),
+      text(meal.servingSize),
+      ...n
+          .toJson()
+          .entries
+          .where(
+            (e) => !const {
+              'energyKcal100',
+              'carbohydrates100',
+              'fat100',
+              'proteins100',
+            }.contains(e.key),
+          )
+          .map((e) => '${e.key}:${e.value}'),
     ].join('\u001f');
   }
 

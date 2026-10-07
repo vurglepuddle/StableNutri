@@ -1,8 +1,9 @@
+import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
-import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
@@ -244,7 +245,15 @@ class SearchProductsUseCase {
 
     for (final meal in meals) {
       final key = '${meal.source.name}:${meal.code ?? meal.name ?? ''}';
-      if (seenKeys.add(key)) {
+      final equivalent = IntakeDataSource.sameFoodKey(
+        MealDBO.fromMealEntity(meal),
+      );
+      final unique =
+          !seenKeys.contains(key) &&
+          (equivalent == null || !seenKeys.contains(equivalent));
+      seenKeys.add(key);
+      if (equivalent != null) seenKeys.add(equivalent);
+      if (unique) {
         uniqueMeals.add(meal);
       }
     }

@@ -18,10 +18,13 @@ MealEntity meal({String? unit, double? serving, String? servingSize}) =>
     );
 
 void main() {
-  test('external unit casing and whitespace preserve product classification', () {
-    expect(MealQuantityUnits(meal(unit: ' ML ')).defaultUnit(), 'ml');
-    expect(MealQuantityUnits(meal(unit: ' G ')).defaultUnit(), 'g');
-  });
+  test(
+    'external unit casing and whitespace preserve product classification',
+    () {
+      expect(MealQuantityUnits(meal(unit: ' ML ')).defaultUnit(), 'ml');
+      expect(MealQuantityUnits(meal(unit: ' G ')).defaultUnit(), 'g');
+    },
+  );
   test('every default has exactly one item across all product shapes', () {
     for (final unit in [
       null,

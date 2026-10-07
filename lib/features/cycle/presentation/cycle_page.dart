@@ -359,10 +359,12 @@ class CycleTrends extends StatelessWidget {
                 ),
                 Text(
                   s.cycleObservationCounts(
-                    data.cycleLengths.length.clamp(0, 6),
+                    data.countedCycles.length,
                     data.periodLengths.length.clamp(0, 6),
                   ),
                 ),
+                if (data.unusualCycles > 0)
+                  Text(s.cycleUnusualLeftOut(data.unusualCycles)),
                 Text(
                   s.cycleBasedOn,
                   style: Theme.of(context).textTheme.bodySmall,

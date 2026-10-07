@@ -108,7 +108,46 @@ class CycleData {
         : recent.reduce((a, b) => a + b) / recent.length;
   }
 
-  double get averageCycle => _average(cycleLengths, guessedCycleDays);
+  /// Intervals further than this from the usual length are left out of the
+  /// average; they are usually spotting, a missed log or a one-off.
+  static const unusualCycleDays = 6;
+
+  /// Up to six recent intervals for the average, newest first, and how many
+  /// unusual ones were passed over to find them.
+  ({List<int> counted, int unusual}) get _recentCycles {
+    final all = cycleLengths.reversed.toList();
+    // One interval cannot be unusual on its own; it takes three to tell.
+    final recent = all.take(12).toList()..sort();
+    final mid = recent.length ~/ 2;
+    final usual = recent.length < 3
+        ? null
+        : recent.length.isOdd
+        ? recent[mid].toDouble()
+        : (recent[mid - 1] + recent[mid]) / 2;
+    final counted = <int>[];
+    var unusual = 0;
+    for (final length in all) {
+      if (counted.length == 6) break;
+      if (usual != null && (length - usual).abs() > unusualCycleDays) {
+        unusual++;
+      } else {
+        counted.add(length);
+      }
+    }
+    // Too irregular to single anything out: use the plain recent intervals.
+    if (counted.isEmpty) return (counted: all.take(6).toList(), unusual: 0);
+    return (counted: counted, unusual: unusual);
+  }
+
+  List<int> get countedCycles => _recentCycles.counted;
+  int get unusualCycles => _recentCycles.unusual;
+  double get averageCycle {
+    final counted = countedCycles;
+    return counted.isEmpty
+        ? guessedCycleDays.toDouble()
+        : counted.reduce((a, b) => a + b) / counted.length;
+  }
+
   double get averagePeriod => _average(periodLengths, guessedPeriodDays);
   DateTime? get _lastStart => sorted.isEmpty ? guessedStart : sorted.last.start;
   DateTime? get expectedStart {

@@ -1,3 +1,5 @@
+import 'package:opennutritracker/core/presentation/widgets/app_calendar_style.dart';
+import 'package:opennutritracker/features/cycle/presentation/cycle_calendar.dart';
 import 'package:opennutritracker/features/cycle/data/cycle_repository.dart';
 import 'package:opennutritracker/features/cycle/domain/cycle_data.dart';
 import 'package:opennutritracker/features/cycle/presentation/cycle_page.dart';
@@ -49,10 +51,7 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
           if (repo.data.enabled)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                '${S.of(context).cycleRecorded} \u25cf  /  ${S.of(context).cyclePredicted} \u25cb',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              child: const CycleCalendarLegend(),
             ),
         ],
       ),
@@ -80,29 +79,7 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
           Dimens.spacing12,
         ),
         child: TableCalendar(
-          headerStyle: HeaderStyle(
-            titleCentered: true,
-            formatButtonVisible: false,
-            titleTextStyle:
-                textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: palette.textStrong,
-                ) ??
-                const TextStyle(),
-            leftChevronIcon: Icon(
-              Icons.chevron_left_rounded,
-              color: palette.textMuted,
-              size: 26,
-            ),
-            rightChevronIcon: Icon(
-              Icons.chevron_right_rounded,
-              color: palette.textMuted,
-              size: 26,
-            ),
-            headerPadding: const EdgeInsets.symmetric(
-              vertical: Dimens.spacing8,
-            ),
-          ),
+          headerStyle: appCalendarHeader(context),
           daysOfWeekStyle: DaysOfWeekStyle(
             weekdayStyle:
                 textTheme.labelSmall?.copyWith(color: palette.textMuted) ??
@@ -114,7 +91,8 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
           focusedDay: widget.focusedDate,
           firstDay: widget.currentDate.subtract(widget.calendarDurationDays),
           lastDay: widget.currentDate.add(widget.calendarDurationDays),
-          startingDayOfWeek: StartingDayOfWeek.monday,
+          startingDayOfWeek: appCalendarWeekStart,
+          locale: Localizations.localeOf(context).toString(),
           onDaySelected: (selectedDay, focusedDay) {
             if (cycle.enabled &&
                 (cycle.recordedOn(selectedDay, DateTime.now()) ||
@@ -209,56 +187,34 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
                   !recorded &&
                   cycle.predictedOn(date) &&
                   !cycleDate(date).isBefore(cycleDate(DateTime.now()));
-              if (recorded || predicted) {
-                return Semantics(
-                  label: recorded
-                      ? S.of(context).cycleRecorded
-                      : S.of(context).cyclePredicted,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        margin: const EdgeInsets.only(top: 10),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(
-                            0xFF6C8B7E,
-                          ).withValues(alpha: recorded ? 1 : 0.18),
-                          border: Border.all(color: const Color(0xFF6C8B7E)),
-                        ),
+              return Positioned.fill(
+                child: Stack(
+                  children: [
+                    if (recorded || predicted)
+                      Positioned.fill(
+                        child: CycleDateRing(predicted: predicted),
                       ),
-                      if (trackedDay != null)
-                        Container(
-                          width: 5,
-                          height: 5,
-                          margin: const EdgeInsets.only(top: 10, left: 3),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: trackedDay.getCalendarDayRatingColor(
-                              context,
+                    if (trackedDay != null)
+                      Positioned(
+                        bottom: 2,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: Container(
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: trackedDay.getCalendarDayRatingColor(
+                                context,
+                              ),
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                );
-              }
-              if (trackedDay != null) {
-                return Container(
-                  margin: const EdgeInsets.only(top: 10),
-                  padding: const EdgeInsets.all(1),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: trackedDay.getCalendarDayRatingColor(context),
-                  ),
-                  width: 5.0,
-                  height: 5.0,
-                );
-              } else {
-                return const SizedBox();
-              }
+                      ),
+                  ],
+                ),
+              );
             },
           ),
         ),

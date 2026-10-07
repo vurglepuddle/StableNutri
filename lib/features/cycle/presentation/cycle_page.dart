@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
-import 'package:opennutritracker/core/utils/id_generator.dart';
+import 'package:opennutritracker/features/cycle/presentation/cycle_card.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/cycle/data/cycle_repository.dart';
 import 'package:opennutritracker/features/cycle/domain/cycle_data.dart';
+import 'package:opennutritracker/features/cycle/presentation/cycle_calendar.dart';
+import 'package:opennutritracker/features/cycle/presentation/cycle_forms.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-String _date(BuildContext context, DateTime d) =>
-    MaterialLocalizations.of(context).formatMediumDate(d);
+String _date(BuildContext context, DateTime date) =>
+    cycleDateLabel(context, date);
 
 Future<void> _save(
   BuildContext context,
@@ -42,356 +43,278 @@ class CyclePage extends StatelessWidget {
         final expected = data.expectedStart;
         final generation = repo.db.activeProfileGeneration;
         final today = cycleDate(DateTime.now());
+        final text = Theme.of(context).textTheme;
+        final ongoing = data.records
+            .where((record) => record.end == null)
+            .firstOrNull;
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            AppCard(
+            CycleCard(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    s.cycleEstimate,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  Text(s.cycleEstimate, style: text.titleMedium),
                   const SizedBox(height: 8),
                   Text(
                     expected == null
                         ? s.cycleNoStart
                         : _date(context, expected),
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    style: expected == null
+                        ? text.bodyLarge
+                        : text.headlineSmall,
                   ),
-                  if (expected != null && !expected.isAfter(today))
-                    Text(s.cycleUnconfirmed),
-                  const SizedBox(height: 12),
+                  if (expected != null && !expected.isAfter(today)) ...[
+                    const SizedBox(height: 4),
+                    Text(s.cycleUnconfirmed, style: text.bodySmall),
+                  ],
+                  const SizedBox(height: 20),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _action(
-                        'cycle-started',
-                        s.cycleStarted,
-                        () => editPeriod(context, repo),
-                      ),
-                      _action(
-                        'cycle-not-yet',
-                        s.cycleNotYet,
-                        () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(s.cycleNotYetHint)),
+                      Semantics(
+                        identifier: ongoing == null
+                            ? 'cycle-started'
+                            : 'cycle-edit-current',
+                        child: FilledButton.icon(
+                          icon: Icon(
+                            ongoing == null
+                                ? Icons.add_rounded
+                                : Icons.edit_outlined,
+                            size: 20,
+                          ),
+                          label: Text(
+                            ongoing == null ? s.cycleStarted : s.cycleEdit,
+                          ),
+                          onPressed: () =>
+                              editPeriod(context, repo, record: ongoing),
                         ),
                       ),
-                      _action(
-                        'cycle-change-expected',
-                        s.cycleChangeExpected,
-                        () async {
-                          final selected = await showDatePicker(
-                            context: context,
-                            initialDate:
-                                expected != null && expected.isAfter(today)
-                                ? expected
-                                : today,
-                            firstDate: today,
-                            lastDate: DateTime(today.year + 2),
-                          );
-                          if (selected != null && context.mounted) {
-                            await _save(
-                              context,
-                              repo,
-                              data.copyWith(expectedOverride: selected),
-                              generation,
-                            );
-                          }
-                        },
-                      ),
+                      if (expected != null && ongoing == null)
+                        _CycleDialogButton(
+                          identifier: 'cycle-not-yet',
+                          onPressed: () =>
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(s.cycleNotYetHint)),
+                              ),
+                          child: Text(s.cycleNotYet),
+                        ),
                     ],
+                  ),
+                  if (expected != null)
+                    _CycleDialogButton(
+                      identifier: 'cycle-change-expected',
+                      child: Text(s.cycleChangeExpected),
+                      onPressed: () async {
+                        final selected = await pickCycleDate(
+                          context,
+                          title: s.cycleChangeExpected,
+                          data: data,
+                          initialDate: expected.isAfter(today)
+                              ? expected
+                              : today,
+                          firstDate: today,
+                          lastDate: DateTime(today.year + 2),
+                        );
+                        if (selected != null && context.mounted) {
+                          await _save(
+                            context,
+                            repo,
+                            data.copyWith(expectedOverride: selected),
+                            generation,
+                          );
+                        }
+                      },
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            CycleCard(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                children: [
+                  CycleCalendar(
+                    data: data,
+                    initialDay: today,
+                    firstDay: DateTime(1900),
+                    lastDay: DateTime(today.year + 2),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(8, 8, 8, 12),
+                    child: CycleCalendarLegend(),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            _action(
-              'cycle-backfill',
-              s.cycleAddPast,
-              () => editPeriod(context, repo),
-            ),
-            _action('cycle-setup', s.cycleSetup, () => _setup(context, repo)),
-            _action(
-              'cycle-calendar',
-              s.cycleCalendar,
-              () =>
-                  Navigator.of(context).pushNamed(NavigationOptions.diaryRoute),
-            ),
-            Semantics(
-              identifier: 'cycle-reminder-toggle',
-              child: SwitchListTile.adaptive(
-                contentPadding: EdgeInsets.zero,
-                title: Text(s.cycleReminder),
-                value: data.reminderEnabled,
-                onChanged: (enabled) async {
-                  if (enabled) {
-                    await repo.notifications.initialize();
-                    if (!await repo.notifications.requestPermission()) return;
-                  }
-                  if (context.mounted) {
-                    await _save(
+            CycleCard(
+              child: Column(
+                children: [
+                  _CycleSettingsRow(
+                    identifier: 'cycle-backfill',
+                    icon: Icons.playlist_add_rounded,
+                    title: s.cycleAddPast,
+                    onTap: () => editPeriod(context, repo, past: true),
+                  ),
+                  const Divider(height: 1),
+                  _CycleSettingsRow(
+                    identifier: 'cycle-setup',
+                    icon: Icons.tune_rounded,
+                    title: s.cycleSetup,
+                    onTap: () async {
+                      final result = await Navigator.of(context)
+                          .push<CycleData>(
+                            MaterialPageRoute(
+                              builder: (_) => CycleSetupPage(data: data),
+                            ),
+                          );
+                      if (result != null && context.mounted) {
+                        await _save(context, repo, result, generation);
+                      }
+                    },
+                  ),
+                  const Divider(height: 1),
+                  _CycleSettingsRow(
+                    identifier: 'cycle-calendar',
+                    icon: Icons.calendar_today_rounded,
+                    title: s.cycleCalendar,
+                    onTap: () => Navigator.of(
                       context,
-                      repo,
-                      data.copyWith(reminderEnabled: enabled),
-                      generation,
-                    );
-                  }
-                },
+                    ).pushNamed(NavigationOptions.diaryRoute),
+                  ),
+                ],
               ),
             ),
-            if (data.reminderEnabled)
-              Semantics(
-                identifier: 'cycle-reminder-time',
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(s.cycleReminderTime),
-                  trailing: Text(
-                    TimeOfDay(
-                      hour: data.reminderHour,
-                      minute: data.reminderMinute,
-                    ).format(context),
+            const SizedBox(height: 16),
+            CycleCard(
+              child: Column(
+                children: [
+                  Semantics(
+                    identifier: 'cycle-reminder-toggle',
+                    child: SwitchListTile.adaptive(
+                      title: Text(s.cycleReminder),
+                      value: data.reminderEnabled,
+                      onChanged: (enabled) async {
+                        try {
+                          if (enabled) {
+                            await repo.notifications.initialize();
+                            if (!await repo.notifications.requestPermission()) {
+                              return;
+                            }
+                          }
+                          if (context.mounted) {
+                            await _save(
+                              context,
+                              repo,
+                              data.copyWith(reminderEnabled: enabled),
+                              generation,
+                            );
+                          }
+                        } catch (_) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(s.cycleReminderFailed)),
+                            );
+                          }
+                        }
+                      },
+                    ),
                   ),
-                  onTap: () async {
-                    final time = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay(
+                  if (data.reminderEnabled) ...[
+                    const Divider(height: 1),
+                    _CycleSettingsRow(
+                      identifier: 'cycle-reminder-time',
+                      icon: Icons.schedule_rounded,
+                      title: s.cycleReminderTime,
+                      subtitle: TimeOfDay(
                         hour: data.reminderHour,
                         minute: data.reminderMinute,
-                      ),
-                    );
-                    if (time != null && context.mounted) {
-                      await _save(
-                        context,
-                        repo,
-                        data.copyWith(
-                          reminderHour: time.hour,
-                          reminderMinute: time.minute,
-                        ),
-                        generation,
-                      );
-                    }
-                  },
-                ),
+                      ).format(context),
+                      onTap: () async {
+                        final time = await showTimePicker(
+                          context: context,
+                          cancelText: s.cycleCancel,
+                          confirmText: s.buttonSaveLabel,
+                          initialTime: TimeOfDay(
+                            hour: data.reminderHour,
+                            minute: data.reminderMinute,
+                          ),
+                        );
+                        if (time != null && context.mounted) {
+                          await _save(
+                            context,
+                            repo,
+                            data.copyWith(
+                              reminderHour: time.hour,
+                              reminderMinute: time.minute,
+                            ),
+                            generation,
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                  if (repo.reminderFailed)
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(s.cycleReminderFailed),
+                    ),
+                ],
               ),
-            if (repo.reminderFailed) Text(s.cycleReminderFailed),
-            if (data.records.any((r) => r.end == null)) ...[
-              const SizedBox(height: 16),
-              _action(
-                'cycle-edit-current',
-                s.cycleEdit,
-                () => editPeriod(
-                  context,
-                  repo,
-                  record: data.records.firstWhere((r) => r.end == null),
-                ),
-              ),
-            ],
+            ),
+            const SizedBox(height: 16),
           ],
         );
       },
     );
   }
+}
 
-  Widget _action(String id, String label, VoidCallback action) => Semantics(
-    identifier: id,
-    child: TextButton(onPressed: action, child: Text(label)),
-  );
-
-  Future<void> _setup(BuildContext context, CycleRepository repo) async {
-    final data = repo.data;
-    final generation = repo.db.activeProfileGeneration;
-    final cycle = TextEditingController(text: '${data.guessedCycleDays}');
-    final period = TextEditingController(text: '${data.guessedPeriodDays}');
-    var start = data.guessedStart;
-    String? error;
-    final s = S.of(context);
-    final result = await showDialog<CycleData>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(s.cycleSetup),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Semantics(
-                  identifier: 'cycle-estimate-length',
-                  child: TextField(
-                    controller: cycle,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: s.cycleLength),
-                  ),
-                ),
-                Semantics(
-                  identifier: 'cycle-estimate-duration',
-                  child: TextField(
-                    controller: period,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: s.cyclePeriodLength),
-                  ),
-                ),
-                _action(
-                  'cycle-estimate-start',
-                  start == null ? s.cycleLastStart : _date(context, start!),
-                  () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: start ?? DateTime.now(),
-                      firstDate: DateTime(1900),
-                      lastDate: DateTime.now(),
-                    );
-                    if (date != null) setState(() => start = date);
-                  },
-                ),
-                if (error != null) Text(error!),
-              ],
-            ),
-          ),
-          actions: [
-            _CycleDialogButton(
-              identifier: 'cycle-setup-cancel',
-              onPressed: () => Navigator.pop(context),
-              child: Text(s.dialogCancelLabel),
-            ),
-            _CycleDialogButton(
-              identifier: 'cycle-setup-save',
-              onPressed: () {
-                try {
-                  final next = data.copyWith(
-                    guessedCycleDays: int.parse(cycle.text),
-                    guessedPeriodDays: int.parse(period.text),
-                    guessedStart: start,
-                    clearExpected: true,
-                  );
-                  next.validate();
-                  Navigator.pop(context, next);
-                } catch (_) {
-                  setState(() => error = s.cycleInvalid);
-                }
-              },
-              child: Text(s.buttonSaveLabel),
-            ),
-          ],
-        ),
+class _CycleSettingsRow extends StatelessWidget {
+  final String identifier;
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+  const _CycleSettingsRow({
+    required this.identifier,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.subtitle,
+  });
+  @override
+  Widget build(BuildContext context) => Semantics(
+    identifier: identifier,
+    child: ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      leading: Icon(
+        icon,
+        color: Theme.of(context).colorScheme.primary,
+        size: 22,
       ),
-    );
-    // Dispose after the dialog's exit animation has released the text fields.
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-    cycle.dispose();
-    period.dispose();
-    if (result != null && context.mounted) {
-      await _save(context, repo, result, generation);
-    }
-  }
+      title: Text(title),
+      subtitle: subtitle == null ? null : Text(subtitle!),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: onTap,
+    ),
+  );
 }
 
 Future<void> editPeriod(
   BuildContext context,
   CycleRepository repo, {
   PeriodRecord? record,
+  bool past = false,
 }) async {
-  final data = repo.data;
   final generation = repo.db.activeProfileGeneration;
-  var start = record?.start ?? cycleDate(DateTime.now());
-  DateTime? end = record?.end;
-  var gap = record?.gapBefore ?? false;
-  String? error;
-  final s = S.of(context);
-  final result = await showDialog<CycleData>(
-    context: context,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setState) => AlertDialog(
-        title: Text(s.cycleEdit),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final isStart in [true, false])
-                Semantics(
-                  identifier: isStart
-                      ? 'cycle-record-start'
-                      : 'cycle-record-end',
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(isStart ? s.cycleStart : s.cycleEnd),
-                    subtitle: Text(
-                      isStart
-                          ? _date(context, start)
-                          : end == null
-                          ? s.cycleOngoing
-                          : _date(context, end!),
-                    ),
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: isStart ? start : end ?? start,
-                        firstDate: isStart ? DateTime(1900) : start,
-                        lastDate: DateTime.now(),
-                      );
-                      if (picked != null) {
-                        setState(() {
-                          if (isStart) {
-                            start = picked;
-                            if (end != null && end!.isBefore(start)) end = null;
-                          } else {
-                            end = picked;
-                          }
-                        });
-                      }
-                    },
-                  ),
-                ),
-              Semantics(
-                identifier: 'cycle-record-gap',
-                child: CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(s.cycleGap),
-                  subtitle: Text(s.cycleGapHint),
-                  value: gap,
-                  onChanged: (v) => setState(() => gap = v ?? false),
-                ),
-              ),
-              if (error != null) Text(error!),
-            ],
-          ),
-        ),
-        actions: [
-          _CycleDialogButton(
-            identifier: 'cycle-record-cancel',
-            onPressed: () => Navigator.pop(context),
-            child: Text(s.dialogCancelLabel),
-          ),
-          _CycleDialogButton(
-            identifier: 'cycle-record-save',
-            onPressed: () {
-              final updated = PeriodRecord(
-                id: record?.id ?? IdGenerator.getUniqueID(),
-                start: start,
-                end: end,
-                gapBefore: gap,
-              );
-              final next = data.copyWith(
-                records: [
-                  ...data.records.where((r) => r.id != updated.id),
-                  updated,
-                ],
-                clearExpected: true,
-              );
-              try {
-                next.validate(today: DateTime.now());
-                Navigator.pop(context, next);
-              } catch (_) {
-                setState(() => error = s.cycleInvalid);
-              }
-            },
-            child: Text(s.buttonSaveLabel),
-          ),
-        ],
-      ),
+  final result = await Navigator.of(context).push<CycleData>(
+    MaterialPageRoute(
+      builder: (_) =>
+          PeriodEditorPage(data: repo.data, record: record, past: past),
     ),
   );
   if (result != null && context.mounted) {
@@ -415,7 +338,7 @@ class CycleTrends extends StatelessWidget {
         final s = S.of(context);
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
-          child: AppCard(
+          child: CycleCard(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -471,12 +394,12 @@ class CycleTrends extends StatelessWidget {
                                   identifier: 'cycle-delete-cancel',
                                   onPressed: () =>
                                       Navigator.pop(context, false),
-                                  child: Text(s.dialogCancelLabel),
+                                  child: Text(s.cycleCancel),
                                 ),
                                 _CycleDialogButton(
                                   identifier: 'cycle-delete-confirm',
                                   onPressed: () => Navigator.pop(context, true),
-                                  child: Text(s.dialogDeleteLabel),
+                                  child: Text(s.cycleRemove),
                                 ),
                               ],
                             ),

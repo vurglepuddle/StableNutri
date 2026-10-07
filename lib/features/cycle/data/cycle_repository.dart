@@ -70,7 +70,7 @@ class CycleRepository extends ChangeNotifier {
             title: labels?.cycleLabel ?? 'Cycle',
             body:
                 labels?.cycleReminderBody ??
-                'Your next period may start in about 3 days.',
+                'Your next cycle may start in about 3 days.',
           );
           reminderFailed = false;
         })

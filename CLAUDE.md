@@ -138,7 +138,7 @@ undeclared placeholders *alphabetically* and types them all as `Object`, so a me
 transposed. Declare them in call order with real types.
 
 English-only additions are the established pattern; the other locales fall back to English at runtime for keys they
-don't carry. There are currently 117 such keys, all ours. That is also why upstream's `check_l10n` gate (which fails
+don't carry. The generated untranslated report is the current coverage record. That is also why upstream's `check_l10n` gate (which fails
 unless `l10n_untranslated.json` is `{}`) has not been adopted — see `Design/upstream-merge-strategy.md`.
 
 Note: the `SupportedLanguage` enum maps device locales to `food_translation` locales via `SPConst.translationLocaleOf`
@@ -290,15 +290,22 @@ SDK payload logs are suppressed; app logging is debug-only.
 
 ### Navigation shell
 
-`MainScreen` hosts an `IndexedStack` behind a custom `BottomAppBar` with a notch for the centre **Add** FAB. There are
-**four** persistent destinations, defined by `MainDestination` in `lib/core/presentation/main_navigation.dart`:
+`MainScreen` hosts an `IndexedStack` with a compact bottom bar. The central Add
+FAB is removed; Today retains an Add toolbar action and section entry actions.
+Destinations are defined by `MainDestination` in `lib/core/presentation/main_navigation.dart`:
 
 | Destination | Widget | Feature folder |
 |---|---|---|
 | **Today** (`nav-home`) | `HomePage` | `features/home` |
 | **Trends** (`nav-trends`) | `TrendsPage` | `features/trends` |
 | **Library** (`nav-library`) | `RecipesPage` | `features/recipes` |
+| **Cycle**, only when opted in | `CyclePage` | `features/cycle` |
 | **You** (`nav-you`) | `ProfilePage` | `features/profile` |
+
+Cycle is per-profile and off by default. Actual records, setup guesses and date
+estimates are separate in the encrypted `CycleBox`. History/averages live in
+Trends; Diary marks actual and expected periods differently. Cycle reminders
+have their own notification ID and are optional. No phases or fertility model.
 
 **Diary / Archive is not a tab** — it is a full screen pushed from Today (the calendar action in the app bar).
 `MainNavigationScope` is an `InheritedWidget` that lets descendants (e.g. the You page) switch an existing shell tab
@@ -477,10 +484,12 @@ they sit on, not the ink they carry.
 
 ### Data export / import
 
-Settings exports a `.zip` bundling intakes, activities, tracked days and recipes as both JSON (canonical,
-re-importable) and CSV (flat, for spreadsheets) — see [`docs/export-format.md`](docs/export-format.md). Import accepts
-the same zip and merges into the existing boxes. Profile body stats (height, weight, birthday, PAL, goal) are
-intentionally **not** exported. Settings → Import also accepts a pasted JSON blob for ad-hoc meal imports.
+Settings offers **Full backup** for all profiles, personal data, settings, logs,
+Library records and local photos. Its validated versioned ZIP restores into an
+isolated encrypted dataset and becomes active on restart; failed staging never
+replaces live data. Exported ZIPs are unencrypted. Reminders and automatic step
+import are disabled after restore. Legacy selective JSON/CSV import/export is
+still available. See [`docs/export-format.md`](docs/export-format.md).
 
 **Lifesum import** (`lib/features/settings/domain/lifesum_import/`) reads a Lifesum export archive and stages a
 reviewable preview before writing: parsers per record type (food, activity, recipe, measurement), a manifest, a

@@ -1,6 +1,62 @@
-# Export bundle format
+# Export and backup formats
 
-This document describes the structure of the data export that **Settings →
+## Full backup (version 1)
+
+For a complete transfer, open Settings > Export / Import App Data > Full backup.
+Save the ZIP, copy it to the destination device, then choose Restore full backup
+there. Review the replacement confirmation and restart Stable. Check each
+profile, its diary and photos before removing the old app. The on-device file
+picker and restart flow still need physical-device acceptance.
+
+This is a separate format from the legacy selective imports below. Its manifest
+is `stable_backup.json`, with `format: "stable-full-backup"`, `version: 1`,
+`createdAt`, `activeProfile`, `stores`, `images` and `missingImages`.
+Each store has a `base`, a profile `suffix` (empty for global stores), and `rows`
+containing the original string/integer Hive `key` plus the JSON `value`.
+Rows preserve nested diary snapshots and recipe ingredients. Dates use ISO 8601.
+
+The bundle includes:
+
+- All profiles, personal data, goals and app settings.
+- Food/activity logs, tracked-day totals, weights and body measurements.
+- Shared saved foods (including corrected remote products), recipes, activity
+  templates and their Favorite/Rescue labels.
+- Water, fasting sessions, step snapshots/consent settings, Cycle records and
+  estimates, and the Lifesum import journal.
+- Referenced local meal, recipe and profile images, including snapshot-only
+  photos. Already-missing source photos are listed and reported to the user.
+
+The ZIP is **unencrypted**; the screen says so. Keep it private. Encryption keys,
+OS permissions, scheduled OS notifications and disposable remote search caches
+are not exported. Remote product-image URLs remain URLs, not downloaded photos.
+
+Import checks the format/version, complete store set, keys, profiles, records,
+attachment names, checksums and sizes before staging. Compressed and expanded
+content are limited to 512 MiB, with per-entry decompression bounded to its
+declared size. Duplicate paths, traversal paths, symlinks, encrypted archives,
+unsupported compression and incomplete/corrupt bundles are rejected.
+
+Restore writes new encrypted boxes under a random `restore_...` namespace and
+images in a separate directory. Only a flushed, atomically renamed
+`stable_dataset.json` activates the dataset on the next launch. A failure leaves
+the running data unchanged. The old dataset and any interrupted staging remain
+on disk; they are not merged into the restored one or silently deleted. Profile
+switches update the pointer after restoration. Subsequent backups include the
+active dataset's complete profile registry.
+
+After restore, daily/Cycle reminders and automatic Health Connect step import
+are off. Re-enable them deliberately on the destination. Existing scheduled
+notifications and launcher-widget data are cleared best-effort. History and
+saved reminder times are retained. No application ID or Dart package changes
+are part of this feature.
+
+Automated tests restore all store types across two profiles, compare nested
+records and original keys, and cover images, consent reset, interrupted staging,
+unsafe paths, damaged checksums and incomplete bundles using synthetic data.
+
+## Legacy selective JSON / CSV
+
+The remainder describes the legacy selective export that **Settings →
 Export / Import App Data → Export** produces. It exists for the same reason
 issue #40 asked for it: people who want to keep their nutrition history in a
 plaintext format they can sync via Syncthing, open in a spreadsheet, or feed
@@ -39,8 +95,8 @@ the bundle exactly once. A CSV export carries no photos and the importer does
 not restore any, which is another reason to use JSON for anything you intend
 to restore from.
 
-User profile (height, weight, birthday, PAL, goal) is intentionally **not**
-included — see `core/data/data_source/user_data_source.dart` for the box that
+User profile (height, weight, birthday, PAL, goal) is **not**
+included in the legacy format — see `core/data/data_source/user_data_source.dart` for the box that
 stores it.
 
 The user can re-import the same zip via **Settings → Import**. The importer

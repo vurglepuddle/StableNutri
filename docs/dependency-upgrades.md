@@ -47,6 +47,7 @@ build_runner use exact constraints to keep this reviewed generator combination.
 Resolution also required json_serializable 6.14.1, build 4.0.7 and
 package_config 2.2.0. Existing Hive adapters and model serialization are unchanged.
 The generator completed successfully with Flutter 3.44.8 / Dart 3.12.2.
+Final validation: format/analyzer clean, 1,438 tests pass, develop release APK built.
 Private environment values were not displayed or committed.
 
 Keep ZXing pinned; Sentry remains excluded. Supabase is unchanged. Equatable 3

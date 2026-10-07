@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
+import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
@@ -30,7 +33,13 @@ class _Saved extends Fake implements CustomMealDataSource {
   final meals = <MealDBO>[];
   @override
   Future<void> saveCustomMeal(MealDBO meal) async => meals.add(meal);
+  @override
+  List<MealDBO> getAllCustomMeals() => meals;
 }
+
+class _NoNetwork extends Fake implements ProductsRepository {}
+
+class _NoCache extends Fake implements RemoteSearchCacheDataSource {}
 
 /// The food form: name, brand and barcode; then one serving in g or ml;
 /// then nutrition per 100 g, or per serving when that is what is known.
@@ -48,6 +57,7 @@ void main() {
     Size size = const Size(411, 1400),
     double textScale = 1,
     bool newFood = false,
+    bool snapshotOnly = false,
     String? prefilledFrom,
   }) async {
     tester.view.physicalSize = size;
@@ -87,6 +97,7 @@ void main() {
                         IntakeTypeEntity.lunch,
                         false,
                         editOnly: true,
+                        snapshotOnly: snapshotOnly,
                         newFood: newFood,
                         prefilledFrom: prefilledFrom,
                       ),
@@ -136,6 +147,51 @@ void main() {
     expect(meal.nutriments.carbohydrates100, 6);
     expect(saved.meals.single.servingQuantity, 300);
   });
+
+  for (final snapshotOnly in [false, true]) {
+    testWidgets(
+      'OFF corrections persist unless editing a diary snapshot: $snapshotOnly',
+      (tester) async {
+        final meal = MealEntity(
+          code: '4601751024794',
+          name: 'Incomplete OFF product',
+          url: null,
+          mealQuantity: '100',
+          mealUnit: 'g',
+          servingQuantity: null,
+          servingUnit: 'g',
+          servingSize: null,
+          nutriments: const MealNutrimentsEntity(
+            energyKcal100: 200,
+            carbohydrates100: 10,
+            fat100: null,
+            proteins100: 20,
+            sugars100: null,
+            saturatedFat100: null,
+            fiber100: null,
+          ),
+          source: MealSourceEntity.off,
+        );
+        await pumpForm(tester, meal: meal, snapshotOnly: snapshotOnly);
+        await tester.enterText(field(l10nEn.customFoodServingSizeLabel), '150');
+        await tester.enterText(field(l10nEn.mealFatLabel), '9');
+        await save(tester);
+        expect(result!.servingQuantity, 150);
+        if (snapshotOnly) {
+          expect(saved.meals, isEmpty);
+        } else {
+          final scanned = await SearchProductByBarcodeUseCase(
+            _NoNetwork(),
+            saved,
+            _NoCache(),
+          ).searchProductByBarcode('4601751024794');
+          expect(scanned.servingQuantity, 150);
+          expect(scanned.nutriments.fat100, 9);
+          expect(scanned.detailed, isTrue);
+        }
+      },
+    );
+  }
 
   testWidgets('values typed per serving are stored per 100 g', (tester) async {
     await pumpForm(tester);

@@ -813,8 +813,11 @@ class _EditMealScreenState extends State<EditMealScreen> {
       // (#249) when the user has turned off "Save for next time" — the
       // intake itself is still logged below, but no template is kept.
       final shouldPersistTemplate = _editOnly || _saveForLater;
-      if (newMealEntity.source == MealSourceEntity.custom &&
-          shouldPersistTemplate) {
+      // Corrections to OFF/FDC products are local saved foods too. Keeping
+      // their source must not prevent persistence: barcode lookup consults
+      // this library before the remote cache or server. Snapshot-only edits
+      // returned above and still affect just their logged entry.
+      if (shouldPersistTemplate) {
         await _editMealBloc.saveCustomMeal(newMealEntity);
       }
 

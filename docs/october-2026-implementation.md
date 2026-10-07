@@ -43,3 +43,33 @@ GitHub CI execution, broader translation/cleanup work and platform edge cases.
 Onboarding verification, circle redesign, dashboard reordering and custom icons
 remain deferred. Rescue-toggle placement and external Cycle-import format await
 user decisions; the accepted daily-use profile must not be reset for tests.
+
+
+## Cycle design follow-up
+
+- Track cycles moves into You > Display, directly below activity tracking.
+  Visible wording uses "cycle" throughout settings, history and notifications.
+- Cycle calendars match Diary's Monday-first week and current app locale.
+  Past-cycle entry selects inclusive ranges while showing saved dates; single
+  days, cross-month ranges and completing an ongoing cycle are supported.
+- Starting estimates have a full-screen form with interval/duration explanations.
+  Cancel, Save and Remove use consistent casing. Validation stays beside Save.
+- Shared light sage rings surround Diary dates; forecast rings are paler.
+  Nutrition dots, today/selection styling and the existing day actions remain.
+- The overview, forms and settings use the existing card surfaces and theme.
+  Tests cover ranges, overlap rejection, cancellation, setup validation and
+  320px layouts through 2.0 text scaling in light and dark themes. Synthetic
+  rendered previews were reviewed; the new design still needs phone acceptance.
+- Stored history, backup schema and estimate calculations are unchanged.
+
+The dashboard range-bar header now measures its text and compresses separator
+spacing before wrapping burned energy. Font size and counter animation stay
+unchanged. A Commissioner regression covers a single line at 250px content width
+with four-digit burned energy; large accessibility text can still wrap.
+
+Follow-up verification: all **1,449 tests pass**, analyzer clean, localization
+generation succeeds and formatting reports 708 files with no changes. Reviewed
+synthetic previews in both themes. The rebuilt develop release APK is
+`build/app/outputs/flutter-apk/app-develop-release.apk` (88,983,729 bytes).
+No phone installation or device acceptance was performed. Commits: `c56bb74a`
+(opt-in placement), `6ff99239` (Cycle/calendar design), `9b858fa2` (header spacing).

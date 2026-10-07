@@ -27,34 +27,6 @@ Future<void> _save(
   }
 }
 
-class CycleProfileTile extends StatelessWidget {
-  const CycleProfileTile({super.key});
-  @override
-  Widget build(BuildContext context) {
-    if (!locator.isRegistered<CycleRepository>()) {
-      return const SizedBox.shrink();
-    }
-    final repo = locator<CycleRepository>();
-    return ListenableBuilder(
-      listenable: repo,
-      builder: (context, _) => Semantics(
-        identifier: 'profile-cycle-toggle',
-        child: SwitchListTile.adaptive(
-          title: Text(S.of(context).cycleEnable),
-          subtitle: Text(S.of(context).cycleEnableHint),
-          value: repo.data.enabled,
-          onChanged: (enabled) => _save(
-            context,
-            repo,
-            repo.data.copyWith(enabled: enabled),
-            repo.db.activeProfileGeneration,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class CyclePage extends StatelessWidget {
   const CyclePage({super.key});
 

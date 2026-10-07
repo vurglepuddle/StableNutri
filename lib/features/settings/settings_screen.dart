@@ -1,3 +1,4 @@
+import 'package:opennutritracker/features/cycle/data/cycle_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/data/health/health_connect_service.dart';
 import 'package:opennutritracker/features/settings/presentation/health_connect_screen.dart';
@@ -265,6 +266,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _diaryBloc.add(const LoadDiaryYearEvent());
                     },
                   ),
+                  if (locator.isRegistered<CycleRepository>())
+                    ListenableBuilder(
+                      listenable: locator<CycleRepository>(),
+                      builder: (context, _) {
+                        final repo = locator<CycleRepository>();
+                        return Semantics(
+                          identifier: 'profile-cycle-toggle',
+                          child: _SettingsSwitchTile(
+                            palette: palette,
+                            icon: Icons.calendar_today_rounded,
+                            title: S.of(context).cycleEnable,
+                            subtitle: S.of(context).cycleEnableHint,
+                            value: repo.data.enabled,
+                            onChanged: (enabled) async {
+                              try {
+                                await repo.save(
+                                  repo.data.copyWith(enabled: enabled),
+                                  generation: repo.db.activeProfileGeneration,
+                                );
+                              } catch (_) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        S.of(context).cycleSaveFailed,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    ),
                   _SettingsSwitchTile(
                     palette: palette,
                     icon: Icons.water_drop_rounded,

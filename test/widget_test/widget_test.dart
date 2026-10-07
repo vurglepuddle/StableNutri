@@ -164,7 +164,7 @@ void main() {
     );
     expect(intakeCounter.value, 1500);
     // The range is named once, under the bar; the headline says what is left.
-    expect(find.text('· 350\u2013600 left'), findsOneWidget);
+    expect(find.text('350\u2013600 left'), findsOneWidget);
     expect(find.textContaining('toward'), findsNothing);
     expect(find.text('1850\u20132100 range'), findsOneWidget);
     // The axis ends on a rounded ceiling that clears the goal range.
@@ -191,7 +191,7 @@ void main() {
       CalorieRangeBar.axisMaxFor(value: 3000, upper: 2100),
       greaterThan(3000),
     );
-    expect(find.text('· 900 above'), findsOneWidget);
+    expect(find.text('900 above'), findsOneWidget);
     // Reassurance, not a warning.
     expect(find.text("Some days run higher. That's normal."), findsOneWidget);
     expect(find.textContaining('too much'), findsNothing);
@@ -203,7 +203,7 @@ void main() {
     await tester.pumpWidget(_dashboard(supplied: 1950, usesRangeGauge: true));
     await tester.pumpAndSettle();
 
-    expect(find.text('· within range'), findsOneWidget);
+    expect(find.text('within range'), findsOneWidget);
     expect(find.text("Some days run higher. That's normal."), findsNothing);
   });
 
@@ -249,7 +249,7 @@ void main() {
     expect(find.byType(CalorieRangeBar), findsOneWidget);
     expect(find.byType(CircularPercentIndicator), findsNothing);
     // Same numbers, different shape.
-    expect(find.text('· 350–600 left'), findsOneWidget);
+    expect(find.text('350–600 left'), findsOneWidget);
   });
 
   for (final usesRangeGauge in [true, false]) {

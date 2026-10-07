@@ -67,7 +67,7 @@ void main() {
 
   /// How far the headline had to shrink to fit its row: 1 is full size.
   double headlineScale(WidgetTester tester) {
-    final caption = find.text('· 290–540 left');
+    final caption = find.text('290–540 left');
     return tester.getRect(caption).width /
         tester.renderObject<RenderBox>(caption).size.width;
   }
@@ -78,13 +78,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(headlineScale(tester), greaterThan(0.95));
 
-    // Burned energy shares the row, so the headline gives a little. The old
-    // "toward daily range" caption beside a side-by-side figure was at 0.56.
+    // Separator spacing contracts so burned energy stays beside the status
+    // at the user's actual phone width and text scale.
     await tester.pumpWidget(_dashboard(textScale: 1.3, burned: 500));
     await tester.pumpAndSettle();
     expect(find.text('ACTIVE'), findsNothing);
     expect(find.byIcon(Icons.local_fire_department_rounded), findsOneWidget);
-    expect(headlineScale(tester), greaterThan(0.75));
+    expect(headlineScale(tester), closeTo(1, 0.01));
+    expect(
+      tester.getCenter(find.text('500')).dy,
+      closeTo(tester.getCenter(find.text('kcal')).dy, 0.5),
+    );
   });
 
   testWidgets('"555/555 g" fits a macro tile at full size with 1.3x text', (
@@ -145,7 +149,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('1350–1600 range'), findsOneWidget);
-    expect(find.text('· 290–540 left'), findsOneWidget);
+    expect(find.text('290–540 left'), findsOneWidget);
     expect(find.textContaining('toward'), findsNothing);
     expect(find.textContaining('reach'), findsNothing);
   });
@@ -156,7 +160,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('goal 1500'), findsOneWidget);
-    expect(find.text('· 440 left'), findsOneWidget);
+    expect(find.text('440 left'), findsOneWidget);
     expect(find.textContaining('range'), findsNothing);
   });
 }

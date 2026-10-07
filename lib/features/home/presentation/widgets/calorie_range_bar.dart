@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'dart:ui' show lerpDouble;
+import 'dart:ui' show FontFeature, lerpDouble;
 
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
@@ -101,7 +101,7 @@ class CalorieRangeBar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeadline(s, textTheme, palette),
+          _buildHeadline(textTheme, palette),
           const SizedBox(height: Dimens.spacing16),
           _buildBar(palette, geometry),
           const SizedBox(height: Dimens.spacing8),
@@ -122,47 +122,107 @@ class CalorieRangeBar extends StatelessWidget {
     );
   }
 
-  Widget _buildHeadline(S s, TextTheme textTheme, AppPalette palette) {
+  Widget _buildHeadline(TextTheme textTheme, AppPalette palette) {
     final style = textTheme.bodyMedium?.copyWith(color: palette.textMuted);
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: Dimens.spacing8,
-      runSpacing: Dimens.spacing4,
-      children: [
-        Wrap(
+    final numberStyle = textTheme.headlineSmall?.copyWith(height: 1.25);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final base = DefaultTextStyle.of(context).style;
+        final counterStyle = base
+            .merge(numberStyle)
+            .merge(
+              const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
+            );
+        double width(String text, TextStyle textStyle) {
+          final painter = TextPainter(
+            text: TextSpan(text: text, style: textStyle),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+            locale: Localizations.localeOf(context),
+          )..layout();
+          final result = painter.width;
+          painter.dispose();
+          return result;
+        }
+
+        // The flip counter uses a tabular zero for every digit and a space for
+        // each thousands separator. Measure its actual style, including scaling.
+        final rounded = DashboardEnergyFormat.rounded(value).round();
+        final digits = rounded.abs().toString().length;
+        final counterWidth =
+            width('0', counterStyle) * digits +
+            width(' ', counterStyle) * ((digits - 1) ~/ 3) +
+            (rounded < 0 ? width('-', counterStyle) : 0);
+        final labelStyle = base.merge(style);
+        final fixedWidth =
+            counterWidth +
+            width(unitLabel, labelStyle) +
+            width(statusLabel, labelStyle) +
+            width('\u00b7', labelStyle) +
+            (burned > 0
+                ? width('\u00b7', labelStyle) +
+                      16 +
+                      width(DashboardEnergyFormat.text(burned), labelStyle)
+                : 0);
+        final gapCount = burned > 0 ? 5.5 : 3.0;
+        // Spend spare space on separators. If the text itself cannot fit (for
+        // example at a large accessibility scale), keep readable gaps and wrap.
+        final canFit = fixedWidth + gapCount + 1 <= constraints.maxWidth;
+        final gap = canFit
+            ? ((constraints.maxWidth - fixedWidth - 1) / gapCount).clamp(
+                1.0,
+                8.0,
+              )
+            : Dimens.spacing8;
+        return Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: Dimens.spacing8,
+          spacing: gap,
+          runSpacing: Dimens.spacing4,
           children: [
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: AnimatedFlipCounter(
-                value: DashboardEnergyFormat.rounded(value),
-                duration: AppMotion.durationLong,
-                curve: AppMotion.standard,
-                thousandSeparator: ' ',
-                textStyle: textTheme.headlineSmall?.copyWith(height: 1.25),
-              ),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: gap,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: AnimatedFlipCounter(
+                    value: DashboardEnergyFormat.rounded(value),
+                    duration: AppMotion.durationLong,
+                    curve: AppMotion.standard,
+                    thousandSeparator: ' ',
+                    textStyle: numberStyle,
+                  ),
+                ),
+                Text(unitLabel, style: style),
+              ],
             ),
-            Text(unitLabel, style: style),
-          ],
-        ),
-        Text('· $statusLabel', style: style),
-        if (burned > 0)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('·', style: style),
-              const SizedBox(width: Dimens.spacing8),
-              Icon(
-                Icons.local_fire_department_rounded,
-                size: 16,
-                color: palette.textMuted,
+            // Wrap keeps a long translated status readable on very small screens.
+            Wrap(
+              spacing: gap,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text('\u00b7', style: style),
+                Text(statusLabel, style: style),
+              ],
+            ),
+            if (burned > 0)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('\u00b7', style: style),
+                  SizedBox(width: gap),
+                  Icon(
+                    Icons.local_fire_department_rounded,
+                    size: 16,
+                    color: palette.textMuted,
+                  ),
+                  SizedBox(width: gap / 2),
+                  Text(DashboardEnergyFormat.text(burned), style: style),
+                ],
               ),
-              const SizedBox(width: Dimens.spacing4),
-              Text(DashboardEnergyFormat.text(burned), style: style),
-            ],
-          ),
-      ],
+          ],
+        );
+      },
     );
   }
 

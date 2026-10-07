@@ -303,8 +303,9 @@ Destinations are defined by `MainDestination` in `lib/core/presentation/main_nav
 | **You** (`nav-you`) | `ProfilePage` | `features/profile` |
 
 Cycle is per-profile and off by default. Actual records, setup guesses and date
-estimates are separate in the encrypted `CycleBox`. History/averages live in
-Trends; Diary marks actual and expected periods differently. Cycle reminders
+estimates are separate in the encrypted `CycleBox`. Averages sit below the
+Cycle calendar and history is a collapsed list at the bottom of Cycle; Trends
+shows nothing of Cycle. Diary marks actual and expected periods differently. Cycle reminders
 have their own notification ID and are optional. No phases or fertility model.
 
 **Diary / Archive is not a tab** — it is a full screen pushed from Today (the calendar action in the app bar).

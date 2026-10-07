@@ -6,6 +6,12 @@ import 'package:opennutritracker/features/cycle/domain/cycle_data.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+/// Cycle's quiet sage, shared by date rings and the averages bubble.
+Color cycleSage(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+    ? const Color(0xFFA8C4B7)
+    : const Color(0xFF6C8B7E);
+
 /// The same quiet date ring in Diary, Cycle and period entry.
 class CycleDateRing extends StatelessWidget {
   final bool predicted;
@@ -13,8 +19,7 @@ class CycleDateRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final color = dark ? const Color(0xFFA8C4B7) : const Color(0xFF6C8B7E);
+    final color = cycleSage(context);
     return IgnorePointer(
       child: Semantics(
         label: predicted

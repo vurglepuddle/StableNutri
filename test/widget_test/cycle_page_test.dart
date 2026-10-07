@@ -459,41 +459,134 @@ void main() {
     });
   }
 
+  List<PeriodRecord> pastCycles(List<int> intervals) {
+    final today = cycleDate(DateTime.now());
+    var start = DateTime(today.year, today.month, today.day - 10);
+    final rows = <PeriodRecord>[];
+    for (final (i, length) in [0, ...intervals.reversed].indexed) {
+      start = DateTime(start.year, start.month, start.day - length);
+      rows.add(
+        PeriodRecord(
+          id: 'p$i',
+          start: start,
+          end: DateTime(start.year, start.month, start.day + 3),
+        ),
+      );
+    }
+    return rows;
+  }
+
+  Future<void> useMemoryRepository(CycleData data) async {
+    repo.dispose();
+    await locator.unregister<CycleRepository>();
+    repo = _EditorRepository(db, notifications, data);
+    locator.registerSingleton<CycleRepository>(repo);
+  }
+
+  testWidgets('averages sit below the calendar and explain left-out cycles', (
+    tester,
+  ) async {
+    await useMemoryRepository(
+      repo.data.copyWith(records: pastCycles([28, 29, 19, 28, 27])),
+    );
+    await tester.pumpWidget(app(const Scaffold(body: CyclePage())));
+    await tester.pumpAndSettle();
+    final interval = find.text(l10nEn.cycleAverageInterval);
+    await tester.scrollUntilVisible(
+      interval,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(
+      tester.getTopLeft(interval).dy,
+      greaterThan(tester.getBottomLeft(find.byType(TableCalendar<void>)).dy),
+    );
+    expect(find.text('28 days', findRichText: true), findsOneWidget);
+    expect(find.text('4 days', findRichText: true), findsOneWidget);
+    expect(find.text(l10nEn.cycleUnusualLeftOut(1)), findsOneWidget);
+    await tester.tap(find.byTooltip(l10nEn.cycleAveragesInfo));
+    await tester.pumpAndSettle();
+    expect(find.text(l10nEn.cycleBasedOn), findsOneWidget);
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('history is closed at the bottom until opened', (tester) async {
+    await useMemoryRepository(
+      repo.data.copyWith(records: pastCycles([28, 29, 27])),
+    );
+    await tester.pumpWidget(app(const Scaffold(body: CyclePage())));
+    await tester.pumpAndSettle();
+    final header = find.text(l10nEn.cycleHistory);
+    await tester.scrollUntilVisible(
+      header,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(
+      tester.getTopLeft(header).dy,
+      greaterThan(tester.getTopLeft(find.text(l10nEn.cycleReminder)).dy),
+    );
+    final remove = find.byTooltip(l10nEn.cycleDelete);
+    expect(remove, findsNothing);
+    await tester.tap(header);
+    await tester.pumpAndSettle();
+    expect(remove, findsNWidgets(4));
+    await tester.ensureVisible(remove.first);
+    await tester.tap(remove.first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.cycleRemove));
+    await tester.pumpAndSettle();
+    expect(repo.data.records, hasLength(3));
+    expect(repo.data.records.map((r) => r.id), isNot(contains('p0')));
+    expect(remove, findsNWidgets(3), reason: 'stays open after a change');
+    await tester.ensureVisible(header);
+    await tester.tap(header);
+    await tester.pumpAndSettle();
+    expect(remove, findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   for (final scale in [1.3, 1.6, 2.0]) {
-    testWidgets('Cycle and Trends fit at 320px / $scale', (tester) async {
+    testWidgets('Cycle fits at 320px / $scale with history open', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(320, 1000);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: S.localizationsDelegates,
-          supportedLocales: S.supportedLocales,
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(textScaler: TextScaler.linear(scale)),
-            child: child!,
-          ),
-          home: const Scaffold(body: CyclePage()),
-        ),
+        app(const Scaffold(body: CyclePage()), scale: scale),
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(find.text(l10nEn.cycleNoStart), findsOneWidget);
-      await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: S.localizationsDelegates,
-          supportedLocales: S.supportedLocales,
-          home: MediaQuery(
-            data: MediaQueryData(textScaler: TextScaler.linear(scale)),
-            child: const Scaffold(
-              body: SingleChildScrollView(child: CycleTrends()),
-            ),
-          ),
-        ),
+      await useMemoryRepository(
+        repo.data.copyWith(records: pastCycles([28, 29, 19, 28, 27])),
       );
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+      for (final dark in [false, true]) {
+        await tester.pumpWidget(
+          app(
+            const Scaffold(body: CyclePage()),
+            scale: scale,
+            dark: dark,
+          ),
+        );
+        await tester.pumpAndSettle();
+        final header = find.text(l10nEn.cycleHistory);
+        await tester.scrollUntilVisible(
+          header,
+          300,
+          scrollable: find.byType(Scrollable).first,
+        );
+        if (find.byTooltip(l10nEn.cycleDelete).evaluate().isEmpty) {
+          await tester.tap(header);
+          await tester.pumpAndSettle();
+        }
+        await tester.drag(find.byType(ListView), const Offset(0, -2000));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      }
       await tester.pumpWidget(const SizedBox());
     });
   }

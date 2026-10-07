@@ -39,7 +39,21 @@ WebP settings, metadata exclusion and source-file preservation remain intact.
 All 1,291 tests pass and the develop debug APK builds; native gallery/camera and
 iOS checks remain pending.
 
-Envied and its generator, UUID, JSON annotations,
-equatable, and build_runner remain. Preserve the exact ZXing pin; exclude Sentry
-and avoid unrelated Supabase changes. Native quick-add widget refinements remain
-a separate working-tree change pending phone verification.
+## Code generation and utilities - 2026-10-07
+
+Applied the remaining selected versions: Envied/generator 1.3.8, UUID 4.6.0,
+JSON annotations 4.12.0, Equatable 2.1.0 and build_runner 2.15.1. Envied and
+build_runner use exact constraints to keep this reviewed generator combination.
+Resolution also required json_serializable 6.14.1, build 4.0.7 and
+package_config 2.2.0. Existing Hive adapters and model serialization are unchanged.
+The generator completed successfully with Flutter 3.44.8 / Dart 3.12.2.
+Private environment values were not displayed or committed.
+
+Keep ZXing pinned; Sentry remains excluded. Supabase is unchanged. Equatable 3
+is outside this slice because it changes equality behavior.
+
+Reviewed publisher changelogs: [Envied](https://pub.dev/packages/envied/changelog),
+[UUID](https://pub.dev/packages/uuid/changelog),
+[JSON annotations](https://pub.dev/packages/json_annotation/changelog),
+[Equatable](https://pub.dev/packages/equatable/changelog),
+[build_runner](https://pub.dev/packages/build_runner/changelog).

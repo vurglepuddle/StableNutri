@@ -67,7 +67,7 @@ void main() {
 
   /// How far the headline had to shrink to fit its row: 1 is full size.
   double headlineScale(WidgetTester tester) {
-    final caption = find.text('kcal · 286–536 left');
+    final caption = find.text('· 290–540 left');
     return tester.getRect(caption).width /
         tester.renderObject<RenderBox>(caption).size.width;
   }
@@ -82,7 +82,8 @@ void main() {
     // "toward daily range" caption beside a side-by-side figure was at 0.56.
     await tester.pumpWidget(_dashboard(textScale: 1.3, burned: 500));
     await tester.pumpAndSettle();
-    expect(find.text('ACTIVE'), findsOneWidget);
+    expect(find.text('ACTIVE'), findsNothing);
+    expect(find.byIcon(Icons.local_fire_department_rounded), findsOneWidget);
     expect(headlineScale(tester), greaterThan(0.75));
   });
 
@@ -104,6 +105,21 @@ void main() {
     }
     expect(find.text('555/555 g'), findsNWidgets(3));
   });
+
+  for (final scale in [1.3, 1.6, 2.0]) {
+    testWidgets('active calorie header wraps at 320px / $scale', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(_dashboard(textScale: scale, burned: 122));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('120'), findsOneWidget);
+    });
+  }
 
   testWidgets('the macro amount stays on one line at 2x text', (tester) async {
     usePhoneWidth(tester);
@@ -128,8 +144,8 @@ void main() {
     await tester.pumpWidget(_dashboard(textScale: 1));
     await tester.pumpAndSettle();
 
-    expect(find.text('goal range 1350–1600'), findsOneWidget);
-    expect(find.text('kcal · 286–536 left'), findsOneWidget);
+    expect(find.text('1350–1600 range'), findsOneWidget);
+    expect(find.text('· 290–540 left'), findsOneWidget);
     expect(find.textContaining('toward'), findsNothing);
     expect(find.textContaining('reach'), findsNothing);
   });
@@ -140,7 +156,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('goal 1500'), findsOneWidget);
-    expect(find.text('kcal · 436 left'), findsOneWidget);
+    expect(find.text('· 440 left'), findsOneWidget);
     expect(find.textContaining('range'), findsNothing);
   });
 }

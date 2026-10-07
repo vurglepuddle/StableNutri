@@ -3,6 +3,7 @@ import 'dart:ui' show lerpDouble;
 
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/dashboard_energy_format.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -85,26 +86,22 @@ class CalorieRangeBar extends StatelessWidget {
     final isOver = value > upper;
     // Profiles without a range keep a single goal, stored as equal bounds.
     final rangeLabel = lower.round() == upper.round()
-        ? s.calorieGaugeGoalLabel(upper.round().toString())
+        ? s.calorieGaugeGoalLabel(DashboardEnergyFormat.text(upper))
         : s.calorieGaugeRangeLabel(
-            lower.round().toString(),
-            upper.round().toString(),
+            DashboardEnergyFormat.text(lower),
+            DashboardEnergyFormat.text(upper),
           );
 
     return Semantics(
-      label: '${value.round()} $unitLabel. $rangeLabel. $statusLabel',
+      label:
+          '${DashboardEnergyFormat.text(value)} $unitLabel. '
+          '$rangeLabel. $statusLabel. '
+          '${burned > 0 ? '${s.calorieGaugeActiveLabel} ${DashboardEnergyFormat.text(burned)} $unitLabel' : ''}',
       excludeSemantics: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(child: _buildHeadline(s, textTheme, palette)),
-              const SizedBox(width: Dimens.spacing8),
-              _buildBurned(s, textTheme, palette),
-            ],
-          ),
+          _buildHeadline(s, textTheme, palette),
           const SizedBox(height: Dimens.spacing16),
           _buildBar(palette, geometry),
           const SizedBox(height: Dimens.spacing8),
@@ -126,70 +123,43 @@ class CalorieRangeBar extends StatelessWidget {
   }
 
   Widget _buildHeadline(S s, TextTheme textTheme, AppPalette palette) {
-    // Deliberately tighter than the display ladder — see the same counter in
-    // dashboard_widget.dart.
-    final numberStyle = textTheme.displaySmall?.copyWith(height: 1);
-    // The number and its caption share a baseline, and shrink together rather
-    // than wrapping when the unit is long or the text scale is large.
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: AlignmentDirectional.centerStart,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Mid-roll, the counter reports the baseline of a digit sliding in
-          // from above, so the row would stretch every frame and shake the
-          // whole dashboard. An invisible resting digit holds the baseline
-          // instead, and the roll stays inside its own box.
-          Stack(
+    final style = textTheme.bodyMedium?.copyWith(color: palette.textMuted);
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: Dimens.spacing8,
+      runSpacing: Dimens.spacing4,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            AnimatedFlipCounter(
+              value: DashboardEnergyFormat.rounded(value),
+              duration: AppMotion.durationLong,
+              curve: AppMotion.standard,
+              thousandSeparator: ' ',
+              textStyle: textTheme.headlineSmall?.copyWith(height: 1.25),
+            ),
+            const SizedBox(width: Dimens.spacing8),
+            Text(unitLabel, style: style),
+          ],
+        ),
+        Text('· $statusLabel', style: style),
+        if (burned > 0)
+          Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              IgnoreBaseline(
-                child: AnimatedFlipCounter(
-                  value: value.round(),
-                  duration: AppMotion.durationLong,
-                  curve: AppMotion.emphasized,
-                  thousandSeparator: ' ',
-                  textStyle: numberStyle,
-                ),
+              Text('·', style: style),
+              const SizedBox(width: Dimens.spacing8),
+              Icon(
+                Icons.local_fire_department_rounded,
+                size: 16,
+                color: palette.textMuted,
               ),
-              Positioned(
-                left: 0,
-                top: 0,
-                child: Opacity(
-                  opacity: 0,
-                  child: Text('0', style: numberStyle),
-                ),
-              ),
+              const SizedBox(width: Dimens.spacing4),
+              Text(DashboardEnergyFormat.text(burned), style: style),
             ],
           ),
-          const SizedBox(width: Dimens.spacing8),
-          Text(
-            '$unitLabel · $statusLabel',
-            style: textTheme.bodyMedium?.copyWith(color: palette.textMuted),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBurned(S s, TextTheme textTheme, AppPalette palette) {
-    if (burned <= 0) return const SizedBox.shrink();
-    // Stacked rather than side by side: it takes half the width, which the
-    // headline needs for its status at larger text sizes.
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(burned.round().toString(), style: textTheme.labelLarge),
-        Text(
-          s.calorieGaugeActiveLabel.toUpperCase(),
-          style: textTheme.labelSmall?.copyWith(
-            color: palette.textMuted,
-            letterSpacing: 0.6,
-          ),
-        ),
       ],
     );
   }

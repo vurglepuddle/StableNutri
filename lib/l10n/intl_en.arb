@@ -1398,7 +1398,7 @@
   "waterTotalLabel": "{current} / {goal} l",
   "waterGoalReachedLabel": "Daily goal reached",
   "calorieGaugeActiveLabel": "active",
-  "calorieGaugeRangeLabel": "goal range {lower}–{upper}",
+  "calorieGaugeRangeLabel": "{lower}–{upper} range",
   "calorieGaugeGoalLabel": "goal {value}",
   "@calorieGaugeGoalLabel": {
     "description": "Under the calorie bar when the goal is a single number rather than a range.",

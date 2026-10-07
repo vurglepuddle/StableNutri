@@ -112,9 +112,9 @@ class _FitResizeImage extends ImageProvider<_FitResizeKey> {
   Future<_FitResizeKey> obtainKey(ImageConfiguration configuration) =>
       // Preserve SynchronousFuture from cached providers. An async wrapper
       // flashes the fallback for one frame when a cached image is remounted.
-      image.obtainKey(configuration).then(
-        (key) => _FitResizeKey(key, side, whole),
-      );
+      image
+          .obtainKey(configuration)
+          .then((key) => _FitResizeKey(key, side, whole));
 
   @override
   bool operator ==(Object other) =>

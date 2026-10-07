@@ -1,5 +1,6 @@
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/dashboard_energy_format.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -86,11 +87,15 @@ class _DashboardWidgetState extends State<DashboardWidget> {
     final above = '${displayDistance.round()} $unitLabel';
     // The bar shows its status beside the unit, so it leaves the unit out.
     final barStatusLabel = switch (rangeResult.status) {
-      StableRangeStatus.below => s.rangeLeftLabel(left),
+      StableRangeStatus.below => s.rangeLeftLabel(
+        isPointGoal
+            ? DashboardEnergyFormat.text(displayDistance)
+            : '${DashboardEnergyFormat.text(displayDistance)}–${DashboardEnergyFormat.text(displayUpper - displayValue)}',
+      ),
       StableRangeStatus.within =>
         isPointGoal ? s.rangeAtGoalLabel : s.rangeWithinLabel,
       StableRangeStatus.above => s.rangeAboveShortLabel(
-        '${displayDistance.round()}',
+        DashboardEnergyFormat.text(displayDistance),
       ),
     };
     final statusLabel = switch (rangeResult.status) {

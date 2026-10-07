@@ -16,6 +16,8 @@ class TrendsLoading extends TrendsState {
 }
 
 class TrendsLoaded extends TrendsState {
+  final WeeklyNutrients? weeklyNutrients;
+  final Map<String, bool> nutrientVisibility;
   final int rangeDays; // the selected range chip: 7, 30, 90, or 0 for "All"
   final int windowDays; // effective span the charts plot over (resolved "All")
   final List<TrackedDayEntity> days; // tracked days over the selected window
@@ -31,6 +33,8 @@ class TrendsLoaded extends TrendsState {
   final bool showWaterTracking;
 
   const TrendsLoaded({
+    this.weeklyNutrients,
+    this.nutrientVisibility = const {},
     required this.rangeDays,
     required this.windowDays,
     required this.days,
@@ -61,6 +65,8 @@ class TrendsLoaded extends TrendsState {
     waterByDay,
     waterGoalMl,
     showWaterTracking,
+    weeklyNutrients,
+    nutrientVisibility,
   ];
 }
 

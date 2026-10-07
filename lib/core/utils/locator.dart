@@ -248,6 +248,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      intakeRepository: locator<IntakeRepository>(),
     ),
   );
   locator.registerFactory<RecipeBuilderBloc>(

@@ -1,3 +1,7 @@
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/features/trends/domain/weekly_nutrients.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
@@ -22,14 +26,17 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
   final GetWaterIntakeUsecase _getWaterIntakeUsecase;
   final GetBodyMeasurementLogUsecase _getBodyMeasurementLogUsecase;
 
+  final IntakeRepository? intakeRepository;
+
   TrendsBloc(
     this._getTrackedDayUsecase,
     this._getWeightLogUsecase,
     this._getUserUsecase,
     this._getConfigUsecase,
     this._getWaterIntakeUsecase,
-    this._getBodyMeasurementLogUsecase,
-  ) : super(const TrendsInitial()) {
+    this._getBodyMeasurementLogUsecase, {
+    this.intakeRepository,
+  }) : super(const TrendsInitial()) {
     on<LoadTrendsEvent>((event, emit) async {
       emit(const TrendsLoading());
       try {
@@ -62,6 +69,21 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
         );
         final user = await _getUserUsecase.getUserData();
         final config = await _getConfigUsecase.getConfig();
+
+        final intakes = await intakeRepository?.getAllIntakesDBO();
+        final weeklyNutrients = intakes == null
+            ? null
+            : WeeklyNutrients.calculate(
+                intakes.map(IntakeEntity.fromIntakeDBO),
+                endDay: DayBoundaryCalc.currentLogicalDayLabel(
+                  config.dayStartOffsetHours,
+                  config.dayStartOffsetMinutes,
+                ),
+                offsetMinutes: DayBoundaryCalc.totalMinutesOf(
+                  config.dayStartOffsetHours,
+                  config.dayStartOffsetMinutes,
+                ),
+              );
 
         // Water totalled per calendar day; the card fills missing days with 0.
         final waterEntries = await _getWaterIntakeUsecase.getAllEntries();
@@ -112,6 +134,8 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
 
         emit(
           TrendsLoaded(
+            weeklyNutrients: weeklyNutrients,
+            nutrientVisibility: config.nutrientPanelVisibility,
             rangeDays: event.rangeDays,
             windowDays: windowDays,
             days: days,

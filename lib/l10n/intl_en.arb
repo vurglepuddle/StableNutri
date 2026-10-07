@@ -1568,5 +1568,48 @@
 "fullBackupMissingPhotos": "{count} referenced photos were already missing from the source data.",
 "fullBackupLegacy": "Legacy JSON / CSV",
 "@fullBackupConfirmBody": {"placeholders": {"profiles": {"type": "int"}}},
-"@fullBackupMissingPhotos": {"placeholders": {"count": {"type": "int"}}}
+"@fullBackupMissingPhotos": {"placeholders": {"count": {"type": "int"}}},
+  "weeklyNutrientsTitle": "Weekly nutrients",
+  "weeklyNutrientsDays": "{days} of 7 days logged",
+  "weeklyNutrientsExplanation": "Totals cover the last seven diary days. Daily averages use logged days only. Missing food information is unknown, not zero; an average is shown only when every logged food has a value.",
+  "weeklyNutrientsEmpty": "Log some food to see your weekly nutrients.",
+  "weeklyNutrientsTotal": "Total: {value}",
+  "weeklyNutrientsPartialTotal": "Known total (incomplete): {value}",
+  "weeklyNutrientsAverage": "Daily average: {value}",
+  "weeklyNutrientsMissing": "Missing in {count} logged foods",
+  "@weeklyNutrientsDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "@weeklyNutrientsTotal": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@weeklyNutrientsPartialTotal": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@weeklyNutrientsAverage": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@weeklyNutrientsMissing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

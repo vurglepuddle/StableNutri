@@ -1,3 +1,4 @@
+import 'package:opennutritracker/features/trends/presentation/weekly_nutrients_card.dart';
 import 'package:opennutritracker/features/cycle/presentation/cycle_page.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -80,6 +81,13 @@ class _TrendsView extends StatelessWidget {
               palette: palette,
             ),
             const SizedBox(height: Dimens.spacing16),
+            if (state.weeklyNutrients != null) ...[
+              WeeklyNutrientsCard(
+                summary: state.weeklyNutrients!,
+                visibility: state.nutrientVisibility,
+              ),
+              const SizedBox(height: Dimens.spacing16),
+            ],
             _RangeSelector(rangeDays: state.rangeDays),
             const SizedBox(height: Dimens.spacing16),
             _CaloriesTrendCard(

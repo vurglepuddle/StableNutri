@@ -72,6 +72,32 @@ void main() {
     expect(find.text('Review before importing'), findsOneWidget);
   }
 
+  testWidgets('renders the archive start before its end date', (tester) async {
+    writeSanitizedLifesumZip(
+      harness.directory,
+      files: {
+        ...sanitizedLifesumFiles,
+        'weighins.csv': sanitizedLifesumFiles['weighins.csv']!.replaceAll(
+          '2024-01-02',
+          '2024-02-03',
+        ),
+      },
+    );
+    await pumpScreen(tester);
+    await loadReview(tester);
+    final preview = (bloc.state as LifesumImportReady).preparation.preview;
+    String date(DateTime d) =>
+        '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+    final start = date(preview.earliestArchiveCandidateDate!);
+    final end = date(preview.latestArchiveCandidateDate!);
+    expect(start, isNot(end));
+    final text = tester
+        .widgetList<Text>(find.byType(Text))
+        .map((w) => w.data ?? '')
+        .singleWhere((t) => t.contains(start) && t.contains(end));
+    expect(text.indexOf(start), lessThan(text.indexOf(end)));
+  });
+
   testWidgets('keeps preview read-only and water opt-in until final confirm', (
     tester,
   ) async {

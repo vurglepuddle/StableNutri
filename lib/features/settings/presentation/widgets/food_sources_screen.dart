@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/utils/open_external_link.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
@@ -50,7 +51,11 @@ class _FoodSourcesScreenState extends State<FoodSourcesScreen> {
   /// Opens the database's public website in the in-app browser (Custom
   /// Tabs / SFSafariViewController) so the user stays inside the app.
   Future<void> _openSourceInfo(String url) async {
-    await launchUrl(Uri.parse(url), mode: LaunchMode.inAppBrowserView);
+    await openExternalLink(
+      context,
+      Uri.parse(url),
+      mode: LaunchMode.inAppBrowserView,
+    );
   }
 
   Widget _infoButton(String url) => IconButton(

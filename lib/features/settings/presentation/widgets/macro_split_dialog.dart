@@ -110,9 +110,17 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   }
 
   void _syncControllers() {
-    _carbsController.text = _carbsPct.round().toString();
-    _proteinController.text = _proteinPct.round().toString();
-    _fatController.text = _fatPct.round().toString();
+    final rounded = roundMacroPercentsToHundred(
+      _carbsPct,
+      _proteinPct,
+      _fatPct,
+    );
+    _carbsPct = rounded.$1.toDouble();
+    _proteinPct = rounded.$2.toDouble();
+    _fatPct = rounded.$3.toDouble();
+    _carbsController.text = rounded.$1.toString();
+    _proteinController.text = rounded.$2.toString();
+    _fatController.text = rounded.$3.toString();
   }
 
   /// Rebalance the two unmoved macros proportionally to their current
@@ -146,6 +154,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     }
     setOtherA(newA);
     setOtherB(newB);
+    _syncControllers();
   }
 
   void _applyTextInput(
@@ -159,6 +168,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
       return;
     }
     setState(() => setter(parsed.toDouble()));
+    _syncControllers();
   }
 
   Future<void> _save() async {
@@ -186,7 +196,12 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
-    final totalPct = _carbsPct.round() + _proteinPct.round() + _fatPct.round();
+    final rounded = roundMacroPercentsToHundred(
+      _carbsPct,
+      _proteinPct,
+      _fatPct,
+    );
+    final totalPct = rounded.$1 + rounded.$2 + rounded.$3;
     return AlertDialog(
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -225,7 +240,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '$totalPct% total',
+                    s.macroSplitTotal(totalPct),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(height: 8),

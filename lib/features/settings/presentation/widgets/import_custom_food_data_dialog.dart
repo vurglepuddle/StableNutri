@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/utils/open_external_link.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -272,7 +273,8 @@ class _ImportCustomFoodDataDialogState
                     decoration: TextDecoration.underline,
                   ),
                   recognizer: TapGestureRecognizer()
-                    ..onTap = () => launchUrl(
+                    ..onTap = () => openExternalLink(
+                      context,
                       _offAndroidUrl,
                       mode: LaunchMode.externalApplication,
                     ),
@@ -285,7 +287,8 @@ class _ImportCustomFoodDataDialogState
                     decoration: TextDecoration.underline,
                   ),
                   recognizer: TapGestureRecognizer()
-                    ..onTap = () => launchUrl(
+                    ..onTap = () => openExternalLink(
+                      context,
                       _offIosUrl,
                       mode: LaunchMode.externalApplication,
                     ),

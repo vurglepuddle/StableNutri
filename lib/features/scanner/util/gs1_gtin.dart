@@ -42,6 +42,23 @@ final RegExp _bracketedGtin = RegExp(r'\(01\)(\d{14})');
 final RegExp _fourteenDigits = RegExp(r'^\d{14}$');
 
 String? _findGtin14(String raw) {
+  // AIM identifiers emitted by GS1-aware decoders. Do not strip arbitrary
+  // prefixes or hunt for digits in URLs/serial numbers.
+  if (raw.startsWith(']d2') || raw.startsWith(']Q3')) raw = raw.substring(3);
+  final uri = Uri.tryParse(raw);
+  if (uri != null && uri.hasScheme) {
+    if ((uri.scheme != 'https' && uri.scheme != 'http') || uri.host.isEmpty)
+      return null;
+    final segments = uri.pathSegments;
+    final matches = <String>[];
+    for (var i = 0; i + 1 < segments.length; i++) {
+      if (segments[i] == '01' && _fourteenDigits.hasMatch(segments[i + 1])) {
+        matches.add(segments[i + 1]);
+      }
+    }
+    return matches.length == 1 ? matches.single : null;
+  }
+
   // The bracketed human-readable form, which is what zxing-cpp emits for a
   // symbol carrying a GS1 FNC1 indicator.
   final match = _bracketedGtin.firstMatch(raw);

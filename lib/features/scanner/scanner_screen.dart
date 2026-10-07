@@ -61,6 +61,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   final log = Logger('ScannerScreen');
 
   String? _scannedBarcode;
+  DateTime? _lastUnsupportedHint;
   IntakeTypeEntity? _intakeTypeEntity;
   DateTime? _day;
   bool _pickMode = false;
@@ -192,6 +193,19 @@ class _ScannerScreenState extends State<ScannerScreen>
       _scannedBarcode = gtin;
       if (kDebugMode) log.fine('GS1 GTIN found: $gtin (${code.format?.name})');
       _scannerBloc.add(ScannerLoadProductEvent(barcode: gtin));
+      return;
+    }
+    final now = DateTime.now();
+    if (mounted &&
+        (_lastUnsupportedHint == null ||
+            now.difference(_lastUnsupportedHint!).inSeconds >= 5)) {
+      _lastUnsupportedHint = now;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.of(context).scannerUnsupportedCode),
+          duration: const Duration(seconds: 3),
+        ),
+      );
     }
   }
 

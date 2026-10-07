@@ -1611,5 +1611,6 @@
         "type": "int"
       }
     }
-  }
+  },
+  "scannerUnsupportedCode": "Code read, but it does not identify a supported food. Try the product barcode or search by name."
 }

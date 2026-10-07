@@ -34,6 +34,33 @@ void main() {
       );
     });
 
+    test('accepts AIM GS1 matrix and QR prefixes', () {
+      expect(gtinFromGs1(']d2010469038811911921ABC'), '4690388119119');
+      expect(gtinFromGs1(']Q30104690388119119'), '4690388119119');
+    });
+    test(
+      'accepts Digital Link GTINs on custom domains and with qualifiers',
+      () {
+        expect(
+          gtinFromGs1('https://id.example/01/04690388119119/10/LOT?17=271231'),
+          '4690388119119',
+        );
+        expect(
+          gtinFromGs1('https://example.org/products/01/04690388119119'),
+          '4690388119119',
+        );
+        expect(gtinFromGs1('https://example.org/?01=04690388119119'), isNull);
+        expect(
+          gtinFromGs1(
+            'https://example.org/01/04690388119119/01/04690388119119',
+          ),
+          isNull,
+        );
+        expect(gtinFromGs1('file:///01/04690388119119'), isNull);
+        expect(gtinFromGs1('https://example.org/01/04690388119118'), isNull);
+      },
+    );
+
     group('rejects', () {
       test('a plain EAN-13, which is not a GS1 element string', () {
         expect(gtinFromGs1('4690388119119'), isNull);

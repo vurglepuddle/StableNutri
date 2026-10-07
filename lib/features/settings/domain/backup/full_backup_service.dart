@@ -149,26 +149,59 @@ class FullBackupService {
     if (bytes.length > maxBytes) {
       throw const FormatException('Backup too large');
     }
-    final archive = ZipDecoder().decodeBytes(bytes, verify: true);
-    if (archive.files.fold<int>(0, (sum, f) => sum + f.size) > maxBytes) {
+    // archive 4.0.9 ignores ZipDecoder's verify flag and collapses duplicate
+    // filenames. Validate directory entries ourselves, then bound inflation
+    // and verify each CRC before parsing any model or writing target data.
+    final directory = ZipDirectory()..read(InputMemoryStream(bytes));
+    if (directory.fileHeaders.fold<int>(
+          0,
+          (sum, f) => sum + f.uncompressedSize,
+        ) >
+        maxBytes) {
       throw const FormatException('Expanded backup too large');
     }
-    final entries = <String, ArchiveFile>{};
-    for (final f in archive.files) {
-      if (!f.isFile ||
-          entries.containsKey(f.name) ||
-          (f.name != manifestName && !_safeImage(f.name))) {
-        throw const FormatException('Invalid or duplicate archive path');
+    final entries = <String, List<int>>{};
+    for (final header in directory.fileHeaders) {
+      final name = header.filename;
+      final file = header.file;
+      if (entries.containsKey(name) ||
+          (name != manifestName && !_safeImage(name)) ||
+          file == null ||
+          file.filename != name ||
+          (header.generalPurposeBitFlag & 1) != 0 ||
+          (file.flags & 1) != 0 ||
+          ((header.externalFileAttributes >> 16) & 0xf000) == 0xa000 ||
+          (header.compressionMethod != 0 && header.compressionMethod != 8)) {
+        throw const FormatException('Invalid archive entry');
       }
-      entries[f.name] = f;
+      final output = _BoundedBytes(header.uncompressedSize);
+      final compressed = file.getRawContent();
+      if (header.compressionMethod == 8) {
+        final input = ZLibCodec(
+          raw: true,
+        ).decoder.startChunkedConversion(output);
+        // Chunk input as well as output, so malformed compressed data cannot
+        // make the native decoder accumulate an unbounded output in one call.
+        for (var start = 0; start < compressed.length; start += 1024) {
+          final end = (start + 1024).clamp(0, compressed.length);
+          input.add(Uint8List.sublistView(compressed, start, end));
+        }
+        input.close();
+      } else {
+        output.add(compressed);
+      }
+      final content = output.bytes.takeBytes();
+      if (content.length != header.uncompressedSize ||
+          getCrc32(content) != header.crc32) {
+        throw const FormatException('Damaged backup entry');
+      }
+      entries[name] = content;
     }
     final manifest = entries.remove(manifestName);
     if (manifest == null) {
       throw const FormatException('Not a full Stable backup');
     }
-    final j =
-        jsonDecode(utf8.decode(manifest.content as List<int>))
-            as Map<String, dynamic>;
+    final j = jsonDecode(utf8.decode(manifest)) as Map<String, dynamic>;
     if (j['format'] != 'stable-full-backup' || j['version'] != 1) {
       throw const FormatException('Unsupported backup version');
     }
@@ -229,7 +262,7 @@ class FullBackupService {
     return FullBackup(
       j['activeProfile'] as String,
       stores,
-      {for (final name in names) name: entries[name]!.content as List<int>},
+      {for (final name in names) name: entries[name]!},
       profiles.length,
       missingPhotoCount: (j['missingImages'] as List).length,
     );
@@ -288,4 +321,20 @@ class FullBackupService {
     // The old dataset remains intact, even if staging or this rename fails.
     await db.activateRestoredDataset(namespace, backup.activeProfile);
   }
+}
+
+class _BoundedBytes extends ByteConversionSink {
+  final int limit;
+  final bytes = BytesBuilder();
+  _BoundedBytes(this.limit);
+  @override
+  void add(List<int> chunk) {
+    if (bytes.length + chunk.length > limit) {
+      throw const FormatException('Expanded entry exceeds its declared size');
+    }
+    bytes.add(chunk);
+  }
+
+  @override
+  void close() {}
 }

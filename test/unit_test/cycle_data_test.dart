@@ -44,6 +44,44 @@ void main() {
     expect(gap.cycleLengths, isEmpty);
     expect(gap.records.length, 2);
   });
+  test('forecasts repeat every cycle without drifting', () {
+    // Intervals 29, 30, 29, 30, 29: the average is 29.4 days.
+    final data = CycleData(
+      records: [
+        for (final (i, day) in [0, 29, 59, 88, 118, 147].indexed)
+          PeriodRecord(
+            id: '$i',
+            start: DateTime(2026, 1, 1 + day),
+            end: DateTime(2026, 1, 5 + day),
+          ),
+      ],
+    );
+    final last = DateTime(2026, 1, 148);
+    bool on(int offset) =>
+        data.predictedOn(DateTime(last.year, last.month, last.day + offset));
+    expect(data.averageCycle, closeTo(29.4, 1e-9));
+    expect(data.expectedStart, DateTime(2026, 1, 148 + 29));
+    // Cycle 1 starts at 29, cycle 10 at round(294) = 294, never 290.
+    for (final n in [1, 2, 6, 10, 20]) {
+      final start = (n * 29.4).round();
+      expect(on(start - 1), isFalse, reason: 'day before cycle $n');
+      expect(on(start), isTrue, reason: 'start of cycle $n');
+      expect(on(start + 4), isTrue, reason: 'last day of cycle $n');
+      expect(on(start + 5), isFalse, reason: 'day after cycle $n');
+    }
+    expect(on(0), isFalse, reason: 'the recorded start is not a forecast');
+    expect(on(-29), isFalse);
+  });
+  test('a moved forecast anchors the cycles after it', () {
+    final data = CycleData(
+      records: [row('a', 1, end: 5)],
+      expectedOverride: DateTime(2026, 2, 3),
+    );
+    expect(data.predictedOn(DateTime(2026, 2, 3)), isTrue);
+    expect(data.predictedOn(DateTime(2026, 1, 29)), isFalse);
+    expect(data.predictedOn(DateTime(2026, 3, 3)), isTrue);
+    expect(data.predictedOn(DateTime(2026, 3, 2)), isFalse);
+  });
   test('moving a forecast never becomes a recorded start', () {
     final data = CycleData(records: [row('a', 1, end: 5)]);
     final moved = data.copyWith(expectedOverride: DateTime(2026, 2, 3));

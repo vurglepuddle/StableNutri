@@ -140,7 +140,8 @@ class CyclePage extends StatelessWidget {
                     data: data,
                     initialDay: today,
                     firstDay: DateTime(1900),
-                    lastDay: DateTime(today.year + 2),
+                    // Forecasts repeat for as far as the user scrolls.
+                    lastDay: DateTime(today.year + 5),
                   ),
                   const Padding(
                     padding: EdgeInsets.fromLTRB(8, 8, 8, 12),

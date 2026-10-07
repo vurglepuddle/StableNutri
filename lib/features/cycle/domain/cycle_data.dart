@@ -110,9 +110,10 @@ class CycleData {
 
   double get averageCycle => _average(cycleLengths, guessedCycleDays);
   double get averagePeriod => _average(periodLengths, guessedPeriodDays);
+  DateTime? get _lastStart => sorted.isEmpty ? guessedStart : sorted.last.start;
   DateTime? get expectedStart {
     if (expectedOverride != null) return expectedOverride;
-    final start = sorted.isEmpty ? guessedStart : sorted.last.start;
+    final start = _lastStart;
     return start == null
         ? null
         : DateTime(start.year, start.month, start.day + averageCycle.round());
@@ -123,11 +124,24 @@ class CycleData {
         !cycleDate(day).isBefore(r.start) &&
         !cycleDate(day).isAfter(r.end ?? cycleDate(today)),
   );
+
+  /// Forecasts repeat without end. Starts are spaced by the unrounded average
+  /// from one anchor, so a 29.4-day average does not drift over the months.
   bool predictedOn(DateTime day) {
-    final start = expectedStart;
-    if (start == null) return false;
-    final offset = cycleDays(start, day);
-    return offset >= 0 && offset < averagePeriod.round();
+    final anchor = expectedOverride ?? _lastStart;
+    if (anchor == null) return false;
+    // A moved forecast is itself the next start; otherwise skip the anchor.
+    final first = expectedOverride == null ? 1 : 0;
+    final cycle = averageCycle;
+    final period = averagePeriod.round().clamp(1, cycle.round());
+    final offset = cycleDays(anchor, day);
+    final nearest = (offset / cycle).floor();
+    for (var n = nearest - 1; n <= nearest + 1; n++) {
+      if (n < first) continue;
+      final start = (n * cycle).round();
+      if (offset >= start && offset < start + period) return true;
+    }
+    return false;
   }
 
   void validate({DateTime? today}) {

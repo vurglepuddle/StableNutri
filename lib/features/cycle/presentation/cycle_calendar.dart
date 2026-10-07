@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_calendar_style.dart';
 import 'package:opennutritracker/features/cycle/domain/cycle_data.dart';
@@ -18,20 +20,56 @@ class CycleDateRing extends StatelessWidget {
         label: predicted
             ? S.of(context).cyclePredicted
             : S.of(context).cycleRecorded,
-        child: Container(
-          margin: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color.withValues(alpha: predicted ? 0.025 : 0.06),
-            border: Border.all(
-              color: color.withValues(alpha: predicted ? 0.22 : 0.45),
-              width: predicted ? 1 : 1.5,
-            ),
-          ),
+        child: Padding(
+          padding: const EdgeInsets.all(3),
+          child: predicted
+              ? CustomPaint(
+                  painter: _DottedRingPainter(color.withValues(alpha: 0.6)),
+                  child: const SizedBox.expand(),
+                )
+              : DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color.withValues(alpha: 0.06),
+                    border: Border.all(
+                      color: color.withValues(alpha: 0.45),
+                      width: 1.5,
+                    ),
+                  ),
+                ),
         ),
       ),
     );
   }
+}
+
+/// Evenly spaced dots, so an estimate never reads as a recorded day.
+class _DottedRingPainter extends CustomPainter {
+  final Color color;
+  const _DottedRingPainter(this.color);
+
+  static const _dotRadius = 1.1;
+  static const _spacing = 4.5;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide / 2 - _dotRadius;
+    if (radius <= 0) return;
+    final count = (2 * math.pi * radius / _spacing).round().clamp(8, 64);
+    final paint = Paint()..color = color;
+    for (var i = 0; i < count; i++) {
+      final angle = 2 * math.pi * i / count - math.pi / 2;
+      canvas.drawCircle(
+        center + Offset(math.cos(angle), math.sin(angle)) * radius,
+        _dotRadius,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DottedRingPainter old) => old.color != color;
 }
 
 class CycleCalendarLegend extends StatelessWidget {

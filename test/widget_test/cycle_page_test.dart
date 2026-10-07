@@ -335,6 +335,57 @@ void main() {
     },
   );
 
+  testWidgets('estimates repeat as dotted rings months ahead', (tester) async {
+    final today = cycleDate(DateTime.now());
+    await tester.runAsync(
+      () => repo.save(
+        repo.data.copyWith(
+          records: [
+            PeriodRecord(
+              id: 'last',
+              start: DateTime(today.year, today.month, today.day - 10),
+              end: DateTime(today.year, today.month, today.day - 6),
+            ),
+          ],
+        ),
+        generation: 0,
+      ),
+    );
+    await tester.pumpWidget(app(const Scaffold(body: CyclePage())));
+    await tester.pumpAndSettle();
+    final calendar = find.byType(TableCalendar<void>);
+    final next = find.descendant(
+      of: calendar,
+      matching: find.byIcon(Icons.chevron_right_rounded),
+    );
+    for (var month = 0; month < 7; month++) {
+      await tester.ensureVisible(next);
+      await tester.tap(next);
+      await tester.pumpAndSettle();
+    }
+    final predicted = find.descendant(
+      of: calendar,
+      matching: find.byWidgetPredicate(
+        (widget) => widget is CycleDateRing && widget.predicted,
+      ),
+    );
+    expect(predicted, findsAtLeastNWidgets(5));
+    expect(
+      find.descendant(of: predicted.first, matching: find.byType(CustomPaint)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byWidgetPredicate(
+          (widget) => widget is CycleDateRing && !widget.predicted,
+        ),
+        matching: find.byType(CustomPaint),
+      ),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Diary rings surround dates and keep Monday first', (
     tester,
   ) async {

@@ -1,3 +1,8 @@
+import 'package:opennutritracker/features/cycle/data/cycle_repository.dart';
+import 'package:opennutritracker/features/cycle/domain/cycle_data.dart';
+import 'package:opennutritracker/features/cycle/presentation/cycle_page.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
@@ -32,6 +37,29 @@ class DiaryTableCalendar extends StatefulWidget {
 class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
   @override
   Widget build(BuildContext context) {
+    if (!locator.isRegistered<CycleRepository>()) {
+      return _calendar(context, const CycleData());
+    }
+    final repo = locator<CycleRepository>();
+    return ListenableBuilder(
+      listenable: repo,
+      builder: (context, _) => Column(
+        children: [
+          _calendar(context, repo.data),
+          if (repo.data.enabled)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                '${S.of(context).cycleRecorded} \u25cf  /  ${S.of(context).cyclePredicted} \u25cb',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _calendar(BuildContext context, CycleData cycle) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final accent = Theme.of(context).colorScheme.primary;
@@ -88,7 +116,49 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
           lastDay: widget.currentDate.add(widget.calendarDurationDays),
           startingDayOfWeek: StartingDayOfWeek.monday,
           onDaySelected: (selectedDay, focusedDay) {
-            widget.onDateSelected(selectedDay, widget.trackedDaysMap);
+            if (cycle.enabled &&
+                (cycle.recordedOn(selectedDay, DateTime.now()) ||
+                    cycle.predictedOn(selectedDay))) {
+              showModalBottomSheet<void>(
+                context: context,
+                useSafeArea: true,
+                builder: (sheet) => SafeArea(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        title: Text(S.of(context).diaryLabel),
+                        onTap: () {
+                          Navigator.pop(sheet);
+                          widget.onDateSelected(
+                            selectedDay,
+                            widget.trackedDaysMap,
+                          );
+                        },
+                      ),
+                      ListTile(
+                        title: Text(S.of(context).cycleLabel),
+                        onTap: () {
+                          Navigator.pop(sheet);
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => Scaffold(
+                                appBar: AppBar(
+                                  title: Text(S.of(context).cycleLabel),
+                                ),
+                                body: const CyclePage(),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            } else {
+              widget.onDateSelected(selectedDay, widget.trackedDaysMap);
+            }
           },
           calendarStyle: CalendarStyle(
             markersMaxCount: 1,
@@ -126,6 +196,49 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
           calendarBuilders: CalendarBuilders(
             markerBuilder: (context, date, events) {
               final trackedDay = widget.trackedDaysMap[date.toParsedDay()];
+              final recorded =
+                  cycle.enabled && cycle.recordedOn(date, DateTime.now());
+              final predicted =
+                  cycle.enabled &&
+                  !recorded &&
+                  cycle.predictedOn(date) &&
+                  !cycleDate(date).isBefore(cycleDate(DateTime.now()));
+              if (recorded || predicted) {
+                return Semantics(
+                  label: recorded
+                      ? S.of(context).cycleRecorded
+                      : S.of(context).cyclePredicted,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        margin: const EdgeInsets.only(top: 10),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(
+                            0xFF6C8B7E,
+                          ).withValues(alpha: recorded ? 1 : 0.18),
+                          border: Border.all(color: const Color(0xFF6C8B7E)),
+                        ),
+                      ),
+                      if (trackedDay != null)
+                        Container(
+                          width: 5,
+                          height: 5,
+                          margin: const EdgeInsets.only(top: 10, left: 3),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: trackedDay.getCalendarDayRatingColor(
+                              context,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              }
               if (trackedDay != null) {
                 return Container(
                   margin: const EdgeInsets.only(top: 10),

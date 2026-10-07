@@ -50,6 +50,7 @@ class DeleteAllUserDataUsecase {
       _hiveDBProvider.waterIntakeBox.clear(),
       _hiveDBProvider.fastingBox.clear(),
       _hiveDBProvider.dailyStepsBox.clear(),
+      _hiveDBProvider.cycleBox.clear(),
     ]);
   }
 

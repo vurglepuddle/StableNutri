@@ -170,6 +170,32 @@ class NotificationService {
     _log.fine('Fasting-complete notification cancelled');
   }
 
+  Future<void> scheduleCycleReminder({
+    required DateTime? when,
+    required String title,
+    required String body,
+  }) async {
+    await _ensureInitialized();
+    await _plugin.cancel(id: 2);
+    if (when == null || !when.isAfter(DateTime.now())) return;
+    await _plugin.zonedSchedule(
+      id: 2,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(when, tz.local),
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          'cycle_reminder',
+          title,
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+        iOS: const DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  }
+
   /// Cancels every notification this app has scheduled.
   ///
   /// For the delete-all path, which must not leave an alarm behind that

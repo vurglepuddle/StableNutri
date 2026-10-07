@@ -1,3 +1,5 @@
+import 'package:opennutritracker/features/cycle/data/cycle_repository.dart';
+import 'package:opennutritracker/features/cycle/presentation/cycle_page.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -38,10 +40,25 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   bool _handlingWidget = false;
   bool _widgetEventPending = false;
   bool _dependenciesReady = false;
+  CycleRepository? _cycle;
+
+  void _cycleChanged() {
+    if (!mounted) return;
+    setState(() {
+      if (_selectedDestination == MainDestination.cycle &&
+          !_cycle!.data.enabled) {
+        _selectedDestination = MainDestination.today;
+      }
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+    if (locator.isRegistered<CycleRepository>()) {
+      _cycle = locator<CycleRepository>();
+      _cycle!.addListener(_cycleChanged);
+    }
     WidgetsBinding.instance.addObserver(this);
     _widgetEvents = LauncherWidgetService.events.listen(
       (_) => _openWidgetAction(),
@@ -51,6 +68,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _cycle?.removeListener(_cycleChanged);
     _widgetEvents?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -110,6 +128,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   @override
   void didChangeDependencies() {
     context.watch<EnergyUnitProvider>();
+    _cycle?.useLabels(S.of(context));
     if (_dependenciesReady && LauncherWidgetService.supported) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) locator<HomeBloc>().add(const LoadItemsEvent());
@@ -121,14 +140,22 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       const TrendsPage(),
       const RecipesPage(),
       const ProfilePage(),
+      if (_cycle?.data.enabled ?? false)
+        const CyclePage()
+      else
+        const SizedBox.shrink(),
     ];
     _appbarPages = [
-      const HomeAppbar(),
+      HomeAppbar(onAdd: () => _onAddPressed(context)),
       MainAppbar(title: S.of(context).trendsLabel, iconData: Icons.insights),
       // RecipesPage owns its app bar because its create/import actions belong
       // to that surface. It can still be pushed as a standalone route.
       null,
       MainAppbar(title: S.of(context).youLabel, iconData: Icons.account_circle),
+      MainAppbar(
+        title: S.of(context).cycleLabel,
+        iconData: Icons.calendar_month,
+      ),
     ];
     super.didChangeDependencies();
   }
@@ -144,21 +171,21 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         appBar: _appbarPages[_selectedDestination.index],
         body: IndexedStack(
           index: _selectedDestination.index,
-          children: _bodyPages,
+          children: [
+            for (var i = 0; i < _bodyPages.length; i++)
+              if (i == MainDestination.cycle.index)
+                (_cycle?.data.enabled ?? false)
+                    ? const CyclePage()
+                    : const SizedBox.shrink()
+              else
+                _bodyPages[i],
+          ],
         ),
-        floatingActionButton: Semantics(
-          identifier: 'fab-add-item',
-          child: FloatingActionButton(
-            onPressed: () => _onFabPressed(context),
-            tooltip: S.of(context).addLabel,
-            child: const Icon(Icons.add, size: 30),
-          ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         bottomNavigationBar: MainBottomNavigationBar(
           selectedDestination: _selectedDestination,
           palette: palette,
           onSelect: _setDestination,
+          showCycle: _cycle?.data.enabled ?? false,
         ),
       ),
     );
@@ -170,7 +197,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     });
   }
 
-  Future<void> _onFabPressed(BuildContext context) async {
+  Future<void> _onAddPressed(BuildContext context) async {
     final config = await locator<GetConfigUsecase>().getConfig();
     if (!context.mounted) return;
     // On Today, new entries go to whichever day is being shown. Elsewhere
@@ -203,12 +230,14 @@ class MainBottomNavigationBar extends StatelessWidget {
   final MainDestination selectedDestination;
   final AppPalette palette;
   final ValueChanged<MainDestination> onSelect;
+  final bool showCycle;
 
   const MainBottomNavigationBar({
     super.key,
     required this.selectedDestination,
     required this.palette,
     required this.onSelect,
+    this.showCycle = false,
   });
 
   @override
@@ -221,8 +250,6 @@ class MainBottomNavigationBar extends StatelessWidget {
       elevation: 0,
       height: 78 + extraHeight,
       padding: EdgeInsets.zero,
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8,
       child: Row(
         children: [
           _NavItem(
@@ -247,7 +274,6 @@ class MainBottomNavigationBar extends StatelessWidget {
             palette: palette,
             onTap: onSelect,
           ),
-          const SizedBox(width: 64), // notch gap for the centre Add FAB
           _NavItem(
             id: 'nav-library',
             icon: Icons.menu_book_outlined,
@@ -258,6 +284,17 @@ class MainBottomNavigationBar extends StatelessWidget {
             palette: palette,
             onTap: onSelect,
           ),
+          if (showCycle)
+            _NavItem(
+              id: 'nav-cycle',
+              icon: Icons.calendar_month_outlined,
+              selectedIcon: Icons.calendar_month_rounded,
+              label: S.of(context).cycleLabel,
+              destination: MainDestination.cycle,
+              selectedDestination: selectedDestination,
+              palette: palette,
+              onTap: onSelect,
+            ),
           _NavItem(
             id: 'nav-you',
             icon: Icons.account_circle_outlined,

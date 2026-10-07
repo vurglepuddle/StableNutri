@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 ///
 /// Diary remains a full screen, but it is opened from Today rather than
 /// occupying one of the four persistent destinations.
-enum MainDestination { today, trends, library, you }
+enum MainDestination { today, trends, library, you, cycle }
 
 /// Lets descendants such as the You page switch an existing main-shell tab
 /// instead of pushing a duplicate copy of that destination.

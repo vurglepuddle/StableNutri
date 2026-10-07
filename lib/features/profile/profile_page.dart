@@ -1,3 +1,4 @@
+import 'package:opennutritracker/features/cycle/presentation/cycle_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
@@ -99,6 +100,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       children: [
         const ProfileSwitcherHeader(),
+        const CycleProfileTile(),
         const SizedBox(height: Dimens.spacing24),
         BMIOverview(
           bmiValue: userBMIEntity.bmiValue,

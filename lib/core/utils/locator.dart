@@ -1,3 +1,4 @@
+import 'package:opennutritracker/features/cycle/data/cycle_repository.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:opennutritracker/core/data/health/health_connect_service.dart';
 import 'package:opennutritracker/core/data/health/health_steps_sync.dart';
@@ -170,6 +171,8 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<NotificationService>(
     () => NotificationService(),
   );
+
+  locator.registerLazySingleton(() => CycleRepository(locator(), locator()));
 
   // Cache manager
   locator.registerLazySingleton<CacheManager>(

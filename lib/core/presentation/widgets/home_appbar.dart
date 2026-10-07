@@ -4,7 +4,9 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
-  const HomeAppbar({super.key});
+  const HomeAppbar({super.key, this.onAdd});
+
+  final VoidCallback? onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +17,15 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
         child: StableWordmark(),
       ),
       actions: [
+        if (onAdd != null)
+          Semantics(
+            identifier: 'today-add-item',
+            child: IconButton(
+              tooltip: S.of(context).addLabel,
+              onPressed: onAdd,
+              icon: const Icon(Icons.add_rounded),
+            ),
+          ),
         Semantics(
           identifier: 'today-open-diary',
           child: IconButton(

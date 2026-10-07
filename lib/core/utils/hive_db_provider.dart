@@ -53,6 +53,7 @@ class HiveDBProvider extends ChangeNotifier {
   static const bodyMeasurementLogBoxName = 'BodyMeasurementLogBox';
   static const lifesumImportJournalBoxName = 'LifesumImportJournalBox';
   static const dailyStepsBoxName = 'DailyStepsBox';
+  static const cycleBoxName = 'CycleBox';
   // #32: per-entry water intake log keyed by uuid; one row per sip so the
   // dialog's "undo last" can roll a single entry back without losing the
   // rest of the day.
@@ -85,6 +86,7 @@ class HiveDBProvider extends ChangeNotifier {
     bodyMeasurementLogBoxName,
     lifesumImportJournalBoxName,
     dailyStepsBoxName,
+    cycleBoxName,
     waterIntakeBoxName,
     fastingBoxName,
   ];
@@ -115,6 +117,8 @@ class HiveDBProvider extends ChangeNotifier {
   Box<BodyMeasurementLogDBO>? _bodyMeasurementLogBox;
   Box<String>? _lifesumImportJournalBox;
   Box<String>? _dailyStepsBox;
+  Box<String>? _cycleBox;
+  Box<String> get cycleBox => _requireBox(_cycleBox, cycleBoxName);
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
 
@@ -278,6 +282,10 @@ class HiveDBProvider extends ChangeNotifier {
       boxNameFor(dailyStepsBoxName, suffix),
       encryptionCipher: _cipher,
     );
+    _cycleBox = await Hive.openBox(
+      boxNameFor(cycleBoxName, suffix),
+      encryptionCipher: _cipher,
+    );
   }
 
   Future<void> _closeActiveProfileBoxes() async {
@@ -291,6 +299,7 @@ class HiveDBProvider extends ChangeNotifier {
       if (_bodyMeasurementLogBox != null) _bodyMeasurementLogBox!.close(),
       if (_lifesumImportJournalBox != null) _lifesumImportJournalBox!.close(),
       if (_dailyStepsBox != null) _dailyStepsBox!.close(),
+      if (_cycleBox != null) _cycleBox!.close(),
       if (_waterIntakeBox != null) _waterIntakeBox!.close(),
       if (_fastingBox != null) _fastingBox!.close(),
     ]);
@@ -303,6 +312,7 @@ class HiveDBProvider extends ChangeNotifier {
     _bodyMeasurementLogBox = null;
     _lifesumImportJournalBox = null;
     _dailyStepsBox = null;
+    _cycleBox = null;
     _waterIntakeBox = null;
     _fastingBox = null;
   }

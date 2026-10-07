@@ -12,6 +12,7 @@ Widget _app({
   required MainDestination selected,
   required ValueChanged<MainDestination> onSelect,
   double textScale = 1,
+  bool showCycle = false,
 }) {
   return MaterialApp(
     localizationsDelegates: const [
@@ -28,21 +29,37 @@ Widget _app({
       child: child!,
     ),
     home: Scaffold(
-      floatingActionButton: const FloatingActionButton(
-        onPressed: null,
-        child: Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: MainBottomNavigationBar(
         selectedDestination: selected,
         palette: AppPalette.light,
         onSelect: onSelect,
+        showCycle: showCycle,
       ),
     ),
   );
 }
 
 void main() {
+  testWidgets('Cycle appears before You only when enabled', (tester) async {
+    await tester.pumpWidget(
+      _app(selected: MainDestination.you, onSelect: (_) {}),
+    );
+    expect(find.text('Cycle'), findsNothing);
+    await tester.pumpWidget(
+      _app(selected: MainDestination.cycle, showCycle: true, onSelect: (_) {}),
+    );
+    expect(find.text('Cycle'), findsOneWidget);
+    expect(
+      tester.getCenter(find.text('Library')).dx,
+      lessThan(tester.getCenter(find.text('Cycle')).dx),
+    );
+    expect(
+      tester.getCenter(find.text('Cycle')).dx,
+      lessThan(tester.getCenter(find.text('You')).dx),
+    );
+    expect(find.byType(FloatingActionButton), findsNothing);
+  });
+
   testWidgets('uses the approved Stable destination order', (tester) async {
     await tester.pumpWidget(
       _app(selected: MainDestination.today, onSelect: (_) {}),

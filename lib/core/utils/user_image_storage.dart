@@ -68,6 +68,8 @@ class UserImageStorage {
   /// before it could appear. It only changes between launches (iOS).
   static String? _documentsPath;
 
+  static void setDocumentsRoot(String path) => _documentsPath = path;
+
   @visibleForTesting
   static void resetDocumentsPathCache() => _documentsPath = null;
 
@@ -90,8 +92,9 @@ class UserImageStorage {
   /// Absolute path to the relevant images directory itself. Created
   /// if missing.
   static Future<Directory> ensureDirectory(UserImageKind kind) async {
-    final dir = await getApplicationDocumentsDirectory();
-    final imagesDir = Directory('${dir.path}/${kind.subdir}');
+    final base = _documentsPath ??=
+        (await getApplicationDocumentsDirectory()).path;
+    final imagesDir = Directory('$base/${kind.subdir}');
     if (!await imagesDir.exists()) {
       await imagesDir.create(recursive: true);
     }

@@ -36,7 +36,9 @@ Future<void> bootstrapActiveProfile(
     await secureAppStorageProvider.setActiveProfileId(id);
   }
 
-  var activeId = await secureAppStorageProvider.getActiveProfileId();
+  var activeId =
+      hiveDBProvider.restoredActiveProfileId ??
+      await secureAppStorageProvider.getActiveProfileId();
   var activeProfile = activeId == null ? null : profileBox.get(activeId);
 
   // Pointer dangles (profile deleted, storage cleared, downgrade): fall

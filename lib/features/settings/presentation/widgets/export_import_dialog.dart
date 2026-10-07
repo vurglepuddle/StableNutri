@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/full_backup_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -45,6 +46,21 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Semantics(
+                identifier: 'settings-full-backup',
+                child: FilledButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const FullBackupPage(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.backup_outlined),
+                  label: Text(S.of(context).fullBackupTitle),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(S.of(context).fullBackupLegacy),
+              const SizedBox(height: 8),
               SegmentedButton<ExportFormat>(
                 segments: const [
                   ButtonSegment(value: ExportFormat.json, label: Text('JSON')),

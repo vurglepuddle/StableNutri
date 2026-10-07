@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'dart:convert';
+import 'package:path_provider/path_provider.dart';
+import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -35,6 +39,35 @@ import 'package:opennutritracker/hive_registrar.g.dart';
 /// opens the target's, so the per-profile getters always hand back the
 /// boxes belonging to whoever is active right now.
 class HiveDBProvider extends ChangeNotifier {
+  String dataset = '';
+  String? restoredActiveProfileId;
+  bool restorePending = false;
+  late String documentsDirectory;
+  String physicalBoxName(String base, [String suffix = '']) =>
+      '${dataset.isEmpty ? '' : '${dataset}_'}${boxNameFor(base, suffix)}';
+
+  Future<void> activateRestoredDataset(String name, String profileId) async {
+    final pointer = File('$documentsDirectory/stable_dataset.json');
+    final pending = File('${pointer.path}.pending');
+    await pending.writeAsString(
+      jsonEncode({'dataset': name, 'activeProfileId': profileId}),
+      flush: true,
+    );
+    await pending.rename(pointer.path);
+    restorePending = true;
+  }
+
+  Future<void> _saveDatasetProfile(String id) async {
+    if (dataset.isEmpty || restorePending) return;
+    final pointer = File('$documentsDirectory/stable_dataset.json');
+    final pending = File('${pointer.path}.profile');
+    await pending.writeAsString(
+      jsonEncode({'dataset': dataset, 'activeProfileId': id}),
+      flush: true,
+    );
+    await pending.rename(pointer.path);
+  }
+
   static const configBoxName = 'ConfigBox';
   static const intakeBoxName = 'IntakeBox';
   static const userActivityBoxName = 'UserActivityBox';
@@ -174,37 +207,61 @@ class HiveDBProvider extends ChangeNotifier {
   /// boxes are opened separately via [openProfileBoxes] once the caller
   /// (the locator's startup migration) has decided which profile is
   /// active.
-  Future<void> initHiveDB(Uint8List encryptionKey) async {
+  Future<void> initHiveDB(
+    Uint8List encryptionKey, {
+    bool registerAdapters = true,
+  }) async {
     _cipher = HiveAesCipher(encryptionKey);
     await Hive.initFlutter();
+    documentsDirectory = (await getApplicationDocumentsDirectory()).path;
+    final pointer = File('$documentsDirectory/stable_dataset.json');
+    if (await pointer.exists()) {
+      final saved =
+          jsonDecode(await pointer.readAsString()) as Map<String, dynamic>;
+      final name = saved['dataset'] as String;
+      if (!RegExp(r'^restore_[a-zA-Z0-9_]+$').hasMatch(name)) {
+        throw const FormatException('Invalid dataset');
+      }
+      dataset = name;
+      restoredActiveProfileId = saved['activeProfileId'] as String;
+    }
+    UserImageStorage.setDocumentsRoot(
+      dataset.isEmpty ? documentsDirectory : '$documentsDirectory/$dataset',
+    );
     // Delegate to the generated registrar so any new DBO type added to
     // the project is registered automatically on the next `just build`.
     // Registering by hand had drifted out of sync — `CaloriesProfileDBO`
     // (#7 on UserDBO) was missing, causing every save with a non-null
     // hormone profile to throw, which the previous broken async chains
     // swallowed silently. Result: profile reset to null on app relaunch.
-    Hive.registerAdapters();
+    if (registerAdapters) Hive.registerAdapters();
 
-    profileBox = await Hive.openBox(profileBoxName, encryptionCipher: _cipher);
+    profileBox = await Hive.openBox(
+      physicalBoxName(profileBoxName),
+      encryptionCipher: _cipher,
+    );
     cachedOffMealBox = await Hive.openBox(
-      cachedOffMealBoxName,
+      physicalBoxName(cachedOffMealBoxName),
       encryptionCipher: _cipher,
     );
     cachedOffMealTimestampsBox = await Hive.openBox(
-      cachedOffMealTimestampsBoxName,
+      physicalBoxName(cachedOffMealTimestampsBoxName),
       encryptionCipher: _cipher,
     );
     _appConfigBox = await Hive.openBox(
-      appConfigBoxName,
+      physicalBoxName(appConfigBoxName),
       encryptionCipher: _cipher,
     );
     customMealBox = await Hive.openBox(
-      customMealBoxName,
+      physicalBoxName(customMealBoxName),
       encryptionCipher: _cipher,
     );
-    recipeBox = await Hive.openBox(recipeBoxName, encryptionCipher: _cipher);
+    recipeBox = await Hive.openBox(
+      physicalBoxName(recipeBoxName),
+      encryptionCipher: _cipher,
+    );
     customActivityTemplateBox = await Hive.openBox(
-      customActivityTemplateBoxName,
+      physicalBoxName(customActivityTemplateBoxName),
       encryptionCipher: _cipher,
     );
   }
@@ -216,6 +273,7 @@ class HiveDBProvider extends ChangeNotifier {
     _activeBoxSuffix = boxSuffix;
     await _openActiveProfileBoxes();
     _activeProfileGeneration++;
+    await _saveDatasetProfile(profileId);
   }
 
   /// Closes the current profile's box-set and opens [profileId]'s. The
@@ -233,57 +291,58 @@ class HiveDBProvider extends ChangeNotifier {
     } finally {
       _switching = false;
     }
+    await _saveDatasetProfile(profileId);
     notifyListeners();
   }
 
   Future<void> _openActiveProfileBoxes() async {
     final suffix = _activeBoxSuffix;
     _configBox = await Hive.openBox(
-      boxNameFor(configBoxName, suffix),
+      physicalBoxName(configBoxName, suffix),
       encryptionCipher: _cipher,
     );
     _intakeBox = await Hive.openBox(
-      boxNameFor(intakeBoxName, suffix),
+      physicalBoxName(intakeBoxName, suffix),
       encryptionCipher: _cipher,
     );
     _userActivityBox = await Hive.openBox(
-      boxNameFor(userActivityBoxName, suffix),
+      physicalBoxName(userActivityBoxName, suffix),
       encryptionCipher: _cipher,
     );
     _userBox = await Hive.openBox(
-      boxNameFor(userBoxName, suffix),
+      physicalBoxName(userBoxName, suffix),
       encryptionCipher: _cipher,
     );
     _trackedDayBox = await Hive.openBox(
-      boxNameFor(trackedDayBoxName, suffix),
+      physicalBoxName(trackedDayBoxName, suffix),
       encryptionCipher: _cipher,
     );
     _weightLogBox = await Hive.openBox(
-      boxNameFor(weightLogBoxName, suffix),
+      physicalBoxName(weightLogBoxName, suffix),
       encryptionCipher: _cipher,
     );
     _bodyMeasurementLogBox = await Hive.openBox(
-      boxNameFor(bodyMeasurementLogBoxName, suffix),
+      physicalBoxName(bodyMeasurementLogBoxName, suffix),
       encryptionCipher: _cipher,
     );
     _lifesumImportJournalBox = await Hive.openBox(
-      boxNameFor(lifesumImportJournalBoxName, suffix),
+      physicalBoxName(lifesumImportJournalBoxName, suffix),
       encryptionCipher: _cipher,
     );
     _waterIntakeBox = await Hive.openBox(
-      boxNameFor(waterIntakeBoxName, suffix),
+      physicalBoxName(waterIntakeBoxName, suffix),
       encryptionCipher: _cipher,
     );
     _fastingBox = await Hive.openBox(
-      boxNameFor(fastingBoxName, suffix),
+      physicalBoxName(fastingBoxName, suffix),
       encryptionCipher: _cipher,
     );
     _dailyStepsBox = await Hive.openBox(
-      boxNameFor(dailyStepsBoxName, suffix),
+      physicalBoxName(dailyStepsBoxName, suffix),
       encryptionCipher: _cipher,
     );
     _cycleBox = await Hive.openBox(
-      boxNameFor(cycleBoxName, suffix),
+      physicalBoxName(cycleBoxName, suffix),
       encryptionCipher: _cipher,
     );
   }
@@ -323,7 +382,7 @@ class HiveDBProvider extends ChangeNotifier {
   /// profile — without disturbing the active box-set.
   Future<Box<E>> openScopedBox<E>(String baseName, String boxSuffix) {
     return Hive.openBox<E>(
-      boxNameFor(baseName, boxSuffix),
+      physicalBoxName(baseName, boxSuffix),
       encryptionCipher: _cipher,
     );
   }
@@ -334,7 +393,7 @@ class HiveDBProvider extends ChangeNotifier {
   /// stay resident — mirroring how switching profiles closes the outgoing
   /// box-set. A no-op if the box isn't open.
   Future<void> closeScopedBox<E>(String baseName, String boxSuffix) async {
-    final name = boxNameFor(baseName, boxSuffix);
+    final name = physicalBoxName(baseName, boxSuffix);
     if (Hive.isBoxOpen(name)) {
       await Hive.box<E>(name).close();
     }
@@ -346,8 +405,65 @@ class HiveDBProvider extends ChangeNotifier {
   /// touched here.
   Future<void> deleteProfileBoxes(String boxSuffix) async {
     for (final base in perProfileBoxNames) {
-      await Hive.deleteBoxFromDisk(boxNameFor(base, boxSuffix));
+      await Hive.deleteBoxFromDisk(physicalBoxName(base, boxSuffix));
     }
+  }
+
+  Future<Box<dynamic>> openDataBox(
+    String base, {
+    String suffix = '',
+    String? namespace,
+  }) {
+    final prefix = namespace ?? dataset;
+    final name =
+        '${prefix.isEmpty ? '' : '${prefix}_'}${boxNameFor(base, suffix)}';
+    return switch (base) {
+      'ConfigBox' => Hive.openBox<ConfigDBO>(name, encryptionCipher: _cipher),
+      'IntakeBox' => Hive.openBox<IntakeDBO>(name, encryptionCipher: _cipher),
+      'UserActivityBox' => Hive.openBox<UserActivityDBO>(
+        name,
+        encryptionCipher: _cipher,
+      ),
+      'UserBox' => Hive.openBox<UserDBO>(name, encryptionCipher: _cipher),
+      'TrackedDayBox' => Hive.openBox<TrackedDayDBO>(
+        name,
+        encryptionCipher: _cipher,
+      ),
+      'WeightLogBox' => Hive.openBox<WeightLogDBO>(
+        name,
+        encryptionCipher: _cipher,
+      ),
+      'BodyMeasurementLogBox' => Hive.openBox<BodyMeasurementLogDBO>(
+        name,
+        encryptionCipher: _cipher,
+      ),
+      'LifesumImportJournalBox' => Hive.openBox<String>(
+        name,
+        encryptionCipher: _cipher,
+      ),
+      'DailyStepsBox' => Hive.openBox<String>(name, encryptionCipher: _cipher),
+      'WaterIntakeBox' => Hive.openBox<WaterIntakeDBO>(
+        name,
+        encryptionCipher: _cipher,
+      ),
+      'FastingBox' => Hive.openBox<FastingSessionDBO>(
+        name,
+        encryptionCipher: _cipher,
+      ),
+      'CycleBox' => Hive.openBox<String>(name, encryptionCipher: _cipher),
+      'ProfileBox' => Hive.openBox<ProfileDBO>(name, encryptionCipher: _cipher),
+      'AppConfigBox' => Hive.openBox<ConfigDBO>(
+        name,
+        encryptionCipher: _cipher,
+      ),
+      'CustomMealBox' => Hive.openBox<MealDBO>(name, encryptionCipher: _cipher),
+      'RecipeBox' => Hive.openBox<RecipeDBO>(name, encryptionCipher: _cipher),
+      'CustomActivityTemplateBox' => Hive.openBox<CustomActivityTemplateDBO>(
+        name,
+        encryptionCipher: _cipher,
+      ),
+      _ => throw ArgumentError('Unknown backup box'),
+    };
   }
 
   static List<int> generateNewHiveEncryptionKey() => Hive.generateSecureKey();

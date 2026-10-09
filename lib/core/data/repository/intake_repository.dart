@@ -58,8 +58,18 @@ class IntakeRepository {
         .toList();
   }
 
-  Future<List<IntakeEntity>> getRecentIntake() async {
-    final intakeList = await _intakeDataSource.getRecentlyAddedIntake();
+  Future<List<IntakeEntity>> getRecentIntake({
+    IntakeTypeEntity? preferredType,
+    DateTime? referenceDay,
+    int dayStartOffsetMinutes = 0,
+  }) async {
+    final intakeList = await _intakeDataSource.getRecentlyAddedIntake(
+      preferredType: preferredType == null
+          ? null
+          : IntakeTypeDBO.fromIntakeTypeEntity(preferredType),
+      referenceDay: referenceDay,
+      dayStartOffsetMinutes: dayStartOffsetMinutes,
+    );
 
     return intakeList
         .map((intakeDBO) => IntakeEntity.fromIntakeDBO(intakeDBO))

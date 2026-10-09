@@ -9,6 +9,7 @@ class CustomMealDataSource {
   CustomMealDataSource(this._db);
 
   Box<MealDBO> get _customMealBox => _db.customMealBox;
+  int get profileGeneration => _db.activeProfileGeneration;
 
   Future<void> saveCustomMeal(MealDBO mealDBO) async {
     final existing = findMatchingMeal(MealEntity.fromMealDBO(mealDBO));
@@ -27,6 +28,21 @@ class CustomMealDataSource {
   }
 
   List<MealDBO> getAllCustomMeals() => _customMealBox.values.toList();
+
+  /// Retain a selected remote food beyond the search cache's lifetime.
+  /// Saved full records (including user corrections) take precedence; only
+  /// upgrade an earlier thin search snapshot when full nutrition arrives.
+  Future<void> saveRemoteMealForOffline(MealEntity meal) async {
+    if (meal.source != MealSourceEntity.off &&
+        meal.source != MealSourceEntity.fdc) {
+      return;
+    }
+    final existing = findMatchingMeal(meal);
+    if (existing != null && ((existing.detailed ?? false) || !meal.detailed)) {
+      return;
+    }
+    await saveCustomMeal(MealDBO.fromMealEntity(meal));
+  }
 
   MealDBO? findMatchingMeal(MealEntity meal) {
     return _customMealBox.values.cast<MealDBO?>().firstWhere(

@@ -123,8 +123,16 @@ class GetIntakeUsecase {
     dayStartOffsetMinutes: dayStartOffsetMinutes,
   );
 
-  Future<List<IntakeEntity>> getRecentIntake() async {
-    return _intakeRepository.getRecentIntake();
+  Future<List<IntakeEntity>> getRecentIntake({
+    IntakeTypeEntity? preferredType,
+    DateTime? referenceDay,
+    int dayStartOffsetMinutes = 0,
+  }) async {
+    return _intakeRepository.getRecentIntake(
+      preferredType: preferredType,
+      referenceDay: referenceDay,
+      dayStartOffsetMinutes: dayStartOffsetMinutes,
+    );
   }
 
   Future<IntakeEntity?> getIntakeById(String intakeId) async {

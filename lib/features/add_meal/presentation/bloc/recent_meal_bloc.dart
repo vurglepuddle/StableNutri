@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -22,7 +24,14 @@ class RecentMealBloc extends Bloc<RecentMealEvent, RecentMealState> {
       emit(RecentMealLoadingState());
       try {
         final config = await _getConfigUsecase.getConfig();
-        final recentIntake = await _getIntakeUsecase.getRecentIntake();
+        final recentIntake = await _getIntakeUsecase.getRecentIntake(
+          preferredType: event.intakeType,
+          referenceDay: event.day,
+          dayStartOffsetMinutes: DayBoundaryCalc.totalMinutesOf(
+            config.dayStartOffsetHours,
+            config.dayStartOffsetMinutes,
+          ),
+        );
         final searchString = (event.searchString).toLowerCase();
 
         if (searchString.isEmpty) {

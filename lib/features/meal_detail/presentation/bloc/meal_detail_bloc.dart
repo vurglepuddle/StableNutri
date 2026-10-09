@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
@@ -32,6 +33,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
   final GetTrackedDayUsecase _getTrackedDayUsecase;
   final ProductsRepository _productsRepository;
   final RemoteSearchCacheDataSource _remoteSearchCacheDataSource;
+  final CustomMealDataSource? _customMealDataSource;
 
   MealDetailBloc(
     this._addIntakeUseCase,
@@ -40,13 +42,15 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     this._getMacroGoalUsecase,
     this._getTrackedDayUsecase,
     this._productsRepository,
-    this._remoteSearchCacheDataSource,
-  ) : super(
-        MealDetailInitial(
-          totalQuantityConverted: '100',
-          selectedUnit: UnitDropdownItem.gml.toString(),
-        ),
-      ) {
+    this._remoteSearchCacheDataSource, {
+    CustomMealDataSource? customMealDataSource,
+  }) : _customMealDataSource = customMealDataSource,
+       super(
+         MealDetailInitial(
+           totalQuantityConverted: '100',
+           selectedUnit: UnitDropdownItem.gml.toString(),
+         ),
+       ) {
     on<UpdateKcalEvent>((event, emit) async {
       try {
         final selection = MealQuantityUnits(event.meal).reconcile(
@@ -126,6 +130,19 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     on<HydrateMealEvent>((event, emit) async {
       final meal = event.meal;
       final code = meal.code;
+      final profileGeneration = _customMealDataSource?.profileGeneration;
+      // Selection keeps even a thin snapshot immediately. If a full saved
+      // copy exists, use it before considering the expiring cache/network.
+      final saved = _customMealDataSource?.findMatchingMeal(meal);
+      if (saved != null && (saved.detailed ?? false)) {
+        emit(state.copyWith(hydratedMeal: MealEntity.fromMealDBO(saved)));
+        return;
+      }
+      try {
+        await _customMealDataSource?.saveRemoteMealForOffline(meal);
+      } catch (e, st) {
+        log.warning('Could not save selected food offline', e, st);
+      }
       if (meal.source != MealSourceEntity.off ||
           meal.detailed ||
           code == null ||
@@ -141,11 +158,20 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         final full = cached != null
             ? MealEntity.fromMealDBO(cached)
             : await _productsRepository.getOFFProductByBarcode(code);
+        if (_customMealDataSource?.profileGeneration != profileGeneration) {
+          emit(state.copyWith(isHydrating: false));
+          return;
+        }
         if (cached == null) {
           await _remoteSearchCacheDataSource.cache(
             MealDBO.fromMealEntity(full),
           );
         }
+        if (_customMealDataSource?.profileGeneration != profileGeneration) {
+          emit(state.copyWith(isHydrating: false));
+          return;
+        }
+        await _customMealDataSource?.saveRemoteMealForOffline(full);
         emit(state.copyWith(hydratedMeal: full, isHydrating: false));
       } catch (e, st) {
         // Soft failure: keep the thin result so the user can still log
@@ -164,6 +190,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     MealEntity meal,
     DateTime day,
   ) async {
+    final profileGeneration = _customMealDataSource?.profileGeneration;
     final quantity = double.parse(amountText.replaceAll(',', '.'));
 
     final intakeEntity = IntakeEntity(
@@ -182,6 +209,13 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     // the cache update means the next search shows the freshest data.
     await _addIntakeUseCase.addIntake(intakeEntity);
     _updateTrackedDay(intakeEntity, day);
+    try {
+      if (_customMealDataSource?.profileGeneration == profileGeneration) {
+        await _customMealDataSource?.saveRemoteMealForOffline(meal);
+      }
+    } catch (e, st) {
+      log.warning('Could not save logged food offline', e, st);
+    }
     unawaited(_refreshCacheForSelectedMeal(meal));
   }
 

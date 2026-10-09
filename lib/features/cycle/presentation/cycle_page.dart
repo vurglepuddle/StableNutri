@@ -404,23 +404,12 @@ class _CycleAverages extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        s.cycleObservationCounts(
-                          data.countedCycles.length,
-                          data.periodLengths.length.clamp(0, 6),
-                        ),
-                        style: muted,
-                      ),
-                      if (data.unusualCycles > 0)
-                        Text(
+                  child: data.unusualCycles > 0
+                      ? Text(
                           s.cycleUnusualLeftOut(data.unusualCycles),
                           style: muted,
-                        ),
-                    ],
-                  ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
                 Semantics(
                   identifier: 'cycle-averages-info',
@@ -435,7 +424,22 @@ class _CycleAverages extends StatelessWidget {
                       context: context,
                       builder: (context) => AlertDialog(
                         title: Text(s.cycleAveragesInfo),
-                        content: Text(s.cycleBasedOn),
+                        content: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                s.cycleObservationCounts(
+                                  data.countedCycles.length,
+                                  data.periodLengths.length.clamp(0, 6),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(s.cycleBasedOn),
+                            ],
+                          ),
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context),

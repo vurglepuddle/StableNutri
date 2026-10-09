@@ -32,32 +32,9 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
       (event, emit) => _loadFood(event.searchString, emit),
       transformer: debounceRestartable(searchDebounceDuration),
     );
-    on<RefreshFoodEvent>((event, emit) async {
-      if (_searchString.trim().isEmpty) {
-        _completedQuery = null;
-        emit(FoodInitial());
-        return;
-      }
-      emit(FoodLoadingState());
-      try {
-        final result = await _searchProductUseCase.searchFDCFoodByString(
-          _searchString,
-        );
-        if (emit.isDone) return;
-        emit(
-          FoodLoadedState(
-            food: result.meals,
-            remoteSourceEmpty: result.remoteSourceEmpty,
-            query: _searchString,
-          ),
-        );
-        _completedQuery = _searchString;
-      } catch (error) {
-        log.severe(error);
-        _completedQuery = null;
-        emit(FoodFailedState());
-      }
-    });
+    on<RefreshFoodEvent>(
+      (event, emit) => _loadFood(_searchString, emit, force: true),
+    );
   }
 
   /// Shared search routine for the immediate and debounced events. See
@@ -85,10 +62,24 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
       emit(FoodLoadingState());
     }
     try {
+      final config = await _getConfigUsecase.getConfig();
+      final local = await _searchProductUseCase.searchFDCFoodByString(
+        searchString,
+        skipRemote: true,
+      );
+      if (emit.isDone) return;
+      if (local.meals.isNotEmpty) {
+        emit(
+          FoodLoadedState(
+            food: local.meals,
+            usesImperialUnits: config.usesImperialFoodUnits,
+            query: searchString,
+          ),
+        );
+      }
       final result = await _searchProductUseCase.searchFDCFoodByString(
         searchString,
       );
-      final config = await _getConfigUsecase.getConfig();
       if (emit.isDone) return;
       emit(
         FoodLoadedState(

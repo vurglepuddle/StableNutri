@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -38,6 +40,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
   late ProductsBloc _productsBloc;
   late FoodBloc _foodBloc;
   late RecentMealBloc _recentMealBloc;
+  bool _initialized = false;
 
   // Single smart search: one field, one results list, and source-filter chips.
   // Opens on Recent (fast re-logging); typing searches Products by default,
@@ -54,11 +57,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   @override
   void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized) return;
+    _initialized = true;
     final args =
         ModalRoute.of(context)?.settings.arguments as AddMealScreenArguments;
     _mealType = args.mealType;
     _day = args.day;
-    super.didChangeDependencies();
+    _loadRecentMeals('');
   }
 
   @override
@@ -147,7 +153,17 @@ class _AddMealScreenState extends State<AddMealScreen> {
   }
 
   void _onRecentMealsRefreshButtonPressed() {
-    _recentMealBloc.add(const LoadRecentMealEvent(searchString: ""));
+    _loadRecentMeals('');
+  }
+
+  void _loadRecentMeals(String query) {
+    _recentMealBloc.add(
+      LoadRecentMealEvent(
+        searchString: query,
+        intakeType: _mealType.getIntakeType(),
+        day: _day,
+      ),
+    );
   }
 
   /// Resolves the source to search for a query: an empty query always returns
@@ -188,7 +204,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
       _foodBloc.add(LoadFoodEvent(searchString: inputText));
     }
     if (source == _SearchSource.recent) {
-      _recentMealBloc.add(LoadRecentMealEvent(searchString: inputText));
+      _loadRecentMeals(inputText);
     }
   }
 
@@ -206,7 +222,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
       _foodBloc.add(SearchFoodInputChangedEvent(searchString: inputText));
     }
     if (source == _SearchSource.recent) {
-      _recentMealBloc.add(LoadRecentMealEvent(searchString: inputText));
+      _loadRecentMeals(inputText);
     }
   }
 
@@ -220,7 +236,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
       _foodBloc.add(LoadFoodEvent(searchString: query));
     }
     if (source == _SearchSource.recent) {
-      _recentMealBloc.add(LoadRecentMealEvent(searchString: query));
+      _loadRecentMeals(query);
     }
   }
 
@@ -313,24 +329,34 @@ class _AddMealScreenState extends State<AddMealScreen> {
                   return BlocBuilder<FoodBloc, FoodState>(
                     bloc: _foodBloc,
                     builder: (context, fs) {
-                      // Wait for BOTH sources (OFF and the Supabase backend)
-                      // before rendering the merged list — showing whichever
-                      // lands first would make results pop in and shift when
-                      // the second source arrives. A failed source counts as
-                      // answered, so one outage doesn't block the other's
-                      // results.
-                      if (_productsPending(ps, query) ||
-                          _foodPending(fs, query)) {
-                        return _pendingSpinner;
-                      }
-                      final products = ps is ProductsLoadedState
+                      // Local matches remain usable while either network
+                      // source is pending, including a slow offline timeout.
+                      final products =
+                          ps is ProductsLoadedState && ps.query == query
                           ? ps.products
                           : const <MealEntity>[];
-                      final foods = fs is FoodLoadedState
+                      final foods = fs is FoodLoadedState && fs.query == query
                           ? fs.food
                           : const <MealEntity>[];
-                      final merged = [...products, ...foods];
+                      final seen = <String>{};
+                      final merged = [...products, ...foods].where((meal) {
+                        final key =
+                            '${meal.source.name}:${meal.code ?? meal.name ?? ''}';
+                        final equivalent = IntakeDataSource.sameFoodKey(
+                          MealDBO.fromMealEntity(meal),
+                        );
+                        final unique =
+                            !seen.contains(key) &&
+                            (equivalent == null || !seen.contains(equivalent));
+                        seen.add(key);
+                        if (equivalent != null) seen.add(equivalent);
+                        return unique;
+                      }).toList();
                       if (merged.isEmpty) {
+                        if (_productsPending(ps, query) ||
+                            _foodPending(fs, query)) {
+                          return _pendingSpinner;
+                        }
                         if (ps is ProductsInitial && fs is FoodInitial) {
                           return const DefaultsResultsWidget();
                         }
@@ -457,7 +483,6 @@ class _AddMealScreenState extends State<AddMealScreen> {
           bloc: _recentMealBloc,
           builder: (context, state) {
             if (state is RecentMealInitial) {
-              _recentMealBloc.add(const LoadRecentMealEvent(searchString: ""));
               return const SizedBox();
             } else if (state is RecentMealLoadingState) {
               return const Padding(

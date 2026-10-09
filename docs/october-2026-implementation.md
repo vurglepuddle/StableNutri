@@ -1,4 +1,39 @@
-# October 7 implementation checkpoint
+# October implementation checkpoint
+
+## October 9: food entry and compact Cycle averages
+
+- Food Quick Add also offers kcal/kJ entry independent of profile preference.
+  Unit switches preserve exact energy behind rounded text; saved diary and
+  tracked-day totals use kcal and normal display follows the profile unit.
+  The follow-up passes 28 focused checks plus analyzer/format/diff checks,
+  including all input/preference combinations and large-text layouts. The
+  1,477-test full-suite result below predates this Quick Add follow-up. Release
+  APK rebuilt with the Quick Add selector in all packaged libraries; not installed.
+- Selecting a remote food for logging keeps a lasting per-profile Library
+  snapshot, with full OFF nutrition/servings fetched when available. Offline
+  failures retain the selected nutrition; saved corrections and labels survive.
+  Library snapshots are already included in full backup. Photos retain their
+  existing image-cache behavior, separate from saved nutrition.
+- Search displays local matches before online lookup finishes. The combined
+  All list deduplicates products across its source lists.
+- Slot Recent prioritizes that slot's last 14 logical diary days, including
+  the selected day, then global recents. Priority precedes food deduplication;
+  older/future logs receive no special priority. Diary history stays untouched.
+- The food form offers a kcal/kJ override beside Energy. It converts values
+  without changing the profile preference and saves in the existing kcal
+  storage format; other screens continue using the profile's unit.
+- Cycle averages keep interval/duration and any left-out count visible.
+  Observation counts and explanations move into the existing Info dialog.
+
+Validation: all 1,477 tests pass with Flutter 3.44.8 / Dart 3.12.2; analyzer,
+format and diff checks pass. Coverage includes offline restart/barcode reuse,
+hydration failure/profile switching, 14-day slot boundaries and imported-food
+deduplication, both input energy units and per-serving conversion, and Cycle
+presentation. Develop release APK rebuilt at
+`build/app/outputs/flutter-apk/app-develop-release.apk`; packaged libraries
+contain the new entry/offline code. No phone installation, iOS or remote CI run.
+
+## October 7 checkpoint
 
 Branch `feat/stable-next` continues `stable` at `183e7239`. Changes are split
 into local commits. No push, phone installation or remote CI run was performed.
@@ -24,6 +59,10 @@ this checkpoint preserves the implementation summary inside the repository.
   partial totals are labelled and averages require complete nutrient data.
 - Search hides equivalent custom-food copies without deleting stored records.
   Barcode products and foods with different micronutrients remain separate.
+  The October 8 Lifesum follow-up ignores household portion differences for
+  gram-backed imports and compares all nutrients at six decimal places to
+  remove conversion noise. Existing diary snapshots, IDs and totals remain
+  untouched; serving-only imports keep distinct serving descriptions.
 - Scanner supports additional GS1 matrix/QR forms and explains unsupported
   decoded codes. Camera focus/decoding reliability still requires phone checks.
 - Stable CI checks pushes and PRs using the pinned SDK. Selected dependency

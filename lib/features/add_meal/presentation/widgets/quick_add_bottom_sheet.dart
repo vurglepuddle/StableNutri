@@ -44,6 +44,17 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
   final _proteinController = TextEditingController();
 
   bool _saving = false;
+  bool? _inputUsesKj;
+  double? _convertedKcal;
+  String? _convertedEnergyText;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Seed this sheet's input unit once; choosing another unit here never
+    // changes the profile's display preference.
+    _inputUsesKj ??= context.read<EnergyUnitProvider>().usesKilojoules;
+  }
 
   @override
   void initState() {
@@ -70,12 +81,40 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     final raw = c.text.trim().replaceAll(',', '.');
     if (raw.isEmpty) return null;
     final value = double.tryParse(raw);
-    if (value == null || value < 0) return null;
+    if (value == null || !value.isFinite || value < 0) return null;
     return value;
   }
 
+  double? get _energyKcal {
+    // Converting for display must not round the amount ultimately logged.
+    if (_energyController.text == _convertedEnergyText) return _convertedKcal;
+    final entered = _parsed(_energyController);
+    if (entered == null) return null;
+    return _inputUsesKj! ? UnitCalc.kjToKcal(entered) : entered;
+  }
+
+  void _selectEnergyUnit(bool usesKj) {
+    if (_inputUsesKj == usesKj) return;
+    final kcal = _energyKcal;
+    final shown = kcal == null
+        ? null
+        : usesKj
+        ? UnitCalc.kcalToKj(kcal)
+        : kcal;
+    setState(() {
+      _inputUsesKj = usesKj;
+      _convertedKcal = kcal;
+      _convertedEnergyText = shown == null
+          ? ''
+          : shown
+                .toStringAsFixed(shown > 0 && shown < 0.01 ? 4 : 2)
+                .replaceFirst(RegExp(r'\.?0+$'), '');
+      _energyController.text = _convertedEnergyText!;
+    });
+  }
+
   bool get _canSubmit {
-    final energy = _parsed(_energyController);
+    final energy = _energyKcal;
     final hasTitle = _titleController.text.trim().isNotEmpty;
     return !_saving && hasTitle && energy != null && energy > 0;
   }
@@ -84,9 +123,7 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     if (!_canSubmit) return;
     setState(() => _saving = true);
 
-    final usesKj = context.read<EnergyUnitProvider>().usesKilojoules;
-    final enteredEnergy = _parsed(_energyController)!;
-    final kcal = usesKj ? UnitCalc.kjToKcal(enteredEnergy) : enteredEnergy;
+    final kcal = _energyKcal!;
     final carbs = _parsed(_carbsController);
     final fat = _parsed(_fatController);
     final protein = _parsed(_proteinController);
@@ -204,7 +241,7 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final usesKj = context.watch<EnergyUnitProvider>().usesKilojoules;
+    final usesKj = _inputUsesKj!;
     final s = S.of(context);
 
     return Padding(
@@ -241,6 +278,30 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
                   : s.quickAddEnergyLabelKcal,
               isRequired: true,
               numeric: true,
+              suffixIcon: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Semantics(
+                  label: s.settingsEnergyUnitLabel,
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<bool>(
+                      key: const ValueKey('quick-add-energy-unit'),
+                      value: usesKj,
+                      items: [
+                        DropdownMenuItem(
+                          value: false,
+                          child: Text(s.kcalLabel),
+                        ),
+                        DropdownMenuItem(value: true, child: Text(s.kjLabel)),
+                      ],
+                      onChanged: _saving
+                          ? null
+                          : (value) {
+                              if (value != null) _selectEnergyUnit(value);
+                            },
+                    ),
+                  ),
+                ),
+              ),
             ),
             _field(
               controller: _carbsController,
@@ -290,6 +351,7 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     required bool isRequired,
     required bool numeric,
     bool autofocus = false,
+    Widget? suffixIcon,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -306,6 +368,7 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
               : null,
           decoration: InputDecoration(
             labelText: isRequired ? '$label *' : label,
+            suffixIcon: suffixIcon,
             border: const OutlineInputBorder(),
           ),
         ),

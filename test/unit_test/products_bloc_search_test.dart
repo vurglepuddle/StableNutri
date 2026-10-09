@@ -6,7 +6,10 @@ import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/search_debounce.dart';
+
+import '../fixture/meal_entity_fixtures.dart';
 
 /// Controllable fake: each search call returns a future the test completes
 /// explicitly, so in-flight cancellation by the restartable transformer can
@@ -14,17 +17,28 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/search_debo
 class _FakeSearchProductsUseCase implements SearchProductsUseCase {
   final List<Completer<SearchProductsResult>> calls = [];
   final List<String> queries = [];
+  SearchProductsResult local = const SearchProductsResult(
+    meals: [],
+    remoteSourceEmpty: false,
+  );
 
   @override
   Future<SearchProductsResult> searchOFFProductsByString(
     String searchString, {
     bool skipRemote = false,
   }) {
+    if (skipRemote) return Future.value(local);
     queries.add(searchString);
     final completer = Completer<SearchProductsResult>();
     calls.add(completer);
     return completer.future;
   }
+
+  @override
+  Future<SearchProductsResult> searchFDCFoodByString(
+    String searchString, {
+    bool skipRemote = false,
+  }) => searchOFFProductsByString(searchString, skipRemote: skipRemote);
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
@@ -52,6 +66,26 @@ Future<void> _settleDebounce() async {
 }
 
 void main() {
+  test(
+    'Food search exposes local matches before the network answers',
+    () async {
+      final useCase = _FakeSearchProductsUseCase();
+      final meal = MealEntityFixtures.mealOne;
+      useCase.local = SearchProductsResult(
+        meals: [meal],
+        remoteSourceEmpty: false,
+      );
+      final bloc = FoodBloc(useCase, _FakeGetConfigUsecase());
+      final local = bloc.stream.firstWhere((state) => state is FoodLoadedState);
+      bloc.add(const LoadFoodEvent(searchString: 'apple'));
+      expect((await local as FoodLoadedState).food, [meal]);
+      await Future<void>.delayed(Duration.zero);
+      expect(useCase.calls.single.isCompleted, isFalse);
+      useCase.calls.single.complete(_emptyResult);
+      await bloc.close();
+    },
+  );
+
   group('ProductsBloc search dedup', () {
     late _FakeSearchProductsUseCase useCase;
     late ProductsBloc bloc;
@@ -62,6 +96,22 @@ void main() {
     });
 
     tearDown(() => bloc.close());
+
+    test('local matches are usable before the network answers', () async {
+      final meal = MealEntityFixtures.mealOne;
+      useCase.local = SearchProductsResult(
+        meals: [meal],
+        remoteSourceEmpty: false,
+      );
+      final local = bloc.stream.firstWhere(
+        (state) => state is ProductsLoadedState,
+      );
+      bloc.add(const LoadProductsEvent(searchString: 'apple'));
+      expect((await local as ProductsLoadedState).products, [meal]);
+      await Future<void>.delayed(Duration.zero);
+      expect(useCase.calls.single.isCompleted, isFalse);
+      useCase.calls.single.complete(_emptyResult);
+    });
 
     test('a duplicate debounced event while the first search is in flight '
         'still produces results (regression: the duplicate cancelled the '

@@ -504,9 +504,15 @@ void main() {
     expect(find.text('28 days', findRichText: true), findsOneWidget);
     expect(find.text('4 days', findRichText: true), findsOneWidget);
     expect(find.text(l10nEn.cycleUnusualLeftOut(1)), findsOneWidget);
+    final counts = l10nEn.cycleObservationCounts(
+      repo.data.countedCycles.length,
+      repo.data.periodLengths.length.clamp(0, 6),
+    );
+    expect(find.text(counts), findsNothing);
     await tester.tap(find.byTooltip(l10nEn.cycleAveragesInfo));
     await tester.pumpAndSettle();
     expect(find.text(l10nEn.cycleBasedOn), findsOneWidget);
+    expect(find.text(counts), findsOneWidget);
     await tester.tap(find.text(l10nEn.dialogOKLabel));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);

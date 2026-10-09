@@ -6,10 +6,16 @@ abstract class RecentMealEvent extends Equatable {
 
 class LoadRecentMealEvent extends RecentMealEvent {
   final String searchString;
+  final IntakeTypeEntity? intakeType;
+  final DateTime? day;
 
   /// an empty `searchString` will load all RecentMeal
-  const LoadRecentMealEvent({required this.searchString});
+  const LoadRecentMealEvent({
+    required this.searchString,
+    this.intakeType,
+    this.day,
+  });
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [searchString, intakeType, day];
 }

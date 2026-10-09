@@ -167,6 +167,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
   /// re-display the same underlying energy in the new unit. `null` until
   /// the first build seeds the field.
   bool? _lastRenderedUsesKj;
+  bool? _energyUnitOverride;
 
   // #64 follow-up: user-attached photo for a custom meal. Mirrors
   // _mealEntity.localImagePath but is held separately so the picker
@@ -290,7 +291,8 @@ class _EditMealScreenState extends State<EditMealScreen> {
   Widget build(BuildContext context) {
     // Watch the energy-unit provider so the form reacts when the user
     // flips between kcal and kJ in Settings while this screen is open.
-    final usesKj = context.watch<EnergyUnitProvider>().usesKilojoules;
+    final preferredKj = context.watch<EnergyUnitProvider>().usesKilojoules;
+    final usesKj = _energyUnitOverride ?? preferredKj;
     _maybeReinterpretKcalField(usesKj);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
@@ -420,6 +422,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
     String? suffix,
     String? helper,
     String? identifier,
+    Widget? suffixIcon,
   }) {
     // A pre-filled form points at the main values its source lacked.
     final missing =
@@ -433,6 +436,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
       decoration: InputDecoration(
         labelText: label,
         suffixText: suffix,
+        suffixIcon: suffixIcon,
         helperText: missing ? S.of(context).customFoodMissingValue : helper,
         helperMaxLines: 3,
         helperStyle: missing ? TextStyle(color: highlight) : null,
@@ -630,6 +634,29 @@ class _EditMealScreenState extends State<EditMealScreen> {
           _kcal,
           '${s.mealEnergyLabel} ($energyUnit)',
           identifier: 'edit-meal-energy',
+          suffixIcon: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Semantics(
+              label: s.settingsEnergyUnitLabel,
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<bool>(
+                  key: const ValueKey('edit-meal-energy-unit'),
+                  value: usesKj,
+                  items: [
+                    DropdownMenuItem(value: false, child: Text(s.kcalLabel)),
+                    DropdownMenuItem(value: true, child: Text(s.kjLabel)),
+                  ],
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      _energyUnitOverride = value;
+                      _maybeReinterpretKcalField(value);
+                    });
+                  },
+                ),
+              ),
+            ),
+          ),
         ),
         _numberField(_carbs, s.mealCarbsLabel, suffix: s.gramUnit),
         _numberField(_fat, s.mealFatLabel, suffix: s.gramUnit),
@@ -729,10 +756,9 @@ class _EditMealScreenState extends State<EditMealScreen> {
       // The energy field is in the user's unit (#177 follow-up); storage is
       // kcal. A blank main value means none: plenty of foods have no fat or
       // no carbs, and a blank must not block logging the food later.
-      final usesKj = Provider.of<EnergyUnitProvider>(
-        context,
-        listen: false,
-      ).usesKilojoules;
+      final usesKj =
+          _energyUnitOverride ??
+          context.read<EnergyUnitProvider>().usesKilojoules;
       final energy = per100(_kcal) ?? 0;
       final kcal = usesKj ? UnitCalc.kjToKcal(energy) : energy;
       final carbs = per100(_carbs) ?? 0;

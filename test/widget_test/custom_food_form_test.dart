@@ -59,6 +59,7 @@ void main() {
     bool newFood = false,
     bool snapshotOnly = false,
     String? prefilledFrom,
+    bool prefersKj = false,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -66,7 +67,7 @@ void main() {
     saved = _Saved();
     result = null;
     final bloc = EditMealBloc(_GetConfig(), saved);
-    final energy = EnergyUnitProvider();
+    final energy = EnergyUnitProvider(usesKilojoules: prefersKj);
     locator.registerFactory<EditMealBloc>(() => bloc);
     addTearDown(() async {
       await locator.reset();
@@ -120,6 +121,60 @@ void main() {
     await tester.tap(find.text(l10nEn.buttonSaveLabel));
     await tester.pumpAndSettle();
   }
+
+  Future<void> selectEnergyUnit(WidgetTester tester, bool kj) async {
+    final selector = find.byKey(const ValueKey('edit-meal-energy-unit'));
+    await tester.ensureVisible(selector);
+    await tester.tap(selector);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(kj ? l10nEn.kjLabel : l10nEn.kcalLabel).last);
+    await tester.pumpAndSettle();
+  }
+
+  for (final prefersKj in [false, true]) {
+    testWidgets('energy entry overrides preference $prefersKj and saves kcal', (
+      tester,
+    ) async {
+      await pumpForm(tester, prefersKj: prefersKj);
+      await tester.enterText(field(l10nEn.mealNameLabel), 'Label food');
+      await selectEnergyUnit(tester, !prefersKj);
+      final unit = !prefersKj ? l10nEn.kjLabel : l10nEn.kcalLabel;
+      await tester.enterText(
+        field('${l10nEn.mealEnergyLabel} ($unit)'),
+        !prefersKj ? '1046' : '250',
+      );
+      await tester.enterText(field(l10nEn.mealCarbsLabel), '30');
+      await tester.enterText(field(l10nEn.mealFatLabel), '10');
+      await tester.enterText(field(l10nEn.mealProteinLabel), '10');
+      final context = tester.element(find.byType(EditMealScreen));
+      expect(context.read<EnergyUnitProvider>().usesKilojoules, prefersKj);
+      await save(tester);
+      expect(result!.nutriments.energyKcal100, closeTo(250, 1e-10));
+      expect(saved.meals.single.nutriments.energyKcal100, closeTo(250, 1e-10));
+    });
+  }
+
+  testWidgets('switching energy units and serving basis preserves precision', (
+    tester,
+  ) async {
+    await pumpForm(tester);
+    await tester.enterText(field(l10nEn.mealNameLabel), 'Soup');
+    await tester.enterText(field(l10nEn.customFoodServingSizeLabel), '200');
+    await tester.enterText(
+      field('${l10nEn.mealEnergyLabel} (${l10nEn.kcalLabel})'),
+      '12.34',
+    );
+    await tester.enterText(field(l10nEn.mealCarbsLabel), '3.08');
+    await selectEnergyUnit(tester, true);
+    await tester.tap(find.text(l10nEn.customFoodPerServing));
+    await tester.pumpAndSettle();
+    await selectEnergyUnit(tester, false);
+    final energy = field('${l10nEn.mealEnergyLabel} (${l10nEn.kcalLabel})');
+    expect(tester.widget<TextField>(energy).controller!.text, '24.68');
+    await selectEnergyUnit(tester, true);
+    await save(tester);
+    expect(result!.nutriments.energyKcal100, closeTo(12.34, 1e-10));
+  });
 
   testWidgets('a new food saves its serving and per-100 values', (
     tester,

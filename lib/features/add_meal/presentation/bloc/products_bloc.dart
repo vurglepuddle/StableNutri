@@ -34,32 +34,9 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       (event, emit) => _loadProducts(event.searchString, emit),
       transformer: debounceRestartable(searchDebounceDuration),
     );
-    on<RefreshProductsEvent>((event, emit) async {
-      if (_searchString.trim().isEmpty) {
-        _completedQuery = null;
-        emit(ProductsInitial());
-        return;
-      }
-      emit(ProductsLoadingState());
-      try {
-        final result = await _searchProductUseCase.searchOFFProductsByString(
-          _searchString,
-        );
-        if (emit.isDone) return;
-        emit(
-          ProductsLoadedState(
-            products: result.meals,
-            remoteSourceEmpty: result.remoteSourceEmpty,
-            query: _searchString,
-          ),
-        );
-        _completedQuery = _searchString;
-      } catch (error) {
-        log.severe(error);
-        _completedQuery = null;
-        emit(ProductsFailedState());
-      }
-    });
+    on<RefreshProductsEvent>(
+      (event, emit) => _loadProducts(_searchString, emit, force: true),
+    );
   }
 
   /// Shared search routine for the immediate and debounced events.
@@ -98,10 +75,24 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       emit(ProductsLoadingState());
     }
     try {
+      final config = await _getConfigUsecase.getConfig();
+      final local = await _searchProductUseCase.searchOFFProductsByString(
+        searchString,
+        skipRemote: true,
+      );
+      if (emit.isDone) return;
+      if (local.meals.isNotEmpty) {
+        emit(
+          ProductsLoadedState(
+            products: local.meals,
+            usesImperialUnits: config.usesImperialFoodUnits,
+            query: searchString,
+          ),
+        );
+      }
       final result = await _searchProductUseCase.searchOFFProductsByString(
         searchString,
       );
-      final config = await _getConfigUsecase.getConfig();
       // Cancelled by a newer debounced event while awaiting: the emit below
       // would be a no-op, so this run must not register as completed.
       if (emit.isDone) return;

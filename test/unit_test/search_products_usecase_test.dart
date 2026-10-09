@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
@@ -15,6 +17,9 @@ import 'package:opennutritracker/features/add_meal/data/repository/products_repo
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/lifesum_import/lifesum_food_parser.dart';
+
+import '../fixture/lifesum_food_copies_fixture.dart';
 
 class _FakeProductsRepository implements ProductsRepository {
   final Map<String, List<MealEntity>> offResults = {};
@@ -54,7 +59,11 @@ class _FakeGetIntakeUsecase implements GetIntakeUsecase {
   int recentIntakeCallCount = 0;
 
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async {
+  Future<List<IntakeEntity>> getRecentIntake({
+    IntakeTypeEntity? preferredType,
+    DateTime? referenceDay,
+    int dayStartOffsetMinutes = 0,
+  }) async {
     recentIntakeCallCount++;
     return recentIntake;
   }
@@ -213,6 +222,165 @@ void main() {
         getConfigUsecase,
       );
     });
+
+    test(
+      'saved remote foods stay searchable with no cache or network',
+      () async {
+        final meal = _meal(
+          code: '4000000000000',
+          name: 'Bread',
+          source: MealSourceEntity.off,
+        );
+        customMealDataSource.meals.add(MealDBO.fromMealEntity(meal));
+        productsRepository.offThrowOn.add('bread');
+        final local = await useCase.searchOFFProductsByString(
+          'bread',
+          skipRemote: true,
+        );
+        final offline = await useCase.searchOFFProductsByString('bread');
+        expect(local.meals.map((m) => m.code), [meal.code]);
+        expect(offline.meals.map((m) => m.code), [meal.code]);
+        expect(cachedOffMealDataSource.meals, isEmpty);
+      },
+    );
+
+    test(
+      'Lifesum portion copies show once in both searches without changing history',
+      () async {
+        final imported = LifesumFoodParser.parse(
+          lifesumFoodCopiesCsv(),
+        ).intakes;
+        expect(imported.map((i) => i.meal.code).toSet(), hasLength(10));
+        final originalMeals = jsonEncode(
+          imported.map((i) => MealDBO.fromMealEntity(i.meal)).toList(),
+        );
+        getIntakeUsecase.recentIntake = imported.reversed.toList();
+        // Also cover saved imported copies alongside their diary snapshots.
+        customMealDataSource.meals.addAll([
+          MealDBO.fromMealEntity(imported.last.meal),
+          MealDBO.fromMealEntity(imported.first.meal),
+        ]);
+
+        final off = await useCase.searchOFFProductsByString('nectarine');
+        final fdc = await useCase.searchFDCFoodByString('nectarine');
+        final local = await useCase.searchOFFProductsByString(
+          'nectarine',
+          skipRemote: true,
+        );
+
+        for (final result in [off, fdc, local]) {
+          expect(result.meals, [imported.last.meal]);
+        }
+        expect(customMealDataSource.meals, hasLength(2));
+        expect(getIntakeUsecase.recentIntake, hasLength(10));
+        expect(
+          jsonEncode(
+            imported.map((i) => MealDBO.fromMealEntity(i.meal)).toList(),
+          ),
+          originalMeals,
+        );
+      },
+    );
+
+    test(
+      'Lifesum foods with real nutrition differences remain separate',
+      () async {
+        final imported = LifesumFoodParser.parse(
+          lifesumFoodCopiesCsv(),
+        ).intakes;
+        final original = MealDBO.fromMealEntity(imported.first.meal);
+        final sodium = original.nutriments.sodium100!;
+        customMealDataSource.meals.addAll([
+          original,
+          MealDBO.fromJson({
+            ...original.toJson(),
+            'code': 'lifesum-meal-different-minerals',
+            'nutriments': {
+              ...original.nutriments.toJson(),
+              'sodium100': sodium + 0.01,
+            },
+          }),
+          MealDBO.fromJson({
+            ...original.toJson(),
+            'code': 'lifesum-meal-different-energy',
+            'nutriments': {
+              ...original.nutriments.toJson(),
+              'energyKcal100': 51.21,
+            },
+          }),
+        ]);
+
+        final result = await useCase.searchOFFProductsByString('nectarine');
+
+        expect(result.meals, hasLength(3));
+      },
+    );
+
+    test(
+      'Lifesum brand, unit and missing nutrient differences remain separate',
+      () async {
+        final original = MealDBO.fromMealEntity(
+          LifesumFoodParser.parse(lifesumFoodCopiesCsv()).intakes.first.meal,
+        );
+        customMealDataSource.meals.add(original);
+        final variations = <Map<String, dynamic>>[
+          {'brands': 'Grower'},
+          {'mealUnit': 'ml'},
+          {
+            'nutriments': {...original.nutriments.toJson(), 'sodium100': null},
+          },
+          {
+            'nutriments': {...original.nutriments.toJson(), 'sodium100': 0.0},
+          },
+          {'mealQuantity': '250'},
+        ];
+        for (var i = 0; i < variations.length; i++) {
+          customMealDataSource.meals.add(
+            MealDBO.fromJson({
+              ...original.toJson(),
+              'nutriments': original.nutriments.toJson(),
+              ...variations[i],
+              'code': 'lifesum-meal-variant-$i',
+            }),
+          );
+        }
+
+        final result = await useCase.searchOFFProductsByString('nectarine');
+
+        expect(result.meals, hasLength(6));
+      },
+    );
+
+    test(
+      'serving-based imports and ordinary custom portions stay distinct',
+      () async {
+        final original = MealDBO.fromMealEntity(
+          LifesumFoodParser.parse(lifesumFoodCopiesCsv()).intakes.first.meal,
+        );
+        for (final (code, unit, quantity, size) in [
+          ('lifesum-meal-bowl', 'serving', 1.0, 'bowl'),
+          ('lifesum-meal-cup', 'serving', 1.0, 'cup'),
+          ('custom-small', 'g', 100.0, 'small'),
+          ('custom-large', 'g', 200.0, 'large'),
+        ]) {
+          customMealDataSource.meals.add(
+            MealDBO.fromJson({
+              ...original.toJson(),
+              'nutriments': original.nutriments.toJson(),
+              'code': code,
+              'mealUnit': unit,
+              'servingQuantity': quantity,
+              'servingUnit': unit,
+              'servingSize': size,
+            }),
+          );
+        }
+
+        final result = await useCase.searchOFFProductsByString('nectarine');
+
+        expect(result.meals, hasLength(4));
+      },
+    );
 
     test(
       'equivalent custom copies collapse without deleting stored foods',

@@ -315,6 +315,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      customMealDataSource: locator(),
     ),
   );
   locator.registerFactory<ScannerBloc>(

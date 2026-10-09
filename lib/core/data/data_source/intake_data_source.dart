@@ -118,7 +118,12 @@ class IntakeDataSource {
   ///
   /// A food counts once by its code (or name), and once by what it is: the
   /// Lifesum import gives every logged copy of the same food its own code.
-  Future<List<IntakeDBO>> getRecentlyAddedIntake({int number = 100000}) async {
+  Future<List<IntakeDBO>> getRecentlyAddedIntake({
+    int number = 100000,
+    IntakeTypeDBO? preferredType,
+    DateTime? referenceDay,
+    int dayStartOffsetMinutes = 0,
+  }) async {
     // Newest first; entries on the same moment (day labels) keep the order
     // they were logged in, latest first.
     final intakeList = _intakeBox.values.toList().indexed.toList()
@@ -126,6 +131,34 @@ class IntakeDataSource {
         final byTime = b.$2.dateTime.compareTo(a.$2.dateTime);
         return byTime != 0 ? byTime : b.$1.compareTo(a.$1);
       });
+
+    if (preferredType != null && referenceDay != null) {
+      final end = DateTime(
+        referenceDay.year,
+        referenceDay.month,
+        referenceDay.day,
+      );
+      final start = DateTime(end.year, end.month, end.day - 13);
+      bool preferred(IntakeDBO intake) {
+        final day = DayBoundaryCalc.logicalDayOfEntry(
+          intake.dateTime,
+          dayStartOffsetMinutes,
+        );
+        return intake.type == preferredType &&
+            !day.isBefore(start) &&
+            !day.isAfter(end);
+      }
+
+      // Partition before deduplicating: the same food may have been logged
+      // more recently in a different slot. Keep both groups newest first.
+      final ordered = [
+        ...intakeList.where((entry) => preferred(entry.$2)),
+        ...intakeList.where((entry) => !preferred(entry.$2)),
+      ];
+      intakeList
+        ..clear()
+        ..addAll(ordered);
+    }
 
     final seen = <String>{};
     final uniqueIntake = <IntakeDBO>[];
@@ -146,13 +179,19 @@ class IntakeDataSource {
   /// Equal for copies of one food: same source, name, brand, serving and
   /// nutrition. Barcode products remain identified by their own source/code.
   /// Null for a nameless food, which cannot be told apart from another.
+  /// Gram-backed Lifesum copies can describe different household portions of
+  /// the same food. Compare their per-100-g nutrition, allowing only conversion
+  /// noise, without making those portions part of the food's identity.
   static String? sameFoodKey(MealDBO meal) {
     String text(String? value) =>
         (value ?? '').trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
-    String number(double? value) => value?.toStringAsFixed(1) ?? '-';
     if (text(meal.name).isEmpty || meal.source != MealSourceDBO.custom) {
       return null;
     }
+    final isLifesum = meal.code?.startsWith('lifesum-meal-') ?? false;
+    final hasLifesumGramBasis = isLifesum && text(meal.mealUnit) == 'g';
+    String number(double? value) =>
+        value?.toStringAsFixed(isLifesum ? 6 : 1) ?? '-';
     final n = meal.nutriments;
     return [
       'food',
@@ -160,15 +199,15 @@ class IntakeDataSource {
       text(meal.name),
       text(meal.brands),
       text(meal.mealUnit),
-      number(meal.servingQuantity),
-      text(meal.servingUnit),
+      if (!hasLifesumGramBasis) number(meal.servingQuantity),
+      if (!hasLifesumGramBasis) text(meal.servingUnit),
       number(n.energyKcal100),
       number(n.carbohydrates100),
       number(n.fat100),
       number(n.proteins100),
       // Do not collapse foods with different extended nutrition or pack sizes.
       text(meal.mealQuantity),
-      text(meal.servingSize),
+      if (!hasLifesumGramBasis) text(meal.servingSize),
       ...n
           .toJson()
           .entries
@@ -180,7 +219,10 @@ class IntakeDataSource {
               'proteins100',
             }.contains(e.key),
           )
-          .map((e) => '${e.key}:${e.value}'),
+          .map(
+            (e) =>
+                '${e.key}:${isLifesum ? number(e.value as double?) : e.value}',
+          ),
     ].join('\u001f');
   }
 
